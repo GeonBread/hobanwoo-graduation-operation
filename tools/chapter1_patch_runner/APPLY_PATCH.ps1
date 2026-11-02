@@ -151,7 +151,7 @@ function Get-RelativePathIfInside([string]$ParentPath, [string]$ChildPath) {
     return Normalize-RelativePath $childFull.Substring($parentFull.Length)
 }
 
-# ZIP Patch Runner v9: preserve a local npm lockfile and commit npm-generated lock changes.
+# ZIP Patch Runner v9.1: preserve a local npm lockfile and commit npm-generated lock changes.
 function Get-PatchWorkingTreeStatus([string]$SelectedZipRelativePath) {
     # Do not Trim() the porcelain output: its first two spaces encode Git status.
     $lines = @(& git status --porcelain=v1 --untracked-files=all)
@@ -437,6 +437,7 @@ try {
     Write-Host "Project : $repositoryRoot"
     Write-Host "Branch  : $branchName"
     Write-Host "Baseline: $baselineCommit"
+    Write-Host "Runner  : v9.1 (lockfile preservation)"
 
     $selectedZipRelativePath = Get-RelativePathIfInside -ParentPath $repositoryRoot -ChildPath $ZipPath
     $statusLines = @(Get-PatchWorkingTreeStatus -SelectedZipRelativePath $selectedZipRelativePath)
