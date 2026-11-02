@@ -1,5 +1,5 @@
 import type {Engine} from './engine';
-import {sprite} from './resources';
+import {sprite,cinematicPlayer,drawBattleMap} from './resources';
 import {drawHpBar,HP_BAR_WIDTH} from './hpBar';
 import {clamp,smooth,BASE_FIELD_W as W,BASE_FIELD_H as H} from './core';
 export const AWAKEN_SECONDS=12,AWAKEN_REVEAL=5.2;
@@ -8,7 +8,7 @@ export function drawAwakening(e:Engine,c:CanvasRenderingContext2D,t:number){
  const fullW=e.canvas.width,fullH=e.canvas.height,p=awakeningPose(t),burst=Math.max(0,t-AWAKEN_REVEAL),dark=1-smooth((t-5.4)/3);
  c.fillStyle=`rgba(2,1,9,${.78*dark})`;c.fillRect(-fullW/2,-fullH/2,fullW,fullH);
  // The arena breaks into radial glass plates: use the real background inside each shard.
- if(t>4.2&&t<8.6){const k=smooth((t-4.2)/3.7);for(let i=0;i<12;i++){const a=i*Math.PI/6,b=a+Math.PI/6,drift=k*(80+i%3*40);c.save();c.translate(Math.cos(a+.25)*drift,Math.sin(a+.25)*drift*.6);c.globalAlpha=(1-smooth((t-6.2)/2.4))*.65;c.beginPath();c.moveTo(0,-140);c.lineTo(Math.cos(a)*1000,-140+Math.sin(a)*1000);c.lineTo(Math.cos(b)*1000,-140+Math.sin(b)*1000);c.closePath();c.clip();sprite(c,'bg',0,0,W,H);c.strokeStyle='#c8a3ef';c.lineWidth=2;c.stroke();c.restore();}}
+ if(t>4.2&&t<8.6){const k=smooth((t-4.2)/3.7);for(let i=0;i<12;i++){const a=i*Math.PI/6,b=a+Math.PI/6,drift=k*(80+i%3*40);c.save();c.translate(Math.cos(a+.25)*drift,Math.sin(a+.25)*drift*.6);c.globalAlpha=(1-smooth((t-6.2)/2.4))*.65;c.beginPath();c.moveTo(0,-140);c.lineTo(Math.cos(a)*1000,-140+Math.sin(a)*1000);c.lineTo(Math.cos(b)*1000,-140+Math.sin(b)*1000);c.closePath();c.clip();drawBattleMap(e,c,W,H);c.strokeStyle='#c8a3ef';c.lineWidth=2;c.stroke();c.restore();}}
  const shake=t>=AWAKEN_REVEAL?10*Math.exp(-burst*1.6):t>3?Math.min(2,(t-3)*.9):0;
  c.save();c.translate(Math.sin(t*101)*shake,Math.cos(t*129)*shake*.6);
  // Falling remnants reverse their velocity and spiral into the extinguished core.
@@ -31,6 +31,6 @@ export function drawAwakening(e:Engine,c:CanvasRenderingContext2D,t:number){
  // Restrained letterboxing and a title that vanishes before the fourth-wall dialogue.
  const bars=1-smooth((t-10)/2);c.fillStyle='#020109ee';c.fillRect(-fullW/2,-fullH/2,fullW,52*bars);c.fillRect(-fullW/2,fullH/2-52*bars,fullW,52*bars);
  if(t>6.2&&t<10.7){c.save();c.globalAlpha=smooth((t-6.2)/.6)*(1-smooth((t-9.8)/.9));c.textAlign='center';c.font='24px "Degreeon Black Han"';c.fillStyle='#d4b4ed';c.fillText('규칙의 지배자',0,195);c.font='46px "Degreeon Black Han"';c.fillStyle='#ffe9b8';c.fillText('각성 디그리온',0,253);c.restore();}
- c.save();c.translate(0,-H/2+62);c.scale(Math.min(1,(W-36)/HP_BAR_WIDTH),1);drawHpBar(c,p.hp,1);c.restore();sprite(c,'player',0,404,137,137);
+ c.save();c.translate(0,-H/2+62);c.scale(Math.min(1,(W-36)/HP_BAR_WIDTH),1);drawHpBar(c,p.hp,1);c.restore();cinematicPlayer(e,c,0,404);
  if(t>=AWAKEN_REVEAL&&burst<.24){c.fillStyle=`rgba(255,239,219,${.26*(1-burst/.24)})`;c.fillRect(-fullW/2,-fullH/2,fullW,fullH);}
 }

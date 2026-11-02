@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-01",
+  "source_mapping_rows": 446,
+  "matched_by_chapter": {
+    "1": 165,
+    "2": 152,
+    "3": 129
+  },
+  "missing_mapping_rows": [],
+  "png_files": 25,
+  "full_body_files": 24,
+  "portrait_files": 1,
+  "used_full_body_files": 22,
+  "excluded_from_full_body_dialogue": [
+    "P05",
+    "P14",
+    "P25"
+  ],
+  "new_story_tests_passed": 10,
+  "full_regression_tests_with_stable_native_weapon_clock": 240,
+  "browser_rendered_lines": 446,
+  "browser_overlay_chapters": [
+    2,
+    3
+  ],
+  "browser_page_errors": [],
+  "new_artwork_http_errors": [],
+  "typecheck": "passed",
+  "production_build": "passed",
+  "placement": {
+    "alpha_threshold": 64,
+    "foot_band_fraction": 0.07,
+    "png_reencoding": false,
+    "aspect_ratio_preserved": true
+  },
+  "original_png_sha256": {
+    "hobanwoo_pose_angry_frown_hands_on_hips_steam_puffs.png": "2de827be9e8c0bf5097286998e5834565e6641808c71dd7a028e3a26dc445493",
+    "hobanwoo_pose_determined_closed_mouth_staggered_fists_battle_ready.png": "29d201d95c90a07faf9dae56914dd150abc1ac68da3090eb34fd919e07572538",
+    "hobanwoo_pose_confident_slight_smile_one_hand_on_hip_other_arm_extended.png": "1af47034142c4f73afba996f22e194543badbabc91306129a015c61971a6a014",
+    "hobanwoo_pose_determined_frown_both_fists_raised_wide_combat_stance.png": "ead68f17a6470162e2b4b1ea403d49da243e95bdb0518084b96ac58a289ace3c",
+    "hobanwoo_pose_sobbing_eyes_closed_mouth_open_hands_on_cheeks_kneeling_tears.png": "8ac430738d634e4f28aede4b7374ce31d0d1bec30fe7527b23ed8e9bcfc4a00e",
+    "hobanwoo_pose_dejected_drooping_brows_frown_slumped_shoulders_arms_down.png": "71ce69be0c023772049cf33f2e79ed07c17971d823ef80da427fc0c752cfce14",
+    "hobanwoo_pose_serious_mouth_open_one_hand_on_hip_index_finger_raised_explaining.png": "a32c730ecd53ac886a611acc31bf6621c7b76b3797dbd8e0d4941684b4e1c2e5",
+    "hobanwoo_pose_excited_star_eyes_open_smile_hands_under_chin_sparkles.png": "52d67e5d1bbfdf4ef056356c5445932bba9e79acbaa8929e9a0c7d429d6de377",
+    "hobanwoo_pose_playful_wink_asymmetric_smile_one_hand_on_hip_index_finger_raised.png": "fbbed46cb5626d18a87f02986fe814625e82b79a7592a6be04dbb80a9635f7d9",
+    "hobanwoo_pose_gloomy_drooping_brows_frown_arms_down_feet_apart.png": "0c8a1b0bdfe18cce92583a7e6ffc1e45c45ea03376c5695b560c2231af2898fe",
+    "hobanwoo_pose_joyful_eyes_closed_open_smile_one_arm_raised_greeting.png": "d385e6e44de0115c41c6e10d4b42371e64c4a9100300df44b50cf092f2071549",
+    "hobanwoo_pose_stern_furrowed_brows_short_straight_mouth_arms_down.png": "370ba9894016a29976a20fa635b583706fed886cf4c306dae1fe0186913741de",
+    "hobanwoo_pose_serious_mouth_open_one_hand_on_hip_index_finger_raised_presenting.png": "d33a3df922f5c3cedcd3572b8730b90e56b4c338405945b932f396244595a3d6",
+    "hobanwoo_pose_sobbing_eyes_closed_mouth_open_hands_on_cheeks_kneeling_tears_v2.png": "c7686c2701804715664d6ff506cd1c7f61f5f5c70c0c7901e15cb4bdb82de38a",
+    "hobanwoo_pose_shocked_wide_eyes_open_mouth_palms_beside_face_exclamation.png": "82e9a73f800dd73080328607992ea5813e5040c5127d7f3cdbf17aca29973256",
+    "hobanwoo_pose_shy_drooping_brows_wavy_mouth_hands_clasped_in_front_feet_together_blush.png": "0bfd3c5c2bbda142b1107564c969762a41a9755e0f6c42a73ed51d828ae9f247",
+    "hobanwoo_pose_dispirited_downcast_eyes_frown_slumped_shoulders_arms_down_feet_apart.png": "f98b1458c045be2edced9d272a5a6802d5434ee79a3851a3f9d9c48db02d9e88",
+    "hobanwoo_pose_flustered_raised_brows_slightly_open_mouth_palms_forward_sweat_drop.png": "92b70d259185330110797c85e89a239e84e01e9f2d392c700f104e77a94f3732",
+    "hobanwoo_pose_thoughtful_furrowed_brows_frown_one_hand_on_chin_other_on_hip.png": "cc843ceb2aebe0111519f1e01718eca602aa0d5bda8958b64de4de08bc0ce4d8",
+    "hobanwoo_pose_anxious_drooping_brows_wavy_mouth_hands_under_chin_sweat_drop.png": "18669176434e6f827965bcb1d71952b8574d8ef5355b39be257e419250a164f2",
+    "hobanwoo_pose_wary_furrowed_brows_frown_leaning_body_clenched_fists_wide_stance.png": "eb4f0bb58a8cd76a38b1f8b0b694a90b7c87484dcece815191c1a3f5ade1d576",
+    "hobanwoo_pose_friendly_eyes_open_smile_one_hand_on_hip_other_hand_waving_motion_lines.png": "04a40680bb5f0a0775cb5a4640bca0d9e3fac869a8eb9f9dae0514edfa58d091",
+    "hobanwoo_pose_confident_wink_smile_both_hands_on_hips.png": "337f0db7db48dbc56a0af30ddf40101b6c09e46b9e3a61871c42baf8b6efb9b4",
+    "hobanwoo_pose_worried_drooping_brows_frown_one_fist_at_chest_other_arm_down.png": "df03f3d7480e72ecb743b913ea27311144d0d4a031a6f1192c34f928f02676e8",
+    "hobanwoo_portrait_eyes_open_soft_smile_hands_on_hips.png": "712b7e4c7b32bc2e33cce7ffb4d8f80bb6de77ddc703dfeeae53be5d85e3e5df"
+  },
+  "test_clock_note": "The pre-existing science-gun clone-count test depends on performance.now() within a 1.0 s firing / 0.2 s rest cycle. The full regression command uses the supplied test-only clock preload; application weapon code is unchanged."
+}
