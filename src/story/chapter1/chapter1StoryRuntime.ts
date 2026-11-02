@@ -1,5 +1,7 @@
 import { chapter1StoryDocument as part1Document } from "./chapter1StoryPart1Document";
 import { chapter1StoryDocument as part2Document } from "./chapter1StoryPart2Document";
+import prologueRuntime from "./prologue/prologueRuntime.js?raw";
+import { upgradePrologueRuntime } from "./prologue/upgradePrologueRuntime";
 import hobanwooDialogueArtRuntime from "../hobanwooDialogueArtRuntime.js?raw";
 import {
   createChapter1StoryEmbeddedAssets,
@@ -521,8 +523,8 @@ function normalizeStoryRuntimeScript(source: string, part: Chapter1StoryPart): s
       ];
       const orderedSegmentIds = orderedFlowSegments.map(([, segmentId]) => segmentId);
       const detailedPreviewPoints = {
-        'detail-p1-corruption': { segment: 'prologue', text: '하지만 어느 날,' },
-        'detail-p1-fragment-chaos': { segment: 'prologue', text: '출석 확인은 끝없는 추적으로,' },
+        'detail-p1-corruption': { segment: 'prologue', text: '하지만 어느 날.' },
+        'detail-p1-fragment-chaos': { segment: 'prologue', text: '그리고 그 영향은, 마침내 현실의 학교에도 나타나기 시작했다.' },
         'detail-p1-admission': { segment: 'prologue', previewStyle: 'admission-hold-fit' },
         'detail-p1-hobanwoo-intro': { segment: 'prologue', text: '아무것도 모르는 한 신입생 역시,' },
         'detail-p1-notice-repeat': { segment: 'notice', text: '알림을 확인할 때까지 반복 전송합니다!' },
@@ -631,7 +633,7 @@ function normalizeStoryRuntimeScript(source: string, part: Chapter1StoryPart): s
       throw new Error('Chapter 1 Part 1 preview debug hook was not found.');
     }
     normalized = normalized.replace(part1DebugPreviewHook, part1FlowPreviewHook);
-    return normalized;
+    return upgradePrologueRuntime(normalized);
   }
 
   const bossTransitionHook = `if (storyCompletionAction === 'startBossBattle') {
@@ -3320,6 +3322,7 @@ export function createChapter1StoryRuntime({
 
   try {
     executeScript(hobanwooDialogueArtRuntime);
+    if (part === 1) executeScript(prologueRuntime);
     for (const bootstrapScript of storyDocument.bootstrapScripts) executeScript(bootstrapScript);
     executeScript(normalizeStoryRuntimeScript(storyDocument.runtimeScript, part));
   } catch (error) {
