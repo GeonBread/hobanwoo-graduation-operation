@@ -1,5 +1,6 @@
 import { chapter1StoryDocument as part1Document } from "./chapter1StoryPart1Document";
 import { chapter1StoryDocument as part2Document } from "./chapter1StoryPart2Document";
+import hobanwooDialogueArtRuntime from "../hobanwooDialogueArtRuntime.js?raw";
 import {
   createChapter1StoryEmbeddedAssets,
   rewriteChapter1StoryAssetReferences,
@@ -43,6 +44,10 @@ function normalizeStoryMarkup(markup: string): string {
 
 function normalizeStoryRuntimeScript(source: string, part: Chapter1StoryPart): string {
   let normalized = source;
+  const visibleActorHook = `    actor.setAttribute('aria-hidden', 'false');`;
+  if (!normalized.includes(visibleActorHook)) throw new Error('Chapter 1 actor artwork hook was not found.');
+  normalized = normalized.replace(visibleActorHook, `${visibleActorHook}
+    window.HobanwooDialogueArt.layout(image, source);`);
 
   // 연출 종료 뒤 일반 대사가 이어질 때 대사 레이어가 숨김 상태로 남아
   // Space를 한 번 눌러야 다음 내용이 보이는 현상을 방지한다.
@@ -70,6 +75,7 @@ function normalizeStoryRuntimeScript(source: string, part: Chapter1StoryPart): s
     currentDialogues = storySegments[segmentId];`;
   const beginStoryBgmBaseUpgrade = `    currentSegmentId = segmentId;
     currentDialogues = storySegments[segmentId];
+    window.HobanwooDialogueArt.prepare(storySegments, 1, ${part});
     if (!String(segmentId).startsWith('__selected')) {
       window.__CHAPTER1_STORY_BGM_BASE_STATE__ = '';
     }`;
@@ -3313,6 +3319,7 @@ export function createChapter1StoryRuntime({
   };
 
   try {
+    executeScript(hobanwooDialogueArtRuntime);
     for (const bootstrapScript of storyDocument.bootstrapScripts) executeScript(bootstrapScript);
     executeScript(normalizeStoryRuntimeScript(storyDocument.runtimeScript, part));
   } catch (error) {
