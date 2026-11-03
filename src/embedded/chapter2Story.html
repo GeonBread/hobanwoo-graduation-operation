@@ -16505,6 +16505,46 @@ function runCustomEffect(item) {
 </script>
 
 <link rel="stylesheet" href="/assets/common/story/narrator-dialogue.css" />
+<!-- V6: Chapter 3 story dialogue + illustration ratio parity. -->
+<style id="chapter2-chapter3-story-ratios-v6">
+html.chapter1-output-parity .dialogue-layer:not(.is-global-dialogue):not(.is-narrator-dialogue) {
+  left: 3.5% !important;
+  right: 3.5% !important;
+  bottom: 4.5% !important;
+}
+html.chapter1-output-parity .dialogue-box {
+  display: flex !important;
+  align-items: center !important;
+  min-height: clamp(142px, 18vw, 202px) !important;
+  padding: clamp(30px, 3vw, 38px) clamp(26px, 3vw, 42px) !important;
+}
+html.chapter1-output-parity .dialogue-copy {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  column-gap: clamp(12px, 1.8vw, 20px) !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+html.chapter1-output-parity .dialogue-text {
+  min-width: 0 !important;
+  width: 100% !important;
+  font-size: clamp(18px, 2.3vw, 31px) !important;
+  font-weight: 800 !important;
+  line-height: 1.48 !important;
+}
+html.chapter1-output-parity .story-stage.is-full-story:not(.is-game-mode) .story-illustration:not(.is-scene) {
+  left: 50% !important;
+  top: 38% !important;
+  width: min(48%, 520px) !important;
+  height: min(46%, 440px) !important;
+  aspect-ratio: auto !important;
+}
+html.chapter1-output-parity .story-stage.is-full-story:not(.is-game-mode) .story-illustration:not(.is-scene) img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+</style>
 
 </body>
 </html>

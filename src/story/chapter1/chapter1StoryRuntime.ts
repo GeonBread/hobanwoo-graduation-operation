@@ -2749,39 +2749,119 @@ html.is-embedded-story .story-stage.is-opening-cinematic {
   transform: none !important;
 }
 
-/* dialogue stays proportionally fixed inside 922x960 */
-html.is-embedded-story .dialogue-layer {
-  left: 32px !important;
-  right: 32px !important;
-  bottom: 43px !important;
+/* V6: Chapter 1 matches the *rendered* Chapter 3 story composition.
+   Both chapters already use a 922 x 960 logical stage. Avoid the old 174px
+   box / 26px text / portrait-column sizing that made CH1 visually different.
+   The narrator panel and boss-specific colors are preserved separately. */
+html.is-embedded-story .dialogue-layer:not(.is-global-dialogue):not(.is-narrator-dialogue) {
+  left: 3.5% !important;
+  right: 3.5% !important;
+  bottom: 4.5% !important;
 }
 html.is-embedded-story .dialogue-box {
-  min-height: 174px !important;
-  padding: 30px 38px !important;
+  position: relative;
+  display: flex !important;
+  align-items: center !important;
+  min-height: clamp(142px, 18vw, 202px) !important;
+  gap: 0 !important;
+  padding-top: clamp(30px, 3vw, 38px) !important;
+  padding-bottom: clamp(30px, 3vw, 38px) !important;
+  padding-left: clamp(26px, 3vw, 42px) !important;
+  padding-right: clamp(26px, 3vw, 42px) !important;
+}
+html.is-embedded-story .dialogue-box .portrait-frame,
+html.is-embedded-story .dialogue-box .story-status,
+html.is-embedded-story .dialogue-box .dialogue-progress {
+  display: none !important;
 }
 html.is-embedded-story .dialogue-copy,
 html.is-embedded-story .dialogue-layer.speaker-right .dialogue-copy {
-  column-gap: 16px !important;
+  display: grid !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  column-gap: clamp(12px, 1.8vw, 20px) !important;
+  row-gap: 0 !important;
+  align-items: center !important;
+  align-content: center !important;
 }
-html.is-embedded-story .dialogue-marker { font-size: 32px !important; }
+html.is-embedded-story .dialogue-marker {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: clamp(24px, 3vw, 38px) !important;
+}
 html.is-embedded-story .dialogue-text {
-  font-size: 26px !important;
-  line-height: 1.46 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding-right: 0 !important;
+  font-family: "Noto Sans KR", system-ui, sans-serif !important;
+  font-size: clamp(18px, 2.3vw, 31px) !important;
+  font-weight: 800 !important;
+  line-height: 1.48 !important;
+  letter-spacing: -.025em !important;
+  word-break: keep-all !important;
+  white-space: pre-line !important;
 }
 html.is-embedded-story .speaker-tag {
   left: 34px !important;
   top: -31px !important;
   min-width: 176px !important;
   padding: 8px 20px !important;
-  font-size: 16px !important;
+  font-size: clamp(13px, 1.5vw, 18px) !important;
 }
 html.is-embedded-story .dialogue-layer.speaker-right .speaker-tag {
   left: auto !important;
   right: 34px !important;
 }
+html.is-embedded-story .continue-indicator {
+  right: 28px !important;
+  bottom: 18px !important;
+  font-size: 22px !important;
+}
 html.is-embedded-story .dialogue-layer.is-common-monster-dialogue .dialogue-marker::before,
 html.is-embedded-story .dialogue-layer.is-gatekeeper-boss-dialogue .dialogue-marker::before {
-  font-size: 32px !important;
+  font-size: clamp(24px, 3vw, 38px) !important;
+}
+/* Match Chapter 3's ordinary full-body artwork slot. The Hobanwoo, card,
+   monster and boss slots below intentionally retain their dedicated tuning. */
+html.is-embedded-story .story-stage.is-full-story:not(.is-game-mode)
+.actor:not([data-character="hobanwoo"]):not([data-character="student_card"]):not([data-character^="monster_"]):not([data-character^="gatekeeper"]) .actor-image {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+}
+/* Match Chapter 3's regular central illustration frame while preserving
+   dedicated full-scene / immersive cinematic artwork and its animation. */
+html.is-embedded-story .story-stage.is-full-story:not(.is-game-mode)
+.story-illustration:not(.is-scene) {
+  z-index: 12 !important;
+  left: 50% !important;
+  top: 38% !important;
+  width: min(48%, 520px) !important;
+  height: min(46%, 440px) !important;
+  aspect-ratio: auto !important;
+  transform: translate(-50%, -50%) scale(.92);
+}
+html.is-embedded-story .story-stage.is-full-story:not(.is-game-mode)
+.story-illustration:not(.is-scene).is-visible {
+  transform: translate(-50%, -50%) scale(1);
+}
+html.is-embedded-story .story-stage.is-full-story:not(.is-game-mode)
+.story-illustration:not(.is-scene).is-hiding {
+  transform: translate(-50%, calc(-50% + 22px)) scale(.975);
+}
+html.is-embedded-story .story-stage.is-full-story:not(.is-game-mode)
+.story-illustration:not(.is-scene) img {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
 }
 
 /* Hobanwoo returns to the previous FIX42 visual size. */
