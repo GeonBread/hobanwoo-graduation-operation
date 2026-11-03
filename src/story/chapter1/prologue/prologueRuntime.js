@@ -1,6 +1,7 @@
 (() => {
   'use strict';
-  const W=922,H=960,clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),ease=t=>{t=clamp(t);return t*t*(3-2*t);};
+  let W=922,H=960;
+  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),ease=t=>{t=clamp(t);return t*t*(3-2*t);};
   let seed=240601;const rnd=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
   const FOCUS={x:.51,y:.245},BUILDING_CAMERA={zoom:1,x:.5,y:5/7},SKY_CAMERA={zoom:1,x:.5,y:2/7};
   const lerp=(a,b,t)=>a+(b-a)*t;
@@ -36,27 +37,17 @@
       line('library-error','도서관에서는 학생증 인증 오류로 출입문이 열리지 않아, 학생들이 입구에서 발길을 멈춰야 했다.'),
       line('navigation-error','강의동의 길 안내는 엉뚱한 방향을 가리켰고, 학생들은 강의실을 찾지 못한 채 복도를 헤맸다.'),
       line('notification-error','휴대전화에는 공지사항이 쉴 새 없이 쏟아져, 정작 필요한 안내를 찾기조차 어려워졌다.'),
-      line('notification-error','그러나 대부분의 학생들은 그것을 단순한 시스템 오류로 여길 뿐이었다.'),fx('reality-out',1000),...old.slice(i)];
+      line('notification-error','그러나 대부분의 학생들은 그것을 단순한 시스템 오류로 여길 뿐이었다.'),fx('reality-out',1000),...v7AdmissionTail(old.slice(i))];
   }
   function mount(target){
     stage=target;
-    if(!style?.isConnected){style=document.createElement('style');style.textContent=`
-      .prologue-v2-layer{position:absolute;inset:0;z-index:200;pointer-events:none;background:#000;overflow:hidden;container-type:inline-size}
-      .prologue-v2-layer canvas{display:block;width:100%;height:100%}
-      .has-prologue-v2 #dialogueLayer{z-index:250!important}
-      .has-prologue-v2 #dialogueBox{background:linear-gradient(180deg,#080b12fa,#020409fc)!important}
-      .has-prologue-v2 #dialogueText,.has-prologue-v2 #words{color:#fff!important;font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif!important;font-size:clamp(19px,3.15cqw,30px)!important;font-weight:800!important;line-height:1.6!important;letter-spacing:-.015em!important;text-shadow:0 2px 3px #000!important}
-      .has-prologue-v2 #speakerTag{color:#fff!important;text-shadow:0 2px 3px #000!important;background:linear-gradient(#454b58,#242a36)!important}
-      .has-prologue-v2 #sceneLocation,.has-prologue-v2 #sceneChapter,.has-prologue-v2 #sceneTitle,.has-prologue-v2 #sceneSubtitle{visibility:hidden!important}
-      .prologue-v2-title{position:absolute;left:5%;right:5%;top:40%;padding:24px 12px;text-align:center;color:#fff8e3;font-family:"Noto Sans KR","Malgun Gothic",sans-serif;font-size:clamp(30px,6.1cqw,60px);font-weight:900;line-height:1.35;letter-spacing:.12em;background:linear-gradient(90deg,transparent,#030711ed 17%,#030711ed 83%,transparent);text-shadow:0 3px 3px #000,0 0 4px #000;opacity:0}
-      .prologue-v2-title::before,.prologue-v2-title::after{content:"";position:absolute;left:16%;right:16%;height:1px;background:linear-gradient(90deg,transparent,#e5c47b,transparent)}
-      .prologue-v2-title::before{top:0}.prologue-v2-title::after{bottom:0}
-    `;style.textContent += "\n/* CH1_CORE_V5_STYLE */\n@font-face{font-family:CoreTitleSerif;src:url('/assets/chapter1/story/prologue/core-title-serif.woff') format('woff');font-style:normal;font-weight:500;font-display:swap}\n.is-core-v5 .prologue-v2-layer::after{content:\"\";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 40%,rgba(13,12,10,.06) 53%,rgba(10,14,18,.58) 80%,rgba(7,12,17,.84) 100%)}\n.prologue-v2-title{left:8%!important;right:8%!important;top:auto!important;bottom:14%!important;z-index:2;padding:0!important;border:0!important;background:none!important;text-align:left!important;font-weight:500!important;letter-spacing:normal!important;text-shadow:none!important;line-height:1.4!important}\n.prologue-v2-title::before,.prologue-v2-title::after{display:none!important}\n.core-v5-kicker{display:flex;align-items:center;gap:12px;color:#e6c185;font:500 clamp(11px,1.45cqw,14px)/1.4 CoreTitleSerif,\"Batang\",serif;letter-spacing:.24em}\n.core-v5-mark{width:32px;height:32px;flex:none;filter:drop-shadow(0 0 7px #c59b5655)}\n.core-v5-main{display:block;margin:12px 0 22px;font-family:CoreTitleSerif,\"Noto Serif KR\",\"Batang\",serif;font-size:clamp(34px,6.7cqw,64px);font-style:normal;font-weight:500;line-height:1.35;letter-spacing:.14em;color:#fff2cf;text-shadow:0 2px 20px #05080b66}\n.core-v5-rule{display:block;position:relative;width:min(330px,80%);height:1px;transform-origin:left;background:linear-gradient(90deg,#e5c380dd,#d1ac5f66 60%,transparent)}\n.core-v5-rule::before{content:\"\";position:absolute;left:0;top:-2px;width:5px;height:5px;transform:rotate(45deg);background:#e5c380}\n.core-v5-caption{display:block;margin-top:16px;color:#e6dec9;font:400 clamp(12px,1.65cqw,16px)/1.8 CoreTitleSerif,\"Batang\",serif;letter-spacing:.09em}\n.prologue-v2-layer[data-beat=\"core-title\"] .core-v5-kicker{animation:coreV5TextIn 1s .1s both}\n.prologue-v2-layer[data-beat=\"core-title\"] .core-v5-main{animation:coreV5TextIn 1.5s .25s both}\n.prologue-v2-layer[data-beat=\"core-title\"] .core-v5-rule{animation:coreV5LineIn 1.3s .5s both}\n.prologue-v2-layer[data-beat=\"core-title\"] .core-v5-caption{animation:coreV5TextIn 1.2s .7s both}\n@keyframes coreV5TextIn{from{opacity:0;transform:translateY(12px);filter:blur(3px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}\n@keyframes coreV5LineIn{from{opacity:0;transform:scaleX(.15)}to{opacity:1;transform:scaleX(1)}}\n.has-prologue-v2.is-core-v5 #dialogueBox{border:1px solid #bfa46b99!important;border-radius:3px!important;background:linear-gradient(135deg,#10191ff7,#081219f5)!important;box-shadow:0 0 0 1px #04080bab,inset 0 1px 0 #fff8df12,0 18px 48px #0005!important;padding:30px 36px!important;min-height:164px!important}\n.has-prologue-v2.is-core-v5 #dialogueBox::before,.has-prologue-v2.is-core-v5 #dialogueBox::after{display:none!important}\n.has-prologue-v2.is-core-v5 #speakerTag{left:26px!important;top:-13px!important;min-width:0!important;padding:3px 15px!important;border:1px solid #bfa46b99!important;border-radius:1px!important;background:#111b22!important;box-shadow:none!important;color:#e2c88d!important;font-size:12px!important;line-height:1.5!important;font-weight:500!important;letter-spacing:.16em!important;text-shadow:none!important}\n.has-prologue-v2.is-core-v5 #dialogueText,.has-prologue-v2.is-core-v5 #words{color:#f3f0e5!important;font-size:clamp(19px,2.95cqw,28px)!important;font-weight:500!important;line-height:1.7!important;letter-spacing:.015em!important;text-shadow:0 1px 2px #0006!important}\n.has-prologue-v2.is-core-v5 .dialogue-marker{color:#d5b878!important;font-size:20px!important;text-shadow:none!important}\n.has-prologue-v2.is-core-v5 .continue-indicator{color:#d5b878!important;font-size:14px!important;text-shadow:none!important}\n@media(prefers-reduced-motion:reduce){.core-v5-kicker,.core-v5-main,.core-v5-rule,.core-v5-caption{animation:none!important}}\n";stage.appendChild(style);}
+    if(!style?.isConnected){style=document.createElement('style');style.textContent="\n      .prologue-v2-layer{position:absolute;inset:0;z-index:200;pointer-events:none;background:#000;overflow:hidden;container-type:inline-size}\n      .prologue-v2-layer canvas{display:block;width:100%;height:100%}\n      .has-prologue-v2 #dialogueLayer{z-index:250!important}\n      .has-prologue-v2 #sceneLocation,.has-prologue-v2 #sceneChapter,.has-prologue-v2 #sceneTitle,.has-prologue-v2 #sceneSubtitle{visibility:hidden!important}\n      .prologue-v2-title{position:absolute;left:5%;right:5%;top:40%;padding:24px 12px;text-align:center;color:#fff8e3;font-family:\"Noto Sans KR\",\"Malgun Gothic\",sans-serif;font-size:clamp(30px,6.1cqw,60px);font-weight:900;line-height:1.35;letter-spacing:.12em;background:linear-gradient(90deg,transparent,#030711ed 17%,#030711ed 83%,transparent);text-shadow:0 3px 3px #000,0 0 4px #000;opacity:0}\n      .prologue-v2-title::before,.prologue-v2-title::after{content:\"\";position:absolute;left:16%;right:16%;height:1px;background:linear-gradient(90deg,transparent,#e5c47b,transparent)}\n      .prologue-v2-title::before{top:0}.prologue-v2-title::after{bottom:0}\n    ";style.textContent += "\n/* CH1_CORE_V5_STYLE */\n@font-face{font-family:CoreTitleSerif;src:url('/assets/chapter1/story/prologue/core-title-serif.woff') format('woff');font-style:normal;font-weight:500;font-display:swap}\n.is-core-v5 .prologue-v2-layer::after{content:\"\";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 40%,rgba(13,12,10,.06) 53%,rgba(10,14,18,.58) 80%,rgba(7,12,17,.84) 100%)}\n.prologue-v2-title{left:8%!important;right:8%!important;top:auto!important;bottom:14%!important;z-index:2;padding:0!important;border:0!important;background:none!important;text-align:left!important;font-weight:500!important;letter-spacing:normal!important;text-shadow:none!important;line-height:1.4!important}\n.prologue-v2-title::before,.prologue-v2-title::after{display:none!important}\n.core-v5-kicker{display:flex;align-items:center;gap:12px;color:#e6c185;font:500 clamp(11px,1.45cqw,14px)/1.4 CoreTitleSerif,\"Batang\",serif;letter-spacing:.24em}\n.core-v5-mark{width:32px;height:32px;flex:none;filter:drop-shadow(0 0 7px #c59b5655)}\n.core-v5-main{display:block;margin:12px 0 22px;font-family:CoreTitleSerif,\"Noto Serif KR\",\"Batang\",serif;font-size:clamp(34px,6.7cqw,64px);font-style:normal;font-weight:500;line-height:1.35;letter-spacing:.14em;color:#fff2cf;text-shadow:0 2px 20px #05080b66}\n.core-v5-rule{display:block;position:relative;width:min(330px,80%);height:1px;transform-origin:left;background:linear-gradient(90deg,#e5c380dd,#d1ac5f66 60%,transparent)}\n.core-v5-rule::before{content:\"\";position:absolute;left:0;top:-2px;width:5px;height:5px;transform:rotate(45deg);background:#e5c380}\n.core-v5-caption{display:block;margin-top:16px;color:#e6dec9;font:400 clamp(12px,1.65cqw,16px)/1.8 CoreTitleSerif,\"Batang\",serif;letter-spacing:.09em}\n.prologue-v2-layer[data-beat=\"core-title\"] .core-v5-kicker{animation:coreV5TextIn 1s .1s both}\n.prologue-v2-layer[data-beat=\"core-title\"] .core-v5-main{animation:coreV5TextIn 1.5s .25s both}\n.prologue-v2-layer[data-beat=\"core-title\"] .core-v5-rule{animation:coreV5LineIn 1.3s .5s both}\n.prologue-v2-layer[data-beat=\"core-title\"] .core-v5-caption{animation:coreV5TextIn 1.2s .7s both}\n@keyframes coreV5TextIn{from{opacity:0;transform:translateY(12px);filter:blur(3px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}\n@keyframes coreV5LineIn{from{opacity:0;transform:scaleX(.15)}to{opacity:1;transform:scaleX(1)}}\n@media(prefers-reduced-motion:reduce){.core-v5-kicker,.core-v5-main,.core-v5-rule,.core-v5-caption{animation:none!important}}\n";stage.appendChild(style);}
     if(!layer?.isConnected){layer=document.createElement('div');layer.className='prologue-v2-layer';layer.setAttribute('aria-hidden','true');canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;ctx=canvas.getContext('2d',{alpha:false});title=document.createElement('div');title.className='prologue-v2-title';title.innerHTML="<span class=\"core-v5-kicker\"><svg class=\"core-v5-mark\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><circle cx=\"20\" cy=\"20\" r=\"15\" fill=\"none\" stroke=\"currentColor\" stroke-width=\".65\"/><ellipse cx=\"20\" cy=\"20\" rx=\"18\" ry=\"6.5\" transform=\"rotate(-30 20 20)\" fill=\"none\" stroke=\"currentColor\" stroke-width=\".65\"/><path d=\"M20 11L22 18L29 20L22 22L20 29L18 22L11 20L18 18Z\" fill=\"currentColor\"/></svg><span>별빛이 모이는 중심</span></span><span class=\"core-v5-main\">첨성대 코어</span><span class=\"core-v5-rule\" aria-hidden=\"true\"></span><span class=\"core-v5-caption\">학사의 흐름을 잇는 성소</span>";layer.append(canvas,title);stage.appendChild(layer);}
     layer.hidden=false;stage.classList.add('has-prologue-v2');
   }
   function present(item,target){
     if(!item?.prologueV2){clear();return;}mount(target);const now=performance.now(),next=item.prologueV2;
+    v7SyncPresentation(next,item);
     stage.classList.toggle('is-core-v5',['core-reveal','core-title','orbits','connections','seed','growth','burst','fracture','shatter'].includes(next));
     if(mode!==next){
       beginRealityCG(next,now);
@@ -71,7 +62,7 @@
     }
     title.style.opacity='0';if(raf===null){lastFrame=now;raf=requestAnimationFrame(tick);}
   }
-  function clear(){resetRealityCG();if(raf!==null)cancelAnimationFrame(raf);raf=null;if(layer)layer.hidden=true;stage?.classList.remove('has-prologue-v2','is-core-v5');mode='';snapshot=null;fragments=[];camera={...BUILDING_CAMERA};}
+  function clear(){v7ResetPresentation();resetRealityCG();if(raf!==null)cancelAnimationFrame(raf);raf=null;if(layer)layer.hidden=true;stage?.classList.remove('has-prologue-v2','is-core-v5');mode='';snapshot=null;fragments=[];camera={...BUILDING_CAMERA};}
   function cover(image,zoom=1,pan=0,alpha=1){if(!image.complete||!image.naturalWidth)return;const s=Math.max(W/image.naturalWidth,H/image.naturalHeight)*zoom,w=image.naturalWidth*s,h=image.naturalHeight*s;ctx.save();ctx.globalAlpha*=alpha;ctx.drawImage(image,(W-w)/2,(H-h)/2+pan,w,h);ctx.restore();}
   function drawCore(alpha=1,wobble=0,t=0){
     if(!core.complete||!core.naturalWidth)return;
@@ -124,7 +115,7 @@
   function orbits(t,connect){for(let i=0;i<nodes.length;i++){const [nx,ny]=nodes[i],a=ease((t-i*.5)/.7),x=nx*W,y=ny*H;if(a<=0)continue;ctx.save();ctx.globalAlpha=a*.8;ctx.strokeStyle=i%2?'#9dd9ff':'#ffe5a3';ctx.lineWidth=1.5;ctx.setLineDash([8,8]);ctx.lineDashOffset=-t*18;ctx.beginPath();ctx.ellipse(x,y,55,20,(i%2?1:-1)*.25,0,Math.PI*2);ctx.stroke();ctx.restore();glow(x,y,38,i%2?'127,199,255':'255,214,124',a*.45);if(connect){ctx.strokeStyle=`rgba(255,225,158,${a*.35})`;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(W*.5,y-80,W*.5,H*.4);ctx.stroke();const p=(t*.25+i*.17)%1;glow(x+(W*.5-x)*p,y+(H*.4-y)*p,10,'255,236,172',.9);}}}
   function orb(t,grow){const r=grow?28+ease(t/3.2)*80:6+ease(t/1.4)*20,x=W*.54,y=H*.4;glow(x,y,r*2.2,'131,38,249',.8);ctx.save();ctx.fillStyle='#160623';ctx.strokeStyle='#b970ff';ctx.lineWidth=2+Math.sin(t*7);ctx.beginPath();ctx.arc(x,y,r*(1+.04*Math.sin(t*8)),0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle='#e8afff';for(let j=0;j<3;j++){ctx.beginPath();ctx.ellipse(x,y,r*(1.1+j*.1),r*.3,t*(j%2?1:-1)+j,0,Math.PI*2);ctx.stroke();}ctx.restore();}
   function gas(t,strength=1){for(let i=0;i<10;i++)glow(W*.5+Math.sin(i*2.3+t*.8)*W*.48,H*.43+Math.cos(i*1.7+t*.55)*H*.42,230+i%3*65,i%2?'97,24,185':'162,44,216',(.14+.04*Math.sin(t+i))*strength);ctx.fillStyle=`rgba(64,9,107,${.36*strength})`;ctx.fillRect(0,0,W,H);}
-  function drawCracks(t){const p=Math.floor(clamp(t/4)*10)/10;ctx.save();ctx.lineCap='round';for(const c of cracks){const count=Math.floor(clamp((p-c.delay)*1.2)*(c.points.length-1));if(count<1)continue;for(const [color,width] of [['rgba(0,0,0,.92)',7],['rgba(220,177,255,.8)',1.5]]){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(c.points[0].x,c.points[0].y);for(let j=1;j<=count;j++)ctx.lineTo(c.points[j].x,c.points[j].y);ctx.stroke();}if(count<c.points.length-1)glow(c.points[count].x,c.points[count].y,11,'210,151,255',.7);}ctx.restore();}
+  function drawCracks(t){const p=Math.floor(clamp(t/4)*10)/10;ctx.save();ctx.scale(W/922,H/960);ctx.lineCap='round';for(const c of cracks){const count=Math.floor(clamp((p-c.delay)*1.2)*(c.points.length-1));if(count<1)continue;for(const [color,width] of [['rgba(0,0,0,.92)',7],['rgba(220,177,255,.8)',1.5]]){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(c.points[0].x,c.points[0].y);for(let j=1;j<=count;j++)ctx.lineTo(c.points[j].x,c.points[j].y);ctx.stroke();}if(count<c.points.length-1)glow(c.points[count].x,c.points[count].y,11,'210,151,255',.7);}ctx.restore();}
   function makeFragments(){
     snapshot=document.createElement('canvas');snapshot.width=W;snapshot.height=H;snapshot.getContext('2d').drawImage(canvas,0,0);fragments=[];const grid=[];
     for(let y=0;y<=9;y++){grid[y]=[];for(let x=0;x<=8;x++)grid[y][x]={x:x*W/8+(x>0&&x<8?(rnd()-.5)*45:0),y:y*H/9+(y>0&&y<9?(rnd()-.5)*45:0)};}
@@ -161,6 +152,74 @@
     ctx.save();ctx.globalAlpha=p;ctx.drawImage(transition.frame,0,0);ctx.restore();
     if(p===1)transition.from=null;
   }
+  // CH1_PRESENTATION_FULLSCREEN_V7
+  const v7CoreModes=new Set(['core-reveal','core-title','orbits','connections','seed','growth','burst','fracture','shatter']);
+  let v7FullscreenState=null,v7Style=null,v7OriginalTitleHTML=null,v7ResizeObserver=null;
+  function v7AdmissionTail(tail){
+    if(!tail.length||tail[0]?.scene?.id!=='prologue-entrance-day')throw Error('Original admission scene missing.');
+    return [{...tail[0],prologueV2:'admission-v7',effectDuration:10000,previewStyle:'admission-hold-fit',holdBlackAfter:false},...tail.slice(1)];
+  }
+  function v7EnsureStyle(){
+    if(v7Style?.isConnected)return;
+    v7Style=document.createElement('style');v7Style.textContent="\n.prologue-v7-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;z-index:2147481000!important;background:#000;isolation:isolate;pointer-events:auto;overflow:hidden}\n.prologue-v7-fullscreen .prologue-v2-layer{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;pointer-events:none}\n.prologue-v7-fullscreen .prologue-v2-layer canvas{width:100%!important;height:100%!important;display:block}\n.prologue-v7-fullscreen .prologue-v2-layer::after{content:\"\";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 40%,rgba(13,12,10,.06) 53%,rgba(10,14,18,.58) 80%,rgba(7,12,17,.84))}\n.prologue-v7-fullscreen #dialogueLayer{position:absolute!important;z-index:300!important;left:50%!important;right:auto!important;bottom:var(--v7-dialogue-bottom,43px)!important;width:858px!important;transform:translateX(-50%) scale(var(--v7-dialogue-scale,1))!important;transform-origin:50% 100%!important;pointer-events:auto}\n.prologue-v7-fullscreen .core-v5-main{font-size:clamp(42px,5.2cqw,104px)}\n.prologue-v7-fullscreen .core-v5-kicker{font-size:clamp(12px,1.05cqw,18px)}\n.prologue-v7-fullscreen .core-v5-caption{font-size:clamp(14px,1.15cqw,20px)}\n#storyStage.is-v7-admission .scene-background{transition:none!important;animation:none!important}\n#storyStage.is-v7-admission .scene-background:not(.is-visible){opacity:0!important}\n#storyStage.is-v7-admission .scene-background.is-visible{opacity:1!important}\n.prologue-v2-layer[data-v7-admission=\"true\"]::after{content:\"\";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 43%,rgba(9,12,16,.04) 55%,rgba(9,12,16,.64));opacity:0;transition:opacity 1.2s}\n.prologue-v2-layer[data-v7-admission-title=\"true\"]::after{opacity:1}\n.prologue-v2-layer[data-v7-admission-title=\"true\"] .core-v5-kicker{animation:coreV5TextIn 1s .1s both}\n.prologue-v2-layer[data-v7-admission-title=\"true\"] .core-v5-main{animation:coreV5TextIn 1.5s .25s both}\n.prologue-v2-layer[data-v7-admission-title=\"true\"] .core-v5-rule{animation:coreV5LineIn 1.3s .5s both}\n.prologue-v2-layer[data-v7-admission-title=\"true\"] .core-v5-caption{animation:coreV5TextIn 1.2s .7s both}\n";stage.appendChild(v7Style);
+  }
+  function v7ResizeFullscreen(){
+    if(!v7FullscreenState)return;
+    const width=Math.max(1,Math.round(window.innerWidth)),height=Math.max(1,Math.round(window.innerHeight));
+    W=width;H=height;
+    if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);}
+    const scale=Math.min(1,width/922,height/960);
+    v7FullscreenState.host.style.setProperty('--v7-dialogue-scale',String(scale));
+    v7FullscreenState.host.style.setProperty('--v7-dialogue-bottom',String(43*scale)+'px');
+  }
+  function v7EnterFullscreen(){
+    if(v7FullscreenState){v7ResizeFullscreen();return;}
+    const dialogue=document.getElementById('dialogueLayer');if(!dialogue)throw Error('The original narrator window was not found.');
+    const layerMark=document.createComment('prologue V7 layer'),dialogueMark=document.createComment('prologue V7 dialogue');
+    layer.parentNode.insertBefore(layerMark,layer);dialogue.parentNode.insertBefore(dialogueMark,dialogue);
+    const host=document.createElement('div');host.className='prologue-v7-fullscreen';host.setAttribute('role','presentation');
+    v7FullscreenState={host,dialogue,layerMark,dialogueMark};
+    document.body.appendChild(host);host.append(layer,dialogue);
+    host.addEventListener('click',event=>{if(!v7FullscreenState||dialogue.contains(event.target))return;stage.dispatchEvent(new MouseEvent('click',{bubbles:true}));});
+    v7ResizeFullscreen();
+    v7ResizeObserver=new MutationObserver(()=>{if(v7FullscreenState&&!stage?.isConnected)v7LeaveFullscreen();});
+    v7ResizeObserver.observe(document.body,{childList:true,subtree:true});
+  }
+  function v7LeaveFullscreen(){
+    if(!v7FullscreenState)return;
+    v7ResizeObserver?.disconnect();v7ResizeObserver=null;
+    const state=v7FullscreenState;v7FullscreenState=null;
+    if(state.layerMark.parentNode)state.layerMark.replaceWith(layer);else layer.remove();
+    if(state.dialogueMark.parentNode)state.dialogueMark.replaceWith(state.dialogue);else state.dialogue.remove();
+    state.host.remove();W=922;H=960;canvas.width=W;canvas.height=H;ctx=canvas.getContext('2d',{alpha:false});
+    snapshot=null;fragments=[];
+  }
+  function v7SyncPresentation(next,item){
+    v7EnsureStyle();if(v7OriginalTitleHTML===null)v7OriginalTitleHTML=title.innerHTML;
+    if(v7CoreModes.has(next))v7EnterFullscreen();else v7LeaveFullscreen();
+    const admission=next==='admission-v7';
+    stage.classList.toggle('is-v7-admission',admission);
+    layer.dataset.v7Admission=String(admission);layer.dataset.v7AdmissionTitle='false';
+    const html=admission?"<span class=\"core-v5-kicker\"><svg class=\"core-v5-mark\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><circle cx=\"20\" cy=\"20\" r=\"15\" fill=\"none\" stroke=\"currentColor\" stroke-width=\".65\"/><path d=\"M20 10L22 18L30 20L22 22L20 30L18 22L10 20L18 18Z\" fill=\"currentColor\"/></svg><span>새로운 시작</span></span><span class=\"core-v5-main\">입학식</span><span class=\"core-v5-rule\" aria-hidden=\"true\"></span><span class=\"core-v5-caption\">처음의 설렘이 시작되는 날</span>":v7OriginalTitleHTML;if(title.innerHTML!==html)title.innerHTML=html;
+    canvas.style.opacity='1';layer.style.background=admission?'transparent':'#000';
+    if(admission){ctx.globalAlpha=1;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);}
+  }
+  function v7DrawAdmission(t){
+    ctx.globalAlpha=1;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    canvas.style.opacity=String(1-ease((t-.3)/5));
+    const u=t-5.4,active=u>=0;
+    if(layer.dataset.v7AdmissionTitle!==String(active))layer.dataset.v7AdmissionTitle=String(active);
+    const alpha=active?ease(u/.9)*ease((4.4-u)/1.1):0;
+    title.style.opacity=String(alpha);title.style.transform='translateY('+((1-alpha)*10)+'px)';
+  }
+  function v7ResetPresentation(){
+    v7LeaveFullscreen();
+    stage?.classList.remove('is-v7-admission');
+    if(canvas)canvas.style.opacity='1';
+    if(layer){layer.style.background='#000';layer.dataset.v7Admission='false';layer.dataset.v7AdmissionTitle='false';}
+    if(title&&v7OriginalTitleHTML!==null)title.innerHTML=v7OriginalTitleHTML;
+  }
+  window.addEventListener('resize',v7ResizeFullscreen,{passive:true});
   function draw(now){
     const t=Math.max(0,(now-start)/1000);ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
     if(mode==='awakening'){drawCampus(BUILDING_CAMERA,ease((t-.65)/2.7));glow(W*.51,H*.4,5+Math.sin(Math.min(t,1)*Math.PI)*60,'255,235,188',clamp(1-t/2));}
@@ -174,9 +233,10 @@
       if(mode==='orbits'||mode==='connections')orbits(t,mode==='connections');if(mode==='seed'||mode==='growth')orb(t,mode==='growth');
       if(mode==='burst'){const p=clamp(t/1.8);gas(t,ease(p*3));glow(W*.54,H*.4,50+ease(p)*1300,'161,58,255',.9*(1-p));}if(mode==='fracture'){gas(t+2);drawCracks(t);}ctx.restore();
     }else if(mode==='shatter')shatter(t);
+    else if(mode==='admission-v7')v7DrawAdmission(t);
     else if(realityCGImages[mode])drawRealityCGFrame(now);
     else if(mode==='reality-out'&&realityCGTransition){drawRealityCGFrame(now);ctx.fillStyle='rgba(0,0,0,'+ease(t)+')';ctx.fillRect(0,0,W,H);}
-    else if(['reality-return','reality','errors','reality-out'].includes(mode)){cover(campus,1.03,0,mode==='reality-return'?ease(t/2.2):mode==='reality-out'?1-ease(t):1);/* V6 illustrations replace the temporary error panels. */}
+    else if(['reality-return','reality','errors','reality-out'].includes(mode)){/* V7 reality-return, narrator12 and empty exit fallback stay black. *//* V6 illustrations replace the temporary error panels. */}
   }
   function tick(now){raf=null;if(!mode||!layer?.isConnected){clear();return;}if(now-lastFrame>=30){draw(now);lastFrame=now;}raf=requestAnimationFrame(tick);}
   window.Chapter1PrologueV2={rewrite,present,clear,assets:{campus:campus.src,core:core.src}};
