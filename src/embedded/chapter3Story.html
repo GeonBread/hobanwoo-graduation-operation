@@ -6806,6 +6806,7 @@ window.STORY_CUSTOM_EFFECTS['graduation-portal-static-zoom'] = ({layer}) => {
 
     document.documentElement.style.setProperty('--speaker-accent', accent);
     el.speakerTag.textContent = item.speakerName || speaker.name || speakerId;
+    el.dialogueLayer.classList.toggle('is-narrator-dialogue', speakerId === 'narrator');
     el.dialogueLayer.classList.toggle('speaker-right', speaker.side === 'right');
     const isDigrionBossDialogue = speakerId === 'digrion' || speakerId === 'digrion_spirit';
     const isStudentCardDialogue = speakerId === 'student_card';
@@ -14475,6 +14476,8 @@ body:has(.story-body-effect-host[data-persistent-dialogue="true"]) #storySection
   window.visualViewport?.addEventListener('resize', updateFixedGameViewportScale, { passive: true });
 })();
 </script>
+
+<link rel="stylesheet" href="/assets/common/story/narrator-dialogue.css" />
 
 </body>
 </html>

@@ -1,0 +1,118 @@
+/* Shared CH1 / CH2 / CH3 narrator-only cinematic panel.
+ * All character and boss dialogue stays on the existing artwork styles.
+ * Applied only when JS sets .is-narrator-dialogue for speaker === 'narrator'.
+ */
+.dialogue-layer.is-narrator-dialogue {
+  --speaker-accent: #e7cc98;
+  left: 5.4% !important;
+  right: 5.4% !important;
+  bottom: 5.2% !important;
+  isolation: isolate;
+}
+.dialogue-layer.is-narrator-dialogue .speaker-tag,
+.dialogue-layer.is-narrator-dialogue .portrait-frame,
+.dialogue-layer.is-narrator-dialogue .dialogue-marker,
+.dialogue-layer.is-narrator-dialogue .story-status,
+.dialogue-layer.is-narrator-dialogue .dialogue-progress {
+  display: none !important;
+}
+.dialogue-layer.is-narrator-dialogue .dialogue-box {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  min-height: clamp(146px, 16vh, 192px) !important;
+  padding: clamp(27px, 3.3vh, 36px) clamp(20px, 5.2vw, 64px) clamp(24px, 3vh, 34px) !important;
+  gap: 0 !important;
+  border: 1px solid rgba(234, 205, 146, .52) !important;
+  border-radius: 6px !important;
+  background:
+    radial-gradient(ellipse at 50% 0, rgba(238, 200, 132, .11), transparent 58%),
+    linear-gradient(110deg, rgba(11, 19, 32, .96), rgba(6, 11, 24, .92) 49%, rgba(12, 17, 29, .96)) !important;
+  box-shadow:
+    0 0 0 5px rgba(4, 8, 17, .43),
+    inset 0 0 0 1px rgba(250, 223, 164, .12),
+    0 20px 66px rgba(0, 0, 0, .68),
+    0 0 32px rgba(218, 187, 130, .09) !important;
+  color: #fff9ea !important;
+  cursor: pointer;
+}
+/* Fine upper and lower lines, not the chunky corner brackets used for actors. */
+.dialogue-layer.is-narrator-dialogue .dialogue-box::before,
+.dialogue-layer.is-narrator-dialogue .dialogue-box::after {
+  content: '' !important;
+  position: absolute !important;
+  display: block !important;
+  left: 24px !important;
+  right: 24px !important;
+  width: auto !important;
+  height: 1px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  background: linear-gradient(90deg, transparent, rgba(239, 207, 143, .88) 50%, transparent) !important;
+  pointer-events: none;
+}
+.dialogue-layer.is-narrator-dialogue .dialogue-box::before { top: 9px !important; bottom: auto !important; }
+.dialogue-layer.is-narrator-dialogue .dialogue-box::after { bottom: 9px !important; top: auto !important; opacity: .54; }
+.dialogue-layer.is-narrator-dialogue .dialogue-copy,
+.dialogue-layer.is-narrator-dialogue.speaker-right .dialogue-copy,
+.dialogue-layer.is-narrator-dialogue:not(.speaker-right) .dialogue-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(8px, 1.2vh, 12px) !important;
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.dialogue-layer.is-narrator-dialogue .dialogue-copy::before {
+  content: '✦  나레이션  ✦';
+  display: block;
+  color: #dfc590;
+  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-size: clamp(10px, 1.1vw, 13px);
+  font-weight: 900;
+  letter-spacing: .28em;
+  text-align: center;
+  text-shadow: 0 0 14px rgba(234, 191, 99, .22);
+}
+.dialogue-layer.is-narrator-dialogue .dialogue-text {
+  display: block !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #fff9ed !important;
+  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif !important;
+  font-size: clamp(17px, 2.05vw, 27px) !important;
+  font-weight: 800 !important;
+  line-height: 1.55 !important;
+  letter-spacing: .015em !important;
+  text-align: center !important;
+  word-break: keep-all;
+  text-shadow: 0 2px 9px rgba(0, 0, 0, .9) !important;
+}
+.dialogue-layer.is-narrator-dialogue .continue-indicator {
+  position: absolute !important;
+  left: auto !important;
+  right: 19px !important;
+  bottom: 13px !important;
+  color: #d6bb8b !important;
+  font-size: 12px !important;
+  filter: none !important;
+  text-shadow: 0 0 10px rgba(214, 187, 139, .24) !important;
+}
+.dialogue-layer.is-narrator-dialogue .dialogue-box:focus-visible {
+  outline: 2px solid rgba(246, 221, 170, .9) !important;
+  outline-offset: 5px;
+}
+@media (max-width: 680px) {
+  .dialogue-layer.is-narrator-dialogue { left: 3.5% !important; right: 3.5% !important; }
+  .dialogue-layer.is-narrator-dialogue .dialogue-box { min-height: 134px !important; padding: 22px 20px 21px !important; }
+  .dialogue-layer.is-narrator-dialogue .dialogue-text { font-size: clamp(15px, 3.2vw, 21px) !important; }
+}

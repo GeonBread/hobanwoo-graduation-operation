@@ -15484,6 +15484,7 @@ document.head.appendChild(c2Style);
 
     document.documentElement.style.setProperty('--speaker-accent', accent);
     el.speakerTag.textContent = item.speakerName || speaker.name || speakerId;
+    el.dialogueLayer.classList.toggle('is-narrator-dialogue', speakerId === 'narrator');
     el.dialogueLayer.classList.toggle('speaker-right', speaker.side === 'right');
     const isTeamBlackholeDialogue = speakerId === 'boss';
     const isStudentCardDialogue = speakerId === 'student_card';
@@ -16502,6 +16503,8 @@ function runCustomEffect(item) {
   window.visualViewport?.addEventListener('resize', updateFixedGameViewportScale, { passive: true });
 })();
 </script>
+
+<link rel="stylesheet" href="/assets/common/story/narrator-dialogue.css" />
 
 </body>
 </html>

@@ -230,6 +230,7 @@ function normalizeStoryRuntimeScript(source: string, part: Chapter1StoryPart): s
   const studentCardDialogueClassUpgrade = `    dialogueLayer.classList.toggle('speaker-right', speakerCharacter.side === 'right');
     const commonMonsterSpeakerId = String(item.speakerVisual || item.speaker || '');
     dialogueLayer.classList.toggle('is-student-card-dialogue', String(item.speaker || '') === 'student_card');
+    dialogueLayer.classList.toggle('is-narrator-dialogue', String(item.speaker || 'narrator') === 'narrator');
     dialogueLayer.classList.toggle('is-common-monster-dialogue', commonMonsterSpeakerId.startsWith('monster_'));`;
   if (!normalized.includes(studentCardDialogueClassHook)) {
     throw new Error('Chapter 1 student-card dialogue hook was not found.');

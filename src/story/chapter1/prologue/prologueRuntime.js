@@ -49,8 +49,12 @@
       for(let k=1;k<steps;k++){
         const u=k/steps;
         // A bounded random walk makes genuine zigzags instead of smooth rays.
-        drift=clamp(drift+(random()-.5)*roughness,-roughness*.95,roughness*.95);
-        const jag=(random()-.5)*roughness*.6+drift;
+        // Near the center, even small lateral drift can make adjacent rays
+        // intersect and their falling polygons overlap. Bound the offset by
+        // traveled radius so sector boundaries stay non-intersecting.
+        const maxJitter=Math.min(roughness*.68,length*u*.022);
+        drift=clamp(drift+(random()-.5)*maxJitter*.7,-maxJitter*.62,maxJitter*.62);
+        const jag=(random()-.5)*maxJitter*.55+drift;
         points.push(point(from.x+dx*u+nx*jag,from.y+dy*u+ny*jag));
       }
       points.push(point(to.x,to.y)); // guaranteed, exact viewport edge/corner
@@ -100,7 +104,7 @@
       line('campus','수많은 학생의 꿈과 노력, 그리고 그들이 학교에서 보내온 시간들.'),
       line('sky','그 모든 것은 보이지 않는 별빛이 되어 학교 곳곳에 쌓여갔다.'),fx('gather',7600),
       line('threshold','그리고 그 모든 별빛이 모이는 곳에는,'),line('threshold','현실의 누구도 볼 수 없는 거대한 공간이 존재했다.'),
-      fx('core-reveal',5000),fx('core-title',4400),
+      fx('core-approach',3100),fx('core-reveal',5000),fx('core-title',4400),
       line('orbits','그 안에는 학생들의 대학생활과 이어진 수많은 코어 영역이 존재했다.'),
       line('connections','각각의 영역은 서로 연결되어, 보이지 않는 곳에서 별빛의 흐름을 이어가고 있었다.'),
       line('seed','하지만 어느 날.'),line('growth','정체를 알 수 없는 오염이 그 빛에 스며들기 시작했다.'),
@@ -137,6 +141,45 @@
   }
   function clear(){v7ResetPresentation();resetRealityCG();if(raf!==null)cancelAnimationFrame(raf);raf=null;if(layer)layer.hidden=true;stage?.classList.remove('has-prologue-v2','is-core-v5');mode='';snapshot=null;fragments=[];camera={...BUILDING_CAMERA};}
   function cover(image,zoom=1,pan=0,alpha=1){if(!image.complete||!image.naturalWidth)return;const s=Math.max(W/image.naturalWidth,H/image.naturalHeight)*zoom,w=image.naturalWidth*s,h=image.naturalHeight*s;ctx.save();ctx.globalAlpha*=alpha;ctx.drawImage(image,(W-w)/2,(H-h)/2+pan,w,h);ctx.restore();}
+  // 3.1-second voyage: the camera travels along converging starlight into
+  // the sealed core, rather than just fading in a static background.
+  const gatewayParticles=Array.from({length:154},(_,i)=>{
+    const angle=(i*.6180339887%1)*Math.PI*2;
+    const lane=.12+Math.sqrt((i*.754877666%1))*.88;
+    return {angle,lane,depth:(i*.569840291%1),size:.65+(i*.313379%1)*1.4,phase:i*2.39996};
+  });
+  function drawCoreApproach(t){
+    const p=clamp(t/3.1),cx=W*.5,cy=H*.5,extent=Math.hypot(W,H)*.67;
+    const bg=ctx.createRadialGradient(cx,cy,5,cx,cy,extent);
+    bg.addColorStop(0,'#241c36');bg.addColorStop(.2,'#0a1529');bg.addColorStop(.66,'#040916');bg.addColorStop(1,'#010307');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    ctx.save();ctx.translate(cx,cy);
+    // Perspective tunnel rings originate at the same point where the stars gathered.
+    for(let i=0;i<7;i++){
+      const q=(i/7+p*1.45)%1,r=12+Math.pow(q,2.32)*extent*.85;
+      ctx.beginPath();ctx.ellipse(0,0,r,r*(.53+.16*Math.sin(p*5+i)),p*.38+i*.23,0,Math.PI*2);
+      ctx.lineWidth=.6+2.6*q;ctx.strokeStyle=`rgba(232,201,144,${(.22+.28*q)*(1-ease((q-.9)/.12))})`;ctx.stroke();
+    }
+    for(const star of gatewayParticles){
+      // Stars expand in perspective as the camera moves FORWARD toward the focus.
+      const q=(star.depth+p*.84)%1,r=8+Math.pow(q,2.23)*extent*star.lane;
+      const a=star.angle+p*.12;
+      const x=Math.cos(a)*r,y=Math.sin(a)*r;
+      const previous=Math.max(2,r-(4+q*44+76*p*p));
+      ctx.beginPath();ctx.moveTo(Math.cos(a)*previous,Math.sin(a)*previous);ctx.lineTo(x,y);
+      ctx.lineWidth=star.size*(.6+q*1.8);
+      ctx.strokeStyle=`rgba(255,232,185,${(.22+.56*q)*ease(q/.09)*(1-ease((q-.94)/.065))})`;
+      ctx.stroke();
+    }
+    const portalPulse=.75+.25*Math.sin(t*8),portalRadius=18+82*ease(p);
+    ctx.beginPath();ctx.arc(0,0,portalRadius*(.72+.28*portalPulse),0,Math.PI*2);
+    ctx.lineWidth=1.5+2*ease(p);ctx.strokeStyle=`rgba(254,230,185,${.48+.3*p})`;ctx.stroke();
+    ctx.restore();
+    glow(cx,cy,60+260*ease(p),'245,213,169',.24+.43*ease(p));
+    glow(cx,cy,20+95*ease((p-.68)/.32),'255,252,238',.28+.56*ease((p-.68)/.32));
+    // A concentrated convergence flash bridges into the next existing core reveal.
+    if(p>.85){ctx.fillStyle=`rgba(255,247,228,${ease((p-.85)/.15)*.16})`;ctx.fillRect(0,0,W,H);}
+  }
   function drawCore(alpha=1,wobble=0,t=0){
     if(!core.complete||!core.naturalWidth)return;
     const s=Math.max(W/core.naturalWidth,H/core.naturalHeight)*1.045,w=core.naturalWidth*s,h=core.naturalHeight*s,x=(W-w)/2,y=(H-h)/2;
@@ -235,12 +278,88 @@
     }
     ctx.restore();
   }
+  // The falling pieces are bounded by the SAME jagged primary crack paths.
+  // Each sector follows ray A -> viewport border -> reversed ray B.
+  // This prevents independent rectangular grid fragments from contradicting the cracks.
   function makeFragments(){
-    snapshot=document.createElement('canvas');snapshot.width=W;snapshot.height=H;snapshot.getContext('2d').drawImage(canvas,0,0);fragments=[];const grid=[];
-    for(let y=0;y<=9;y++){grid[y]=[];for(let x=0;x<=8;x++)grid[y][x]={x:x*W/8+(x>0&&x<8?(rnd()-.5)*45:0),y:y*H/9+(y>0&&y<9?(rnd()-.5)*45:0)};}
-    for(let y=0;y<9;y++)for(let x=0;x<8;x++)for(const pts of [[grid[y][x],grid[y][x+1],grid[y+1][x+1]],[grid[y][x],grid[y+1][x+1],grid[y+1][x]]]){const cx=pts.reduce((s,p)=>s+p.x,0)/3,cy=pts.reduce((s,p)=>s+p.y,0)/3;fragments.push({pts,cx,cy,vx:(cx-W*.5)*.7+(rnd()-.5)*140,vy:-100-rnd()*210,spin:(rnd()-.5)*2.8,delay:rnd()*.12});}
+    snapshot=document.createElement('canvas');snapshot.width=W;snapshot.height=H;
+    snapshot.getContext('2d').drawImage(canvas,0,0);
+    fragments=[];
+    const layout=currentCrackLayout(),perimeter=2*(W+H),eps=.002;
+    const perimeterAt=pt=>{
+      const x=clamp(pt.x,0,W),y=clamp(pt.y,0,H);
+      if(y<=eps&&x<=eps)return perimeter;
+      if(y<=eps)return x;
+      if(x>=W-eps)return W+y;
+      if(y>=H-eps)return W+H+(W-x);
+      return 2*W+H+(H-y);
+    };
+    const edgePoint=position=>{
+      const d=((position%perimeter)+perimeter)%perimeter;
+      if(d<=W)return {x:d,y:0};
+      if(d<=W+H)return {x:W,y:d-W};
+      if(d<=2*W+H)return {x:2*W+H-d,y:H};
+      return {x:0,y:perimeter-d};
+    };
+    const edge=layout.rays.map(ray=>{
+      const inner=ray.points.slice(0,-1),end=inner[inner.length-1];
+      const angle=(Math.atan2(end.y-layout.cy,end.x-layout.cx)+Math.PI*2)%(Math.PI*2);
+      return {inner,end,angle,perimeter:perimeterAt(end)};
+    }).sort((a,b)=>a.angle-b.angle);
+    let randomState=0x196b93f5;
+    const random=()=>{randomState=(Math.imul(randomState,1664525)+1013904223)>>>0;return randomState/4294967296;};
+    for(let i=0;i<edge.length;i++){
+      const left=edge[i],right=edge[(i+1)%edge.length];
+      let endPerimeter=right.perimeter;
+      if(endPerimeter<=left.perimeter+eps)endPerimeter+=perimeter;
+      const border=[];
+      for(let lap=0;lap<=1;lap++){
+        for(const c of [0,W,W+H,2*W+H,perimeter]){
+          const value=c+lap*perimeter;
+          if(value>left.perimeter+eps&&value<endPerimeter-eps)border.push({value,...edgePoint(value)});
+        }
+      }
+      border.sort((a,b)=>a.value-b.value);
+      const pts=[...left.inner,...border.map(({x,y})=>({x,y})),...right.inner.slice().reverse()];
+      // Polygon area centroid: unlike the average of ray points, this preserves
+      // the physical centre of each wedge for believable rotation and falling.
+      let twiceArea=0,cx=0,cy=0;
+      for(let j=0;j<pts.length;j++){
+        const a=pts[j],b=pts[(j+1)%pts.length],cross=a.x*b.y-b.x*a.y;
+        twiceArea+=cross;cx+=(a.x+b.x)*cross;cy+=(a.y+b.y)*cross;
+      }
+      if(Math.abs(twiceArea)<1)continue;
+      cx/=3*twiceArea;cy/=3*twiceArea;
+      const x=Math.max(0,Math.floor(Math.min(...pts.map(q=>q.x))-2)),y=Math.max(0,Math.floor(Math.min(...pts.map(q=>q.y))-2));
+      const rightX=Math.min(W,Math.ceil(Math.max(...pts.map(q=>q.x))+2)),bottomY=Math.min(H,Math.ceil(Math.max(...pts.map(q=>q.y))+2));
+      const radialX=cx-layout.cx,radialY=cy-layout.cy;
+      fragments.push({pts,cx,cy,box:{x,y,w:rightX-x,h:bottomY-y},
+        vx:radialX*(.19+random()*.12)+(random()-.5)*95,
+        vy:-140+radialY*.11-random()*115,
+        spin:(i%2?-1:1)*(.26+random()*.65),delay:random()*.14});
+    }
   }
-  function shatter(t){if(!snapshot)return;for(const f of fragments){const a=Math.max(0,t-f.delay),dx=f.vx*a,dy=f.vy*a+600*a*a;if(f.cy+dy>H+190)continue;ctx.save();ctx.translate(f.cx+dx,f.cy+dy);ctx.rotate(f.spin*a);ctx.scale(1-.08*clamp(a),1-.18*clamp(a));ctx.translate(-f.cx,-f.cy);ctx.beginPath();f.pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.clip();const x=Math.max(0,Math.min(...f.pts.map(p=>p.x))-1),y=Math.max(0,Math.min(...f.pts.map(p=>p.y))-1),right=Math.min(W,Math.max(...f.pts.map(p=>p.x))+1),bottom=Math.min(H,Math.max(...f.pts.map(p=>p.y))+1);ctx.drawImage(snapshot,x,y,right-x,bottom-y,x,y,right-x,bottom-y);ctx.restore();}}
+  function shatter(t){
+    if(!snapshot)return;
+    for(const fragment of fragments){
+      const a=Math.max(0,t-fragment.delay),dx=fragment.vx*a,dy=fragment.vy*a+475*a*a;
+      if(fragment.cy+dy>H+Math.max(180,fragment.box.h))continue;
+      const opacity=1-ease((a-1.45)/1.25);
+      if(opacity<=0)continue;
+      ctx.save();ctx.globalAlpha=opacity;
+      ctx.translate(fragment.cx+dx,fragment.cy+dy);
+      ctx.rotate(fragment.spin*a);
+      ctx.scale(1-.05*ease(a/1.8),1-.11*ease(a/1.8));
+      ctx.translate(-fragment.cx,-fragment.cy);
+      ctx.beginPath();
+      fragment.pts.forEach((pt,i)=>i?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y));
+      ctx.closePath();ctx.clip();
+      const b=fragment.box;
+      if(b.w>0&&b.h>0)ctx.drawImage(snapshot,b.x,b.y,b.w,b.h,b.x,b.y,b.w,b.h);
+      ctx.strokeStyle='rgba(204,144,255,.23)';ctx.lineWidth=1;ctx.stroke();
+      ctx.restore();
+    }
+  }
   function errors(t){const panels=[[80,360,235,128,'학생증 인증 오류','인증 정보를 확인할 수 없습니다'],[590,450,240,130,'강의실 안내 오류','목적지 좌표가 일치하지 않습니다'],[210,145,285,138,'공지 알림 폭주','읽지 않은 공지가 계속 도착합니다']];for(let i=0;i<3;i++){const [x,y,w,h,label,sub]=panels[i],a=ease((t-i*.9)/.8)*.88;if(a<=0)continue;ctx.save();ctx.globalAlpha=a;ctx.translate(x+Math.sin(t*15+i)*1.5,y+Math.sin(t+i)*4);ctx.fillStyle='#10162be8';ctx.strokeStyle='#ac76ea';ctx.lineWidth=2;ctx.fillRect(0,0,w,h);ctx.strokeRect(0,0,w,h);ctx.fillStyle='#d9caff';ctx.font='bold 19px Noto Sans KR, sans-serif';ctx.fillText(label,15,30);ctx.fillStyle='#afabc6';ctx.font='800 12px Noto Sans KR, sans-serif';ctx.fillText(sub,15,54);ctx.strokeStyle='#ff847e';ctx.lineWidth=3;if(i===0){ctx.strokeRect(18,73,62,36);ctx.beginPath();ctx.moveTo(100,78);ctx.lineTo(126,104);ctx.moveTo(126,78);ctx.lineTo(100,104);ctx.stroke();}else if(i===1){ctx.font='bold 38px Noto Sans KR, sans-serif';ctx.fillStyle='#ffb3c8';ctx.fillText('←   →',30,105);}else for(let j=0;j<4;j++){ctx.fillStyle=j%2?'#a77bda':'#5a427c';ctx.fillRect(18+j*15,76+j*9,150,8);}ctx.restore();}}
   // CH1_REALITY_ILLUSTRATIONS_V6
   const realityCGImages=Object.fromEntries(Object.entries({"library-error":"/assets/chapter1/story/prologue/reality_library_auth_error.png","navigation-error":"/assets/chapter1/story/prologue/reality_navigation_error.png","notification-error":"/assets/chapter1/story/prologue/reality_notification_overload.png"}).map(([key,src])=>{
@@ -272,7 +391,7 @@
     if(p===1)transition.from=null;
   }
   // CH1_PRESENTATION_FULLSCREEN_V7
-  const v7CoreModes=new Set(['awakening','campus','sky','gather','threshold','core-reveal','core-title','orbits','connections','seed','growth','burst','fracture','shatter']);
+  const v7CoreModes=new Set(['awakening','campus','sky','gather','threshold','core-approach','core-reveal','core-title','orbits','connections','seed','growth','burst','fracture','shatter']);
   let v7FullscreenState=null,v7Style=null,v7OriginalTitleHTML=null,v7ResizeObserver=null;
   function v7AdmissionTail(tail){
     if(!tail.length||tail[0]?.scene?.id!=='prologue-entrance-day')throw Error('Original admission scene missing.');
@@ -331,7 +450,7 @@
     const host=document.createElement('div');host.className='prologue-v7-fullscreen';host.setAttribute('role','presentation');
     v7FullscreenState={host,dialogue,layerMark,dialogueMark,movableEntries};
     document.body.appendChild(host);host.append(layer,dialogue,...movableEntries.map(entry=>entry.element));
-    host.addEventListener('click',event=>{if(!v7FullscreenState||dialogue.contains(event.target))return;stage.dispatchEvent(new MouseEvent('click',{bubbles:true}));});
+    host.addEventListener('click',event=>{if(!v7FullscreenState||dialogue.contains(event.target)||movableEntries.some(entry=>entry.element.contains(event.target)))return;stage.dispatchEvent(new MouseEvent('click',{bubbles:true}));});
     v7ResizeFullscreen();
     v7ResizeObserver=new MutationObserver(()=>{if(v7FullscreenState&&!stage?.isConnected)v7LeaveFullscreen();});
     v7ResizeObserver.observe(document.body,{childList:true,subtree:true});
@@ -381,8 +500,10 @@
     else if(mode==='sky'){camera=skyCamera(t);drawCampus(camera);starField(t,camera);}
     else if(mode==='gather'){camera=gatherCamera(t);drawCampus(camera);starField(gatherSkyAge+t,camera,t);ctx.fillStyle=`rgba(0,0,0,${ease((t-7)/.6)})`;ctx.fillRect(0,0,W,H);}
     else if(mode==='threshold')glow(W*CORRUPTION_FOCUS.x,H*CORRUPTION_FOCUS.y,44,'255,220,144',.24+.06*Math.sin(t));
+    else if(mode==='core-approach')drawCoreApproach(t);
     else if(['core-reveal','core-title','orbits','connections','seed','growth','burst','fracture'].includes(mode)){
       ctx.save();if(mode==='fracture'){const impact=Math.pow(Math.max(0,Math.sin(t*7)),10)*(3+t*1.5);ctx.translate(Math.sin(t*79)*impact,Math.cos(t*97)*impact);}drawCore(mode==='core-reveal'?ease(t/5):1,mode==='fracture'?3+t*3.5:mode==='burst'?3:0,t);ctx.restore();
+      if(mode==='core-reveal')glow(W*.5,H*.5,240+80*ease(t/1.8),'255,234,194',.62*(1-ease(t/1.6)));
       if(mode==='core-title'){const a=ease(t/.9)*ease((4.4-t)/1.1);title.style.opacity=String(a);title.style.transform=`translateY(${(1-a)*10}px)`;}
       if(mode==='orbits'||mode==='connections')orbits(t,mode==='connections');if(mode==='seed'||mode==='growth')orb(t,mode==='growth');
       if(mode==='burst'){const p=clamp(t/1.8);gas(t,ease(p*3));glow(W*CORRUPTION_FOCUS.x,H*CORRUPTION_FOCUS.y,56+ease(p)*1320,'161,58,255',.9*(1-p));}if(mode==='fracture'){gas(t+2);drawCracks(t);}

@@ -492,3 +492,12 @@
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
+
+/* Keep React-owned TEST/story navigation interactive above the Chapter 1
+   fullscreen prologue and opening credits. Never reparent React DOM nodes. */
+body:has(.prologue-v7-fullscreen) .chapter1-story-test-navigation,
+body:has(.story-effect-layer.is-fullscreen-effect[data-active-effect="opening-credits-sequence"]) .chapter1-story-test-navigation {
+  position: fixed !important;
+  z-index: 2147482100 !important;
+  pointer-events: auto !important;
+}
