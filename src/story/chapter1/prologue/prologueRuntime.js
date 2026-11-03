@@ -33,7 +33,10 @@
       fx('burst',1800),fx('fracture',4000),fx('shatter',2600),
       line('void','그것은 학생들의 혼란과 불안, 그리고 압박을 뒤틀며 점차 영역들을 잠식해 갔다.'),fx('reality-return',2200),
       line('reality','그리고 그 영향은, 마침내 현실의 학교에도 나타나기 시작했다.'),
-      line('errors','그러나 대부분의 학생들은 그것을 단순한 시스템 오류로 여길 뿐이었다.'),fx('reality-out',1000),...old.slice(i)];
+      line('library-error','도서관에서는 학생증 인증 오류로 출입문이 열리지 않아, 학생들이 입구에서 발길을 멈춰야 했다.'),
+      line('navigation-error','강의동의 길 안내는 엉뚱한 방향을 가리켰고, 학생들은 강의실을 찾지 못한 채 복도를 헤맸다.'),
+      line('notification-error','휴대전화에는 공지사항이 쉴 새 없이 쏟아져, 정작 필요한 안내를 찾기조차 어려워졌다.'),
+      line('notification-error','그러나 대부분의 학생들은 그것을 단순한 시스템 오류로 여길 뿐이었다.'),fx('reality-out',1000),...old.slice(i)];
   }
   function mount(target){
     stage=target;
@@ -56,6 +59,7 @@
     if(!item?.prologueV2){clear();return;}mount(target);const now=performance.now(),next=item.prologueV2;
     stage.classList.toggle('is-core-v5',['core-reveal','core-title','orbits','connections','seed','growth','burst','fracture','shatter'].includes(next));
     if(mode!==next){
+      beginRealityCG(next,now);
       if(next==='shatter'){ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);drawCore(1,10,4);gas(6,1);drawCracks(4);makeFragments();}
       if(next==='sky'){skyStart=now;camera={...BUILDING_CAMERA};}
       if(next==='awakening'||next==='campus')camera={...BUILDING_CAMERA};
@@ -67,7 +71,7 @@
     }
     title.style.opacity='0';if(raf===null){lastFrame=now;raf=requestAnimationFrame(tick);}
   }
-  function clear(){if(raf!==null)cancelAnimationFrame(raf);raf=null;if(layer)layer.hidden=true;stage?.classList.remove('has-prologue-v2','is-core-v5');mode='';snapshot=null;fragments=[];camera={...BUILDING_CAMERA};}
+  function clear(){resetRealityCG();if(raf!==null)cancelAnimationFrame(raf);raf=null;if(layer)layer.hidden=true;stage?.classList.remove('has-prologue-v2','is-core-v5');mode='';snapshot=null;fragments=[];camera={...BUILDING_CAMERA};}
   function cover(image,zoom=1,pan=0,alpha=1){if(!image.complete||!image.naturalWidth)return;const s=Math.max(W/image.naturalWidth,H/image.naturalHeight)*zoom,w=image.naturalWidth*s,h=image.naturalHeight*s;ctx.save();ctx.globalAlpha*=alpha;ctx.drawImage(image,(W-w)/2,(H-h)/2+pan,w,h);ctx.restore();}
   function drawCore(alpha=1,wobble=0,t=0){
     if(!core.complete||!core.naturalWidth)return;
@@ -128,6 +132,35 @@
   }
   function shatter(t){if(!snapshot)return;for(const f of fragments){const a=Math.max(0,t-f.delay),dx=f.vx*a,dy=f.vy*a+600*a*a;if(f.cy+dy>H+190)continue;ctx.save();ctx.translate(f.cx+dx,f.cy+dy);ctx.rotate(f.spin*a);ctx.scale(1-.08*clamp(a),1-.18*clamp(a));ctx.translate(-f.cx,-f.cy);ctx.beginPath();f.pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.clip();const x=Math.max(0,Math.min(...f.pts.map(p=>p.x))-1),y=Math.max(0,Math.min(...f.pts.map(p=>p.y))-1),right=Math.min(W,Math.max(...f.pts.map(p=>p.x))+1),bottom=Math.min(H,Math.max(...f.pts.map(p=>p.y))+1);ctx.drawImage(snapshot,x,y,right-x,bottom-y,x,y,right-x,bottom-y);ctx.restore();}}
   function errors(t){const panels=[[80,360,235,128,'학생증 인증 오류','인증 정보를 확인할 수 없습니다'],[590,450,240,130,'강의실 안내 오류','목적지 좌표가 일치하지 않습니다'],[210,145,285,138,'공지 알림 폭주','읽지 않은 공지가 계속 도착합니다']];for(let i=0;i<3;i++){const [x,y,w,h,label,sub]=panels[i],a=ease((t-i*.9)/.8)*.88;if(a<=0)continue;ctx.save();ctx.globalAlpha=a;ctx.translate(x+Math.sin(t*15+i)*1.5,y+Math.sin(t+i)*4);ctx.fillStyle='#10162be8';ctx.strokeStyle='#ac76ea';ctx.lineWidth=2;ctx.fillRect(0,0,w,h);ctx.strokeRect(0,0,w,h);ctx.fillStyle='#d9caff';ctx.font='bold 19px sans-serif';ctx.fillText(label,15,30);ctx.fillStyle='#afabc6';ctx.font='12px sans-serif';ctx.fillText(sub,15,54);ctx.strokeStyle='#ff847e';ctx.lineWidth=3;if(i===0){ctx.strokeRect(18,73,62,36);ctx.beginPath();ctx.moveTo(100,78);ctx.lineTo(126,104);ctx.moveTo(126,78);ctx.lineTo(100,104);ctx.stroke();}else if(i===1){ctx.font='bold 38px sans-serif';ctx.fillStyle='#ffb3c8';ctx.fillText('←   →',30,105);}else for(let j=0;j<4;j++){ctx.fillStyle=j%2?'#a77bda':'#5a427c';ctx.fillRect(18+j*15,76+j*9,150,8);}ctx.restore();}}
+  // CH1_REALITY_ILLUSTRATIONS_V6
+  const realityCGImages=Object.fromEntries(Object.entries({"library-error":"/assets/chapter1/story/prologue/reality_library_auth_error.png","navigation-error":"/assets/chapter1/story/prologue/reality_navigation_error.png","notification-error":"/assets/chapter1/story/prologue/reality_notification_overload.png"}).map(([key,src])=>{
+    const image=new Image();image.src=src;image.decode?.().catch(()=>{});return [key,image];
+  }));
+  let realityCGTransition=null;
+  function resetRealityCG(){realityCGTransition=null;}
+  function beginRealityCG(next,now){
+    if(!realityCGImages[next]){if(next!=='reality-out')resetRealityCG();return;}
+    const from=document.createElement('canvas');from.width=W;from.height=H;from.getContext('2d').drawImage(canvas,0,0);
+    realityCGTransition={key:next,from,frame:null,started:now};
+  }
+  function composeRealityCG(image){
+    const frame=document.createElement('canvas');frame.width=W;frame.height=H;const c=frame.getContext('2d',{alpha:false});
+    c.fillStyle='#090f18';c.fillRect(0,0,W,H);
+    const backdrop=Math.max(W/image.naturalWidth,H/image.naturalHeight),bw=image.naturalWidth*backdrop,bh=image.naturalHeight*backdrop;
+    c.globalAlpha=.28;c.drawImage(image,(W-bw)/2,(H-bh)/2,bw,bh);c.globalAlpha=1;
+    const fit=Math.min(W/image.naturalWidth,H/image.naturalHeight),w=image.naturalWidth*fit,h=image.naturalHeight*fit;
+    c.drawImage(image,(W-w)/2,(H-h)/2,w,h);return frame;
+  }
+  function drawRealityCGFrame(now){
+    const transition=realityCGTransition;if(!transition)return;
+    const image=realityCGImages[transition.key];
+    if(!image.complete||!image.naturalWidth){if(transition.from)ctx.drawImage(transition.from,0,0);transition.started=now;return;}
+    if(!transition.frame)transition.frame=composeRealityCG(image);
+    const p=ease(clamp((now-transition.started)/850));
+    if(transition.from&&p<1)ctx.drawImage(transition.from,0,0);
+    ctx.save();ctx.globalAlpha=p;ctx.drawImage(transition.frame,0,0);ctx.restore();
+    if(p===1)transition.from=null;
+  }
   function draw(now){
     const t=Math.max(0,(now-start)/1000);ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
     if(mode==='awakening'){drawCampus(BUILDING_CAMERA,ease((t-.65)/2.7));glow(W*.51,H*.4,5+Math.sin(Math.min(t,1)*Math.PI)*60,'255,235,188',clamp(1-t/2));}
@@ -141,7 +174,9 @@
       if(mode==='orbits'||mode==='connections')orbits(t,mode==='connections');if(mode==='seed'||mode==='growth')orb(t,mode==='growth');
       if(mode==='burst'){const p=clamp(t/1.8);gas(t,ease(p*3));glow(W*.54,H*.4,50+ease(p)*1300,'161,58,255',.9*(1-p));}if(mode==='fracture'){gas(t+2);drawCracks(t);}ctx.restore();
     }else if(mode==='shatter')shatter(t);
-    else if(['reality-return','reality','errors','reality-out'].includes(mode)){cover(campus,1.03,0,mode==='reality-return'?ease(t/2.2):mode==='reality-out'?1-ease(t):1);if(mode==='reality'||mode==='errors')errors(mode==='errors'?t+3:t);}
+    else if(realityCGImages[mode])drawRealityCGFrame(now);
+    else if(mode==='reality-out'&&realityCGTransition){drawRealityCGFrame(now);ctx.fillStyle='rgba(0,0,0,'+ease(t)+')';ctx.fillRect(0,0,W,H);}
+    else if(['reality-return','reality','errors','reality-out'].includes(mode)){cover(campus,1.03,0,mode==='reality-return'?ease(t/2.2):mode==='reality-out'?1-ease(t):1);/* V6 illustrations replace the temporary error panels. */}
   }
   function tick(now){raf=null;if(!mode||!layer?.isConnected){clear();return;}if(now-lastFrame>=30){draw(now);lastFrame=now;}raf=requestAnimationFrame(tick);}
   window.Chapter1PrologueV2={rewrite,present,clear,assets:{campus:campus.src,core:core.src}};
