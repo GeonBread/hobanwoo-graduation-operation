@@ -2,7 +2,7 @@
   'use strict';
   const W=922,H=960,clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),ease=t=>{t=clamp(t);return t*t*(3-2*t);};
   let seed=240601;const rnd=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
-  const FOCUS={x:.51,y:.245},BUILDING_CAMERA={zoom:1.7,x:.49,y:.66},SKY_CAMERA={zoom:1.1,x:.5,y:.31};
+  const FOCUS={x:.51,y:.245},BUILDING_CAMERA={zoom:1,x:.5,y:5/7},SKY_CAMERA={zoom:1,x:.5,y:2/7};
   const lerp=(a,b,t)=>a+(b-a)*t;
   const stars=Array.from({length:90},()=>{
     const a=rnd()*Math.PI*2,r=Math.sqrt(rnd()),x=.51+Math.cos(a)*r*.46,y=.23+Math.sin(a)*r*.205;
@@ -83,10 +83,24 @@
   function skyCamera(t){return mixCamera(BUILDING_CAMERA,SKY_CAMERA,ease(t/4.6));}
   function gatherCamera(t){const base=mixCamera(gatherFrom,SKY_CAMERA,ease(t/1.35)),dive=ease((t-5.1)/2.5);return {zoom:base.zoom*(1+Math.pow(dive,1.6)*3.6),x:lerp(base.x,FOCUS.x,dive),y:lerp(base.y,FOCUS.y,dive)};}
   function campusProjection(view){
-    const iw=campus.naturalWidth||1024,ih=campus.naturalHeight||1536,s=Math.max(W/iw,H/ih)*view.zoom;
-    return {scale:s,x:W/2-clamp(view.x*iw,W/(2*s),iw-W/(2*s))*s,y:H/2-clamp(view.y*ih,H/(2*s),ih-H/(2*s))*s,iw,ih};
+    const iw=W,ih=H*1.75,scale=view.zoom;
+    return {scale,x:W/2-clamp(view.x*iw,W/(2*scale),iw-W/(2*scale))*scale,
+      y:H/2-clamp(view.y*ih,H/(2*scale),ih-H/(2*scale))*scale,iw,ih};
   }
-  function drawCampus(view,alpha=1){if(!campus.complete||!campus.naturalWidth)return;const p=campusProjection(view);ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(campus,p.x,p.y,p.iw*p.scale,p.ih*p.scale);ctx.restore();}
+  function drawCampus(view,alpha=1){
+    const p=campusProjection(view),imageWidth=Math.min(W,campus.naturalWidth||W),
+      imageHeight=(campus.naturalHeight||1024)*imageWidth/(campus.naturalWidth||1536),
+      imageTop=p.ih-imageHeight;
+    ctx.save();ctx.globalAlpha=alpha;
+    const sky=ctx.createLinearGradient(0,p.y,0,p.y+imageTop*p.scale);
+    sky.addColorStop(0,'#020619');sky.addColorStop(.45,'#03091f');sky.addColorStop(1,'#050d2b');
+    ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+    if(campus.complete&&campus.naturalWidth){
+      ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+      ctx.drawImage(campus,p.x+(p.iw-imageWidth)*p.scale/2,p.y+imageTop*p.scale,imageWidth*p.scale,imageHeight*p.scale);
+    }
+    ctx.restore();
+  }
   function starPosition(s,u){const v=1-u;return {x:v*v*v*s.x+3*v*v*u*s.c1.x+3*v*u*u*s.c2.x+u*u*u*FOCUS.x,y:v*v*v*s.y+3*v*v*u*s.c1.y+3*v*u*u*s.c2.y+u*u*u*FOCUS.y};}
   function starField(age,view,gatherTime=null){
     const p=campusProjection(view),screen=point=>({x:p.x+point.x*p.iw*p.scale,y:p.y+point.y*p.ih*p.scale});let arrived=0;
