@@ -21,18 +21,19 @@
     const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
     const point=(x,y)=>({x,y});
     const targets=[];
-    // All four corners and three landmarks on EACH side are mandatory.
-    // Reaching them explicitly is stronger than relying on long radial lines.
+    // All four corners and three landmarks on EACH side are mandatory,
+    // but the total ray count should stay restrained so the fracture does not
+    // become visually noisy.
     for(const [x,y] of [[0,0],[width,0],[width,height],[0,height]])targets.push({x,y,mandatory:true});
-    for(const ratio of [.17,.5,.83]){
+    for(const ratio of [.24,.5,.76]){
       targets.push({x:width*ratio,y:0,mandatory:true});
       targets.push({x:width*ratio,y:height,mandatory:true});
       targets.push({x:0,y:height*ratio,mandatory:true});
       targets.push({x:width,y:height*ratio,mandatory:true});
     }
-    // Intermediate directions break up the otherwise regular border anchors.
-    for(let i=0;i<18;i++){
-      const angle=(i+(random()-.5)*.62)*Math.PI*2/18;
+    // Add only a small number of extra directions to avoid an overly dense spiderweb.
+    for(let i=0;i<8;i++){
+      const angle=(i+(random()-.5)*.56)*Math.PI*2/8;
       const ux=Math.cos(angle),uy=Math.sin(angle);
       const span=Math.min(ux>1e-6?(width-cx)/ux:ux < -1e-6?-cx/ux:Infinity,
                           uy>1e-6?(height-cy)/uy:uy < -1e-6?-cy/uy:Infinity);
@@ -61,7 +62,7 @@
       const distance=Math.hypot(target.x-cx,target.y-cy),steps=Math.max(12,Math.ceil(distance/52));
       const points=jaggedPath(point(cx,cy),target,steps,Math.min(52,shortSide*.054),Math.max(55,shortSide*.09));
       const branches=[];
-      const count=target.mandatory?2:1+(random()>.52?1:0);
+      const count=target.mandatory?(random()>.5?1:0):(random()>.82?1:0);
       for(let j=0;j<count;j++){
         const anchorIndex=3+Math.floor(random()*Math.max(1,points.length-7));
         const anchor=points[Math.min(anchorIndex,points.length-3)];
@@ -72,12 +73,12 @@
         const reach=edgeDistance*(.59+random()*.49);
         const end=point(anchor.x+bx*reach,anchor.y+by*reach);
         const branchSteps=Math.max(5,Math.ceil(reach/55));
-        const path=jaggedPath(anchor,end,branchSteps,Math.min(28,shortSide*.029),0);
-        const start=.14+anchorIndex/(points.length-1)*1.8+random()*.19;
-        branches.push({points:path,start,width:2.8+random()*2.3});
+        const path=jaggedPath(anchor,end,branchSteps,Math.min(20,shortSide*.021),0);
+        const start=.18+anchorIndex/(points.length-1)*1.72+random()*.16;
+        branches.push({points:path,start,width:1.25+random()*0.55});
       }
       const corner=i<4;
-      return {points,branches,delay:corner?0:(i<16?.05+random()*.10:.10+random()*.14),width:corner?10:target.mandatory?8.8:7.2};
+      return {points,branches,delay:corner?0:(i<16?.06+random()*.12:.12+random()*.16),width:corner?3.6:target.mandatory?3.05:2.55};
     });
     return {width,height,cx,cy,rays};
   }
@@ -202,19 +203,15 @@
   function renderCrack(points,progress,width,alpha=1){
     if(progress<=0)return null;
     ctx.save();
-    ctx.lineCap='round';ctx.lineJoin='miter';
-    // Deep cut with a violet edge glow and a displaced bevel highlight.
-    ctx.shadowColor='rgba(181,103,250,.58)';ctx.shadowBlur=width*2.8;
-    ctx.strokeStyle=`rgba(8,4,15,${.97*alpha})`;ctx.lineWidth=width*1.55;
+    ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.shadowColor='rgba(163,99,255,.32)';ctx.shadowBlur=width*1.55;
+    ctx.strokeStyle=`rgba(12,5,22,${.93*alpha})`;ctx.lineWidth=width*1.08;
     const tip=traceCrack(points,progress);ctx.stroke();
     ctx.shadowBlur=0;
-    ctx.strokeStyle=`rgba(23,7,40,${.98*alpha})`;ctx.lineWidth=width*.94;
+    ctx.strokeStyle=`rgba(122,77,187,${.52*alpha})`;ctx.lineWidth=Math.max(.55,width*.24);
     traceCrack(points,progress);ctx.stroke();
-    ctx.save();ctx.translate(width*.21,width*.26);
-    ctx.strokeStyle=`rgba(149,86,210,${.77*alpha})`;ctx.lineWidth=width*.34;
-    traceCrack(points,progress);ctx.stroke();ctx.restore();
-    ctx.save();ctx.translate(-width*.21,-width*.25);
-    ctx.strokeStyle=`rgba(243,220,255,${.87*alpha})`;ctx.lineWidth=Math.max(.8,width*.16);
+    ctx.save();ctx.translate(-width*.13,-width*.13);
+    ctx.strokeStyle=`rgba(236,216,255,${.72*alpha})`;ctx.lineWidth=Math.max(.45,width*.11);
     traceCrack(points,progress);ctx.stroke();ctx.restore();
     ctx.restore();return tip;
   }
@@ -283,7 +280,31 @@
   }
   function v7EnsureStyle(){
     if(v7Style?.isConnected)return;
-    v7Style=document.createElement('style');v7Style.textContent="\n.prologue-v7-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;z-index:2147481000!important;background:#000;isolation:isolate;pointer-events:auto;overflow:hidden}\n.prologue-v7-fullscreen .prologue-v2-layer{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;pointer-events:none}\n.prologue-v7-fullscreen .prologue-v2-layer canvas{width:100%!important;height:100%!important;display:block}\n.prologue-v7-fullscreen .prologue-v2-layer::after{content:\"\";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 40%,rgba(13,12,10,.06) 53%,rgba(10,14,18,.58) 80%,rgba(7,12,17,.84))}\n.prologue-v7-fullscreen #dialogueLayer{position:absolute!important;z-index:300!important;left:50%!important;right:auto!important;bottom:var(--v7-dialogue-bottom,43px)!important;width:858px!important;transform:translateX(-50%) scale(var(--v7-dialogue-scale,1))!important;transform-origin:50% 100%!important;pointer-events:auto}\n.prologue-v7-fullscreen .prologue-v2-layer[data-beat=\"fracture\"]::after,.prologue-v7-fullscreen .prologue-v2-layer[data-beat=\"shatter\"]::after{background:none!important}\n.prologue-v7-fullscreen .core-v5-main{font-size:clamp(42px,5.2cqw,104px)}\n.prologue-v7-fullscreen .core-v5-kicker{font-size:clamp(12px,1.05cqw,18px)}\n.prologue-v7-fullscreen .core-v5-caption{font-size:clamp(14px,1.15cqw,20px)}\n#storyStage.is-v7-admission .scene-background{transition:none!important;animation:none!important}\n#storyStage.is-v7-admission .scene-background:not(.is-visible){opacity:0!important}\n#storyStage.is-v7-admission .scene-background.is-visible{opacity:1!important}\n.prologue-v2-layer[data-v7-admission=\"true\"]::after{content:\"\";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 43%,rgba(9,12,16,.04) 55%,rgba(9,12,16,.64));opacity:0;transition:opacity 1.2s}\n.prologue-v2-layer[data-v7-admission-title=\"true\"]::after{opacity:1}\n.prologue-v2-layer[data-v7-admission-title=\"true\"] .core-v5-kicker{animation:coreV5TextIn 1s .1s both}\n.prologue-v2-layer[data-v7-admission-title=\"true\"] .core-v5-main{animation:coreV5TextIn 1.5s .25s both}\n.prologue-v2-layer[data-v7-admission-title=\"true\"] .core-v5-rule{animation:coreV5LineIn 1.3s .5s both}\n.prologue-v2-layer[data-v7-admission-title=\"true\"] .core-v5-caption{animation:coreV5TextIn 1.2s .7s both}\n";stage.appendChild(v7Style);
+    v7Style=document.createElement('style');v7Style.textContent=`
+.prologue-v7-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;z-index:2147481000!important;background:#000;isolation:isolate;pointer-events:auto;overflow:hidden}
+.prologue-v7-fullscreen .prologue-v2-layer{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;pointer-events:none}
+.prologue-v7-fullscreen .prologue-v2-layer canvas{width:100%!important;height:100%!important;display:block}
+.prologue-v7-fullscreen .prologue-v2-layer::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 40%,rgba(13,12,10,.06) 53%,rgba(10,14,18,.58) 80%,rgba(7,12,17,.84))}
+.prologue-v7-fullscreen #dialogueLayer{position:absolute!important;z-index:300!important;left:50%!important;right:auto!important;bottom:var(--v7-dialogue-bottom,43px)!important;width:858px!important;transform:translateX(-50%) scale(var(--v7-dialogue-scale,1))!important;transform-origin:50% 100%!important;pointer-events:auto}
+.prologue-v7-fullscreen #dialogueJumpButton,.prologue-v7-fullscreen #previewMenuButton{position:absolute!important;top:18px!important;z-index:340!important;pointer-events:auto}
+.prologue-v7-fullscreen #dialogueJumpButton{right:116px!important}
+.prologue-v7-fullscreen #previewMenuButton{right:18px!important}
+.prologue-v7-fullscreen #dialogueJumpPanel{position:absolute!important;inset:0!important;z-index:360!important;pointer-events:auto}
+.prologue-v7-fullscreen .controls{position:absolute!important;right:12px!important;bottom:10px!important;z-index:340!important;pointer-events:auto}
+.prologue-v7-fullscreen .prologue-v2-layer[data-beat="fracture"]::after,.prologue-v7-fullscreen .prologue-v2-layer[data-beat="shatter"]::after{background:none!important}
+.prologue-v7-fullscreen .core-v5-main{font-size:clamp(42px,5.2cqw,104px)}
+.prologue-v7-fullscreen .core-v5-kicker{font-size:clamp(12px,1.05cqw,18px)}
+.prologue-v7-fullscreen .core-v5-caption{font-size:clamp(14px,1.15cqw,20px)}
+#storyStage.is-v7-admission .scene-background{transition:none!important;animation:none!important}
+#storyStage.is-v7-admission .scene-background:not(.is-visible){opacity:0!important}
+#storyStage.is-v7-admission .scene-background.is-visible{opacity:1!important}
+.prologue-v2-layer[data-v7-admission="true"]::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 43%,rgba(9,12,16,.04) 55%,rgba(9,12,16,.64));opacity:0;transition:opacity 1.2s}
+.prologue-v2-layer[data-v7-admission-title="true"]::after{opacity:1}
+.prologue-v2-layer[data-v7-admission-title="true"] .core-v5-kicker{animation:coreV5TextIn 1s .1s both}
+.prologue-v2-layer[data-v7-admission-title="true"] .core-v5-main{animation:coreV5TextIn 1.5s .25s both}
+.prologue-v2-layer[data-v7-admission-title="true"] .core-v5-rule{animation:coreV5LineIn 1.3s .5s both}
+.prologue-v2-layer[data-v7-admission-title="true"] .core-v5-caption{animation:coreV5TextIn 1.2s .7s both}
+`;stage.appendChild(v7Style);
   }
   function v7ResizeFullscreen(){
     if(!v7FullscreenState)return;
@@ -297,11 +318,19 @@
   function v7EnterFullscreen(){
     if(v7FullscreenState){v7ResizeFullscreen();return;}
     const dialogue=document.getElementById('dialogueLayer');if(!dialogue)throw Error('The original narrator window was not found.');
+    const movable=[document.getElementById('dialogueJumpButton'),document.getElementById('previewMenuButton'),document.getElementById('dialogueJumpPanel'),stage?.querySelector?.('.controls')].filter(Boolean);
     const layerMark=document.createComment('prologue V7 layer'),dialogueMark=document.createComment('prologue V7 dialogue');
+    const movableEntries=[];
     layer.parentNode.insertBefore(layerMark,layer);dialogue.parentNode.insertBefore(dialogueMark,dialogue);
+    for(const element of movable){
+      if(!element.parentNode)continue;
+      const mark=document.createComment('prologue V7 movable');
+      element.parentNode.insertBefore(mark,element);
+      movableEntries.push({element,mark});
+    }
     const host=document.createElement('div');host.className='prologue-v7-fullscreen';host.setAttribute('role','presentation');
-    v7FullscreenState={host,dialogue,layerMark,dialogueMark};
-    document.body.appendChild(host);host.append(layer,dialogue);
+    v7FullscreenState={host,dialogue,layerMark,dialogueMark,movableEntries};
+    document.body.appendChild(host);host.append(layer,dialogue,...movableEntries.map(entry=>entry.element));
     host.addEventListener('click',event=>{if(!v7FullscreenState||dialogue.contains(event.target))return;stage.dispatchEvent(new MouseEvent('click',{bubbles:true}));});
     v7ResizeFullscreen();
     v7ResizeObserver=new MutationObserver(()=>{if(v7FullscreenState&&!stage?.isConnected)v7LeaveFullscreen();});
@@ -313,6 +342,9 @@
     const state=v7FullscreenState;v7FullscreenState=null;
     if(state.layerMark.parentNode)state.layerMark.replaceWith(layer);else layer.remove();
     if(state.dialogueMark.parentNode)state.dialogueMark.replaceWith(state.dialogue);else state.dialogue.remove();
+    for(const entry of state.movableEntries||[]){
+      if(entry.mark.parentNode)entry.mark.replaceWith(entry.element);else entry.element.remove();
+    }
     state.host.remove();W=922;H=960;canvas.width=W;canvas.height=H;ctx=canvas.getContext('2d',{alpha:false});
     snapshot=null;fragments=[];
   }
