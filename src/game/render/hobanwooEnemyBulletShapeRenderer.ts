@@ -87,7 +87,7 @@ function drawAttendanceStamp(ctx: CanvasRenderingContext2D, r: number, time: num
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `1000 ${Math.round(r * 0.58)}px sans-serif`;
+  ctx.font = `1000 ${Math.round(r * 0.58)}px Noto Sans KR, sans-serif`;
   ctx.lineWidth = 4;
   ctx.strokeStyle = INK;
   ctx.fillStyle = RED;
@@ -115,7 +115,7 @@ function drawNoticePopup(ctx: CanvasRenderingContext2D, r: number): void {
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `1000 ${Math.round(r * 0.4)}px sans-serif`;
+  ctx.font = `1000 ${Math.round(r * 0.4)}px Noto Sans KR, sans-serif`;
   ctx.lineWidth = 3;
   ctx.strokeStyle = INK;
   ctx.fillStyle = CREAM;
@@ -205,7 +205,7 @@ function drawDeadlineMissile(ctx: CanvasRenderingContext2D, r: number, time: num
   ctx.lineWidth = Math.max(2, r * 0.1);
   ctx.strokeStyle = INK;
   ctx.fillStyle = CREAM;
-  ctx.font = `1000 ${Math.round(r * 0.58)}px sans-serif`;
+  ctx.font = `1000 ${Math.round(r * 0.58)}px Noto Sans KR, sans-serif`;
   ctx.strokeText("D-1", -r * 0.38, r * 0.02);
   ctx.fillText("D-1", -r * 0.38, r * 0.02);
 }
@@ -253,7 +253,7 @@ function drawUnsubmittedMissile(ctx: CanvasRenderingContext2D, r: number): void 
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `900 ${Math.round(r * 0.48)}px sans-serif`;
+  ctx.font = `900 ${Math.round(r * 0.48)}px Noto Sans KR, sans-serif`;
   ctx.lineWidth = Math.max(2, r * 0.1);
   ctx.strokeStyle = INK;
   ctx.fillStyle = RED;
@@ -295,7 +295,7 @@ function drawFBomb(ctx: CanvasRenderingContext2D, r: number, time: number, fuseT
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `900 ${Math.round(r * 1.34)}px Georgia`;
+  ctx.font = `900 ${Math.round(r * 1.34)}px Noto Sans KR`;
   ctx.lineWidth = Math.max(4, r * 0.18);
   ctx.strokeStyle = INK;
   ctx.fillStyle = RED;
@@ -309,7 +309,7 @@ function drawFFragment(ctx: CanvasRenderingContext2D, r: number, time: number, p
   strokePath(ctx, CREAM, INK, 4);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `900 ${Math.round(r * 1.35)}px Georgia`;
+  ctx.font = `900 ${Math.round(r * 1.35)}px Noto Sans KR`;
   ctx.lineWidth = Math.max(3, r * 0.16);
   ctx.strokeStyle = INK;
   ctx.fillStyle = RED;

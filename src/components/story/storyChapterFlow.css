@@ -23,7 +23,7 @@
 }
 
 .storyChapterPanelHeader { text-align: center; margin-bottom: clamp(32px, 4vw, 44px); }
-.storyChapterPanelHeader small { color: #f59e0b; font: 900 clamp(12px, 1.3vw, 15px) ui-monospace, monospace; letter-spacing: .30em; }
+.storyChapterPanelHeader small { color: #f59e0b; font: 900 clamp(12px, 1.3vw, 15px) "Noto Sans KR", "Malgun Gothic", sans-serif; letter-spacing: .30em; }
 .storyChapterPanelHeader h2 { margin: 13px 0 10px; font-size: clamp(36px, 5vw, 58px); font-weight: 1000; line-height: 1.12; }
 .storyChapterPanelHeader p { margin: 0; color: #a8b2c2; font-size: clamp(14px, 1.45vw, 17px); line-height: 1.65; }
 
@@ -41,7 +41,7 @@
 }
 .storyChapterCard:not(:disabled):hover { transform: translateY(-5px); border-color: rgba(248,113,113,.76); box-shadow: 0 18px 32px rgba(0,0,0,.35); }
 .storyChapterCard:disabled { cursor: not-allowed; filter: grayscale(.8) brightness(.48); }
-.storyChapterCard .chapterNo { color: #f59e0b; font: 1000 clamp(12px, 1.25vw, 15px) ui-monospace, monospace; letter-spacing: .2em; }
+.storyChapterCard .chapterNo { color: #f59e0b; font: 1000 clamp(12px, 1.25vw, 15px) "Noto Sans KR", "Malgun Gothic", sans-serif; letter-spacing: .2em; }
 .storyChapterCard strong { display: block; margin-top: 15px; font-size: clamp(27px, 2.7vw, 35px); line-height: 1.28; word-break: keep-all; }
 .storyChapterCard p { margin: 12px 0 0; color: #d6dce6; font-size: clamp(14px, 1.5vw, 18px); font-weight: 800; line-height: 1.58; word-break: keep-all; }
 .storyChapterCard .chapterState {
@@ -49,7 +49,7 @@
   left: clamp(23px, 2.6vw, 32px);
   bottom: 24px;
   color: #d8dee8;
-  font: 1000 clamp(13px, 1.35vw, 16px) ui-monospace, monospace;
+  font: 1000 clamp(13px, 1.35vw, 16px) "Noto Sans KR", "Malgun Gothic", sans-serif;
   letter-spacing: .11em;
 }
 .storyChapterCard.isCleared {
@@ -73,12 +73,12 @@
   outline-offset: -4px;
   background: #4a3500;
   color: #fff2a8;
-  font: 1000 clamp(11px, 1.15vw, 14px) ui-monospace, monospace;
+  font: 1000 clamp(11px, 1.15vw, 14px) "Noto Sans KR", "Malgun Gothic", sans-serif;
   letter-spacing: .12em;
   text-shadow: 2px 2px 0 #000;
 }
 .storyChapterCard.isCleared .chapterState { color: #ffe56d; text-shadow: 0 0 12px rgba(255,215,60,.46); }
-.storyChapterCard.isLocked::after { content: "LOCKED"; position: absolute; right: 18px; top: 18px; color: #f87171; font: 1000 clamp(11px, 1.1vw, 13px) ui-monospace, monospace; letter-spacing: .14em; }
+.storyChapterCard.isLocked::after { content: "LOCKED"; position: absolute; right: 18px; top: 18px; color: #f87171; font: 1000 clamp(11px, 1.1vw, 13px) "Noto Sans KR", "Malgun Gothic", sans-serif; letter-spacing: .14em; }
 .storyChapterClose {
   display: block;
   margin: clamp(28px, 3vw, 38px) auto 0;
@@ -100,7 +100,7 @@
   overflow: hidden;
   background: #000;
   color: white;
-  font-family: "Courier New", "Noto Sans KR", monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
 .chapterClearStage { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; animation: chapterClearStageIn .55s ease forwards; }
 
@@ -155,24 +155,24 @@
 .chapterClearOpeningMadeByCard small {
   display: block;
   color: rgba(255,255,255,.52);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: clamp(11px, 1.35vw, 16px);
-  font-weight: 400;
+  font-weight: 800;
   letter-spacing: .42em;
   text-transform: uppercase;
 }
 .chapterClearOpeningMadeByCard strong {
   display: block;
   color: #fff;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: clamp(36px, 7vw, 88px);
-  font-weight: 500;
+  font-weight: 900;
   letter-spacing: .045em;
 }
 .chapterClearOpeningMadeByCard span {
   display: block;
   color: rgba(255,255,255,.78);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: clamp(15px, 2.2vw, 27px);
   letter-spacing: .12em;
 }
@@ -316,7 +316,7 @@
   background: rgba(0, 0, 0, 0);
   animation: chapter1CombatDeathFade 1.35s ease-in forwards;
   color: #fff;
-  font-family: "Courier New", "Noto Sans KR", monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
 
 /* Keep the Chapter 1 defeat dialog above chapter cinematics and test navigation. */

@@ -40,7 +40,7 @@
 
 .hobanwooLeaderboardEyebrow {
   color: #c61f2d;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: 10px;
   font-weight: 1000;
   letter-spacing: 0.12em;
@@ -196,7 +196,7 @@
   display: grid;
   justify-items: center;
   color: #b21f2c;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-weight: 1000;
 }
 
@@ -223,7 +223,7 @@
 .hobanwooRankMeta {
   margin-top: 3px;
   color: #677287;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: 9px;
   font-weight: 900;
 }
@@ -235,7 +235,7 @@
 
 .hobanwooRankScore strong {
   color: #0b1c3b;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: 18px;
   font-weight: 1000;
 }

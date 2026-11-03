@@ -131,13 +131,13 @@ function drawTransition(e:Engine,c:CanvasRenderingContext2D){
   if(e.phase==='outro'){title=e.pattern.id==='clones'?'세 기체가 하나로 합쳐집니다':'전장 복귀';desc=e.pendingBombard?'예약된 오염 폭격이 이어집니다.':'다음 단계로 이동합니다.';}
   if(e.phase==='bombard'){title=`오염 폭격 · ${e.bombTotal}발`;desc='전장 전체 확장 · 착탄 경고원을 피하세요.';}
   if(e.phase==='restore'){title='폭격 종료';desc='원래 전장 크기를 복구합니다.';}
-  c.fillStyle='#0b0d1ee8';c.fillRect(46,419,830,122);c.textAlign='center';c.fillStyle='#97f4df';c.font=`10px ${font}`;c.fillText('DEGREEON / RULE TRANSITION',CANVAS_CX,443);c.fillStyle='#efe7fa';c.font=`bold 24px ${font}`;c.fillText(title,CANVAS_CX,481);c.font=`12px ${font}`;c.fillStyle='#b4a7c5';c.fillText(desc,CANVAS_CX,513);
+  c.fillStyle='#0b0d1ee8';c.fillRect(46,419,830,122);c.textAlign='center';c.fillStyle='#97f4df';c.font=`800 10px ${font}`;c.fillText('DEGREEON / RULE TRANSITION',CANVAS_CX,443);c.fillStyle='#efe7fa';c.font=`bold 24px ${font}`;c.fillText(title,CANVAS_CX,481);c.font=`800 12px ${font}`;c.fillStyle='#b4a7c5';c.fillText(desc,CANVAS_CX,513);
 }
 function drawPause(e:Engine,c:CanvasRenderingContext2D){
   if(!e.paused||e.gameOver||e.hostPauseDialog)return;c.save();c.translate(CANVAS_CX,CANVAS_CY);c.fillStyle='rgba(0,0,0,.78)';c.fillRect(-e.canvas.width/2,-e.canvas.height/2,e.canvas.width,e.canvas.height);drawPauseWindow(c);c.restore();
 }
 function drawGameOver(e:Engine,c:CanvasRenderingContext2D){
-  if(!e.gameOver)return;c.fillStyle='rgba(0,0,0,.82)';c.fillRect(0,0,CANVAS_W,CANVAS_H);c.textAlign='center';c.fillStyle='#ff4858';c.font=`900 42px ${font}`;c.fillText('GAME OVER',CANVAS_CX,438);c.fillStyle='#fff';c.font=`800 20px ${font}`;c.fillText('호반우가 쓰러졌습니다',CANVAS_CX,481);c.fillStyle='#c2b7c5';c.font=`14px ${font}`;c.fillText('R 키로 다시 도전할 수 있습니다',CANVAS_CX,520);
+  if(!e.gameOver)return;c.fillStyle='rgba(0,0,0,.82)';c.fillRect(0,0,CANVAS_W,CANVAS_H);c.textAlign='center';c.fillStyle='#ff4858';c.font=`900 42px ${font}`;c.fillText('GAME OVER',CANVAS_CX,438);c.fillStyle='#fff';c.font=`800 20px ${font}`;c.fillText('호반우가 쓰러졌습니다',CANVAS_CX,481);c.fillStyle='#c2b7c5';c.font=`800 14px ${font}`;c.fillText('R 키로 다시 도전할 수 있습니다',CANVAS_CX,520);
 }
 function drawExiledArena(e:Engine,c:CanvasRenderingContext2D){
   c.save();c.fillStyle='#080b17';c.fillRect(-CANVAS_CX,-CANVAS_CY,CANVAS_W,CANVAS_H);background(e,c);drawBoss(e,c,1);
@@ -204,7 +204,7 @@ export function drawScene(e:Engine){
   if(!outside)drawSmartBomb(e,c);
   c.restore(); // HUD and title cards are part of the physical rotating screen.
   drawTransition(e,c);
-  if(e.rotation&&e.phase==='active'){c.fillStyle='#141324df';c.fillRect(211,91,500,38);c.fillStyle='#d7b7ff';c.font=`13px ${font}`;c.textAlign='center';c.fillText(e.rotationLive?'전장 회전 · 공격 유지 · 화면 기준 이동':'전장 회전 · 공격 일시 정지',CANVAS_CX,116);}
+  if(e.rotation&&e.phase==='active'){c.fillStyle='#141324df';c.fillRect(211,91,500,38);c.fillStyle='#d7b7ff';c.font=`800 13px ${font}`;c.textAlign='center';c.fillText(e.rotationLive?'전장 회전 · 공격 유지 · 화면 기준 이동':'전장 회전 · 공격 일시 정지',CANVAS_CX,116);}
   if(e.damageFlash>0){c.fillStyle=`rgba(210,0,24,${.24*clamp(e.damageFlash/.85,0,1)})`;c.fillRect(0,0,CANVAS_W,CANVAS_H);}
   drawBossHud(c,e);drawFinalStandHud(c,e);drawPauseStormOverlay(e,c);drawPause(e,c);drawGameOver(e,c);c.restore();
 }

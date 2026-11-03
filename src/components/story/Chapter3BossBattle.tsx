@@ -8,7 +8,7 @@ import {EncounterAudio} from '../../game/chapter3/degreeon/encounterAudio';
 import {useAppStore} from '../../store';
 import {sfx} from '../../game/AudioSystem';
 import '../../game/chapter3/degreeon/bossFont.css';
-import '../../game/chapter3/degreeon/font.css';
+// Noto Sans KR 700/800/900 is loaded globally; do not load legacy Thin subsets.
 import '../../game/chapter3/degreeon/encounterOverlay.css';
 import './chapter3BossBattle.css';
 export type Chapter3BossLaunch={phase?:1|2;tests?:boolean};

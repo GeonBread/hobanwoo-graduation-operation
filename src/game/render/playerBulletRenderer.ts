@@ -389,7 +389,7 @@ function drawHobanuMusicLaserNoteGlyph(params: {
   ctx.translate(x, y);
   ctx.rotate(angle);
   ctx.scale(flip, 1);
-  ctx.font = `900 ${Math.max(12, Math.round(fontSize))}px system-ui, sans-serif`;
+  ctx.font = `900 ${Math.max(12, Math.round(fontSize))}px Noto Sans KR, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.lineWidth = 3;

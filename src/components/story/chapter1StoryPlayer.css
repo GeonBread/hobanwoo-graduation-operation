@@ -59,7 +59,7 @@
   color: #fff3bf;
   background: rgba(8, 9, 13, .94);
   box-shadow: 0 0 20px rgba(246, 195, 74, .32);
-  font-family: "Noto Sans KR", "Courier New", monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: 13px;
   font-weight: 950;
   letter-spacing: .04em;
@@ -94,7 +94,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  font-family: "Courier New", "Noto Sans KR", monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
 
 .chapter1-story-test-toggle {
@@ -283,14 +283,14 @@
   color: #f8fafc;
   background: rgba(5, 7, 12, .94);
   box-shadow: 0 0 0 2px #f6c34a, 0 18px 44px rgba(0, 0, 0, .72);
-  font-family: "Noto Sans KR", "Pretendard", sans-serif;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   pointer-events: auto;
 }
 
 .chapter1-combat-guide-speaker {
   margin-bottom: 10px;
   color: #f6c34a;
-  font-family: "Courier New", monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: 13px;
   font-weight: 900;
   letter-spacing: .08em;
@@ -324,7 +324,7 @@
   color: #071015;
   background: #67e8f9;
   box-shadow: 0 3px 0 #155e75;
-  font-family: "Courier New", monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-weight: 950;
 }
 
@@ -357,7 +357,7 @@
   height: 48px;
   border: 5px solid #08090d;
   color: #fff;
-  font-family: Arial, sans-serif;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: 26px;
   font-weight: 950;
   line-height: 1;

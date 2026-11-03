@@ -16,5 +16,5 @@ export function drawHpBar(c:CanvasRenderingContext2D,ratio:number,stage:number,l
  if(ratio>0){c.fillStyle='#ffedca';c.fillRect(11+540*ratio,8,2,22);}c.restore();
  // Six stars echo the story's six recovered seals, inside the physical bar bounds.
  for(let i=0;i<6;i++){const x=246+i*15;c.beginPath();c.moveTo(x,13);c.lineTo(x+2,17);c.lineTo(x+5,19);c.lineTo(x+2,21);c.lineTo(x,25);c.lineTo(x-2,21);c.lineTo(x-5,19);c.lineTo(x-2,17);c.closePath();c.fillStyle=i/6<ratio?'#ffe3ac':'#695274';c.fill();}
- c.font='900 11px system-ui,sans-serif';c.textBaseline='middle';c.fillStyle='#fff0da';c.textAlign='left';c.fillText(label.phase??(awakened?'PHASE II · AWAKENED':'PHASE I · DEGREEON'),24,19);c.textAlign='right';c.fillText(label.health??`${(ratio*100).toFixed(1)}%`,542,19);c.restore();
+ c.font='900 11px Noto Sans KR,sans-serif';c.textBaseline='middle';c.fillStyle='#fff0da';c.textAlign='left';c.fillText(label.phase??(awakened?'PHASE II · AWAKENED':'PHASE I · DEGREEON'),24,19);c.textAlign='right';c.fillText(label.health??`${(ratio*100).toFixed(1)}%`,542,19);c.restore();
 }

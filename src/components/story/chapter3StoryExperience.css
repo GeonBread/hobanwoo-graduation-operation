@@ -46,7 +46,7 @@
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.82);
   color: #fff;
-  font: 800 13px/1.2 "Courier New", monospace;
+  font: 800 13px/1.2 "Noto Sans KR", "Malgun Gothic", sans-serif;
   letter-spacing: 0.12em;
   pointer-events: none;
 }
@@ -128,7 +128,7 @@
 .chapter3DetailSelectorHeader small {
   display: block;
   color: #ddb76e;
-  font: 900 11px/1.2 "Courier New", monospace;
+  font: 900 11px/1.2 "Noto Sans KR", "Malgun Gothic", sans-serif;
   letter-spacing: .18em;
 }
 
@@ -178,7 +178,7 @@
   border-radius: 999px;
   background: rgba(255, 255, 255, .08);
   color: #c6cddd;
-  font: 800 10px/1.2 "Courier New", monospace;
+  font: 800 10px/1.2 "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
 
 .chapter3DetailTabs button:hover {
@@ -231,7 +231,7 @@
 
 .chapter3SelectCard b {
   color: #e7bc70;
-  font: 900 10px/1.2 "Courier New", monospace;
+  font: 900 10px/1.2 "Noto Sans KR", "Malgun Gothic", sans-serif;
   letter-spacing: .1em;
 }
 
@@ -283,7 +283,7 @@
 
 .chapter3BossRuntimeNotice b {
   color: #ef91a8;
-  font: 900 10px/1.2 "Courier New", monospace;
+  font: 900 10px/1.2 "Noto Sans KR", "Malgun Gothic", sans-serif;
   letter-spacing: .12em;
 }
 

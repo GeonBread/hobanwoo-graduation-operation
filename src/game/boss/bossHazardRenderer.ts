@@ -525,7 +525,7 @@ export function renderBossPatternHazards(engine: BossHazardRenderRuntime) {
 
     const remaining = maze.phase === "active" ? Math.max(0, maze.totalTime - maze.age) : maze.totalTime;
     engine.ctx.fillStyle = "#e2e8f0";
-    engine.ctx.font = "700 14px Inter, system-ui, sans-serif";
+    engine.ctx.font = "700 14px Noto Sans KR, sans-serif";
     engine.ctx.textAlign = "center";
     engine.ctx.fillText(`ESCAPE ${remaining.toFixed(1)}s`, engine.canvas.width / 2, 28);
 
@@ -567,11 +567,11 @@ export function renderBossClearOverlay(engine: BossHazardRenderRuntime) {
   engine.ctx.shadowColor = "#38bdf8";
   engine.ctx.shadowBlur = 24;
   engine.ctx.fillStyle = `rgba(255, 255, 255, ${pulse})`;
-  engine.ctx.font = "800 34px Inter, system-ui, sans-serif";
+  engine.ctx.font = "800 34px Noto Sans KR, sans-serif";
   engine.ctx.fillText(engine.bossClearLabel || "PHASE CLEAR", cx, cy);
   engine.ctx.shadowBlur = 10;
   engine.ctx.fillStyle = "rgba(56, 189, 248, 0.78)";
-  engine.ctx.font = "700 13px Inter, system-ui, sans-serif";
+  engine.ctx.font = "700 13px Noto Sans KR, sans-serif";
   engine.ctx.fillText("SYSTEM STABILIZED", cx, cy + 42);
   engine.ctx.restore();
 }

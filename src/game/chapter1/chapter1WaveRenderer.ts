@@ -133,7 +133,7 @@ export function renderChapter1EnemySystem(
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `900 ${Math.max(16, enemy.width * 0.22)}px system-ui, sans-serif`;
+    ctx.font = `900 ${Math.max(16, enemy.width * 0.22)}px Noto Sans KR, sans-serif`;
     ctx.lineWidth = 4;
     ctx.strokeStyle = "#090604";
     ctx.fillStyle = "#fff7df";
@@ -155,7 +155,7 @@ export function renderChapter1EnemySystem(
     ctx.strokeStyle = "#090604";
     ctx.lineWidth = 2;
     ctx.strokeRect(barX, barY, barWidth, 7);
-    ctx.font = "900 11px system-ui, sans-serif";
+    ctx.font = "900 11px Noto Sans KR, sans-serif";
     ctx.textAlign = "center";
     ctx.fillStyle = "#fff7df";
     ctx.strokeStyle = "#090604";
@@ -288,7 +288,7 @@ export function renderChapter1WaveTelegraphsSystem(engine: any): void {
       ctx.setLineDash([12, 8]);
       ctx.strokeRect(x - width / 2, y - height / 2, width, height);
       ctx.setLineDash([]);
-      ctx.font = `900 ${Math.max(14, width * 0.12)}px system-ui, sans-serif`;
+      ctx.font = `900 ${Math.max(14, width * 0.12)}px Noto Sans KR, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = "#fff7df";
@@ -359,7 +359,7 @@ export function renderChapter1WaveHudSystem(engine: any): void {
   ctx.shadowBlur = 0;
 
   ctx.textBaseline = "middle";
-  ctx.font = "900 12px 'Noto Sans KR', system-ui, sans-serif";
+  ctx.font = "900 12px 'Noto Sans KR', Noto Sans KR, sans-serif";
   ctx.fillStyle = "#fff1b5";
   ctx.textAlign = "left";
   ctx.fillText("정화 에너지", panelX + 14, panelY + 15);

@@ -42,7 +42,7 @@
 .hobanwooGameOverScoreLabel,
 .hobanwooGameOverSmallLabel {
   color: #4d6386;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: clamp(9px, 1.45vw, 12px);
   font-weight: 1000;
   letter-spacing: 0.18em;
@@ -51,7 +51,7 @@
 .hobanwooGameOverScore {
   margin-top: 1.2%;
   color: #0a1d43;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: clamp(40px, 10vw, 68px);
   font-weight: 1000;
   line-height: 1;
@@ -160,7 +160,7 @@
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.54);
   color: #50617d;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: clamp(8px, 1.75vw, 10px);
   font-weight: 1000;
 }
@@ -245,7 +245,7 @@
   border-radius: 14px;
   background: linear-gradient(180deg, #173d6c 0%, #0d294f 100%);
   color: #fff8e9;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: clamp(11px, 2.6vw, 14px);
   font-weight: 1000;
   cursor: pointer;

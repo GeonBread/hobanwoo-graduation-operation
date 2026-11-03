@@ -1,0 +1,83 @@
+/* 호반우의 졸업 대작전 - 통합 글꼴 v1 (2026-11-03)
+   Main document + Chapter 2/3 story iframes + Chapter 3 wave iframe.
+   All standard game/story text: Noto Sans KR. Dialogue 800, headings 900.
+   Keep cinematic CoreTitleSerif / Black Han Sans for their special identities.
+   The Google Fonts link is installed in each document head. The OS stack is
+   intentionally usable without a network connection. No font binary is copied.
+*/
+:root {
+  --hobanwoo-font: "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", "Nanum Gothic", sans-serif;
+  --hobanwoo-font-body-weight: 800;
+  --hobanwoo-font-heading-weight: 900;
+}
+
+/* CSS font shorthand and earlier component styles may request Courier/Arial.
+   The same typeface must win across dynamically mounted story layers. */
+html,
+body,
+body *,
+body *::before,
+body *::after {
+  font-family: var(--hobanwoo-font) !important;
+  font-synthesis: weight !important;
+}
+
+/* All three chapters' story text: dialogue, captions, UI, narrator and credits.
+   Includes fullscreen nodes moved outside #root during cinematics. */
+html.hobanwoo-embedded-story body,
+html.hobanwoo-embedded-story body *,
+body :is(.chapter1-story-player, .chapter2-story-experience, .chapter3StoryExperience,
+         .storyChapterOverlay, .chapterClearSequence, .chapterContinuePrompt,
+         .chapterIntegrationPlaceholder, .chapterGamePauseOverlay, .chapterGamePauseModal,
+         .prologue-v7-fullscreen, .chapter1-location-title-overlay, .chapter1-core-vision-reveal,
+         .chapter1-boss-map-arrival-fullscreen, .chapter1-boss-map-dialogue-reveal,
+         .c3boss-root),
+body :is(.chapter1-story-player, .chapter2-story-experience, .chapter3StoryExperience,
+         .storyChapterOverlay, .chapterClearSequence, .chapterContinuePrompt,
+         .chapterIntegrationPlaceholder, .chapterGamePauseOverlay, .chapterGamePauseModal,
+         .prologue-v7-fullscreen, .chapter1-location-title-overlay, .chapter1-core-vision-reveal,
+         .chapter1-boss-map-arrival-fullscreen, .chapter1-boss-map-dialogue-reveal,
+         .c3boss-root) * {
+  font-weight: var(--hobanwoo-font-body-weight) !important;
+}
+
+/* Stable type hierarchy: every readable label is bold; prominent headings use Black. */
+html.hobanwoo-embedded-story body :is(h1, h2, h3, h4, strong, b,
+         [class*="title"], [class*="Title"], [class*="heading"], [class*="Heading"],
+         [class*="speaker"], [class*="Speaker"], [class*="location"], [class*="Location"]),
+body :is(.chapter1-story-player, .chapter2-story-experience, .chapter3StoryExperience,
+         .storyChapterOverlay, .chapterClearSequence, .chapterContinuePrompt,
+         .chapterIntegrationPlaceholder, .chapterGamePauseOverlay, .chapterGamePauseModal,
+         .prologue-v7-fullscreen, .chapter1-location-title-overlay, .c3boss-root)
+     :is(h1, h2, h3, h4, strong, b,
+         [class*="title"], [class*="Title"], [class*="heading"], [class*="Heading"],
+         [class*="speaker"], [class*="Speaker"], [class*="location"], [class*="Location"]) {
+  font-weight: var(--hobanwoo-font-heading-weight) !important;
+}
+
+/* Protect the special serif title of Cheomseongdae Core / Admission ceremony;
+   apply synthetic bold as the original local file offers only weight 500. */
+body .prologue-v2-layer :is(.core-v5-kicker, .core-v5-main, .core-v5-caption) {
+  font-family: "CoreTitleSerif", "Noto Sans KR", "Malgun Gothic", serif !important;
+  font-weight: 900 !important;
+}
+
+/* Black Han Sans has only an intrinsic black face registered as weight 400.
+   Keep it black, not a second synthetic black layer. */
+body .encounter-dialogue .encounter-voice p,
+body .encounter-complete h1 {
+  font-family: "Degreeon Black Han", "Noto Sans KR", sans-serif !important;
+  font-weight: 400 !important;
+}
+
+/* Stage-specific digital interface text may have stronger inline !important rules. */
+html.hobanwoo-embedded-story body .c3-cover-chat,
+html.hobanwoo-embedded-story body .c3-cover-chat * {
+  font-family: var(--hobanwoo-font) !important;
+}
+
+/* Waves use the same family, but do not impose story-bold onto combat gauges. */
+html.hobanwoo-embedded-wave body { font-weight: 700; }
+html.hobanwoo-embedded-wave body :is(h1, h2, h3, strong, b, button) {
+  font-weight: 900;
+}

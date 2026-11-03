@@ -214,7 +214,7 @@ function drawBossSupportObjects(engine: any, ctx: CanvasRenderingContext2D): voi
       ctx.fillStyle = "#ef3f45";
       ctx.strokeStyle = "#07090d";
       ctx.lineWidth = 4;
-      ctx.font = "900 22px Arial, sans-serif";
+      ctx.font = "900 22px Noto Sans KR, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.strokeText("P", 0, 1);

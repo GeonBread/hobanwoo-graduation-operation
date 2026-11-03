@@ -3327,10 +3327,10 @@ function drawCinematicEntranceTitle(t) {
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = "#f3e7c9";
-  ctx.font = "900 28px sans-serif";
+  ctx.font = "900 28px Noto Sans KR, sans-serif";
   ctx.fillText("수강신청 게이트키퍼", W / 2, y - 9);
   ctx.fillStyle = "#ff7a89";
-  ctx.font = "900 13px sans-serif";
+  ctx.font = "900 13px Noto Sans KR, sans-serif";
   ctx.fillText("ACADEMIC SERVER ACCESS DENIED", W / 2, y + 24);
   ctx.restore();
 }
@@ -3543,9 +3543,9 @@ function drawCinematicHpBar(hpRatio, alpha, stateLabel) {
   ctx.fillStyle = purified ? "#ddfff7" : "#f2e5c8";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = "900 18px sans-serif";
+  ctx.font = "900 18px Noto Sans KR, sans-serif";
   ctx.fillText("수강신청 게이트키퍼", x, y + 2);
-  ctx.font = "900 11px sans-serif";
+  ctx.font = "900 11px Noto Sans KR, sans-serif";
   ctx.textAlign = "left";
   ctx.fillStyle = "#f2e6ca";
   ctx.fillText("BOSS HP", trackX + 10, trackY + trackH / 2);
@@ -3682,12 +3682,12 @@ function drawHealthTrack({ y, label, value, max, active, locked, colorA, colorB,
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
   ctx.fillStyle = active ? "#10131a" : "#c7d0e8";
-  ctx.font = "900 12px sans-serif";
+  ctx.font = "900 12px Noto Sans KR, sans-serif";
   ctx.fillText(label, x - outerW / 2 + 14, y + outerH / 2 + .5);
 
   ctx.textAlign = "right";
   ctx.fillStyle = locked ? "#8d9ab9" : active ? "#10131a" : "#ffffff";
-  ctx.font = "900 12px sans-serif";
+  ctx.font = "900 12px Noto Sans KR, sans-serif";
   const valueText = locked ? "LOCKED" : `${Math.ceil(ratio * 100)}% · ${Math.ceil(value)}/${max}`;
   ctx.fillText(valueText, x + outerW / 2 - 13, y + outerH / 2 + .5);
   ctx.restore();
@@ -3787,7 +3787,7 @@ function drawBossHealthBar() {
 
   ctx.fillStyle = '#f3e7c9';
   ctx.textAlign = 'center';
-  ctx.font = '900 18px sans-serif';
+  ctx.font = '900 18px Noto Sans KR, sans-serif';
   ctx.fillText('수강신청 게이트키퍼', x, titleY + titleH / 2 + 1);
 
   ctx.save();
@@ -3860,7 +3860,7 @@ function drawBossHealthBar() {
   ctx.fill();
   ctx.fillStyle = (stage1Active || phase1Clear) ? badgeBlue : defeated ? '#d9fff2' : badgeRed;
   ctx.textAlign = 'center';
-  ctx.font = '900 11px sans-serif';
+  ctx.font = '900 11px Noto Sans KR, sans-serif';
   ctx.fillText(stageBadge, trackX + 47, trackY + trackH / 2 + .5);
 
   // right percent badge
@@ -3870,7 +3870,7 @@ function drawBossHealthBar() {
   ctx.fill();
   ctx.fillStyle = '#ffffff';
   ctx.textAlign = 'center';
-  ctx.font = '900 12px sans-serif';
+  ctx.font = '900 12px Noto Sans KR, sans-serif';
   ctx.fillText(percentText, trackX + trackW - 40, trackY + trackH / 2 + .5);
 
   ctx.restore();
@@ -3972,11 +3972,11 @@ function drawAwakeningOverlay() {
   ctx.shadowColor = "#ff3345";
   ctx.shadowBlur = 24;
   ctx.fillStyle = "#ffffff";
-  ctx.font = "1000 42px sans-serif";
+  ctx.font = "1000 42px Noto Sans KR, sans-serif";
   ctx.fillText("2페이즈 각성", W / 2, 360);
   ctx.shadowBlur = 0;
   ctx.fillStyle = "#ffb6bf";
-  ctx.font = "900 15px sans-serif";
+  ctx.font = "900 15px Noto Sans KR, sans-serif";
   ctx.fillText("학사 시스템 전투 프로토콜 해제", W / 2, 397);
   ctx.restore();
 }
@@ -3994,10 +3994,10 @@ function drawDefeatOverlay() {
   ctx.fillStyle = "#fff4b0";
   ctx.shadowColor = "#ffb21f";
   ctx.shadowBlur = 24;
-  ctx.font = "1000 40px sans-serif";
+  ctx.font = "1000 40px Noto Sans KR, sans-serif";
   ctx.fillText("BOSS CLEAR", W / 2, H / 2 - 12);
   ctx.shadowBlur = 0;
-  ctx.font = "900 15px sans-serif";
+  ctx.font = "900 15px Noto Sans KR, sans-serif";
   ctx.fillStyle = "#ffd84a";
   ctx.fillText("수강신청 게이트키퍼 격파", W / 2, H / 2 + 34);
   ctx.restore();
@@ -4037,11 +4037,11 @@ function drawPhase1ClearOverlay() {
   ctx.fillStyle = "#ffffff";
   ctx.shadowColor = "#4fd5ff";
   ctx.shadowBlur = 18;
-  ctx.font = "1000 34px sans-serif";
+  ctx.font = "1000 34px Noto Sans KR, sans-serif";
   ctx.fillText("1페이즈 클리어", W / 2, 360);
   ctx.shadowBlur = 0;
   ctx.fillStyle = "#bdeeff";
-  ctx.font = "900 14px sans-serif";
+  ctx.font = "900 14px Noto Sans KR, sans-serif";
   ctx.fillText("보스 전투 시스템 재구성 중", W / 2, 392);
   ctx.restore();
 }
@@ -4211,7 +4211,7 @@ function drawServiceQueuePanel() {
 
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.font = "900 20px sans-serif";
+  ctx.font = "900 20px Noto Sans KR, sans-serif";
   ctx.fillStyle = "#171a22";
   ctx.fillText(q.success ? "서비스 접속이 완료되었습니다." : "서비스", panelX + 18, panelY + 28);
   if (!q.success) {
@@ -4224,7 +4224,7 @@ function drawServiceQueuePanel() {
   }
 
   ctx.textAlign = "right";
-  ctx.font = "800 14px sans-serif";
+  ctx.font = "800 14px Noto Sans KR, sans-serif";
   ctx.fillStyle = q.delayFlash > 0 ? "#d92f48" : "#343945";
   ctx.fillText(`예상대기시간 : ${minute}분 ${String(second).padStart(2, "0")}초`, panelX + panelW - 18, panelY + 28);
 
@@ -4236,16 +4236,16 @@ function drawServiceQueuePanel() {
   ctx.strokeRect(panelX + 18, panelY + 52, panelW - 36, 20);
 
   ctx.textAlign = "left";
-  ctx.font = "700 13px sans-serif";
+  ctx.font = "700 13px Noto Sans KR, sans-serif";
   ctx.fillStyle = "#4b5260";
   ctx.fillText(`현재 앞 대기자 ${ahead}명, 뒤 대기자 ${q.behind}명입니다.`, panelX + 18, panelY + 91);
   ctx.fillText(q.status, panelX + 18, panelY + 113);
-  ctx.font = "800 12px sans-serif";
+  ctx.font = "800 12px Noto Sans KR, sans-serif";
   ctx.fillStyle = q.delayTriggered && !q.success ? "#d92f48" : "#5c6472";
   ctx.fillText("※ 재접속하면 대기시간이 더 길어집니다.", panelX + 18, panelY + 136);
 
   ctx.textAlign = "right";
-  ctx.font = "900 13px monospace";
+  ctx.font = "900 13px Noto Sans KR, sans-serif";
   ctx.fillStyle = "#128a76";
   ctx.fillText(`${Math.round(q.progress)}%`, panelX + panelW - 18, panelY + 91);
   ctx.restore();
@@ -4288,7 +4288,7 @@ function drawServiceQueueRows() {
       ctx.globalAlpha = .52 + Math.sin(state.t * 20) * .22;
       ctx.fillStyle = "#ff6c7d";
       ctx.textAlign = "center";
-      ctx.font = "900 13px sans-serif";
+      ctx.font = "900 13px Noto Sans KR, sans-serif";
       ctx.fillText(row.finalRow ? "접속 임박 · 최종 대기열" : "대기열 이동 경고", W / 2, row.y - 35);
       ctx.restore();
     }
@@ -4314,7 +4314,7 @@ function drawSeatScramble(){
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 14px sans-serif';
+  ctx.font = '900 14px Noto Sans KR, sans-serif';
   ctx.fillText(`출석 쟁탈전 ${Math.min(3, p.seatRoundIndex)} / 3`, W/2, 227);
   ctx.restore();
   const warningProgress = clamp((local - p.seatWarnStart) / Math.max(.001, p.seatBlastAt - p.seatWarnStart), 0, 1);
@@ -4352,9 +4352,9 @@ function drawSeatScramble(){
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "900 17px sans-serif";
+    ctx.font = "900 17px Noto Sans KR, sans-serif";
     ctx.fillText(seat.zoneLabel, 0, -8);
-    ctx.font = "800 12px sans-serif";
+    ctx.font = "800 12px Noto Sans KR, sans-serif";
     ctx.fillStyle = safe ? "#d9ffd2" : "#ffd8dc";
     const dangerText = warningActive ? `${seat.zoneLabel} 존 · 폭발 임박` : seat.zoneStatus;
     ctx.fillText(safe ? seat.zoneStatus : dangerText, 0, 15);
@@ -4416,7 +4416,7 @@ function drawCorruptionRollback(){
   ctx.save();
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = "1000 14px monospace";
+  ctx.font = "1000 14px Noto Sans KR, sans-serif";
   ctx.fillStyle = color;
   ctx.shadowColor = color;
   ctx.shadowBlur = 12;
@@ -4438,7 +4438,7 @@ function drawDuplicateSessions(){
 function drawPrerequisiteLocks(){
   const p=state.pattern;const local=state.patternElapsed-p.lockCycleStart;const active=local>=1.05&&local<2.55;const warning=local<1.05;
   for(const link of p.lockLinks||[]){const a=p.lockNodes[link.a],b=p.lockNodes[link.b];ctx.save();ctx.strokeStyle=active?"#ff3345":"#ffd142";ctx.lineWidth=active?30:5;ctx.globalAlpha=active?.72:.65;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=active?20:8;ctx.setLineDash(warning?[12,8]:[]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.restore();}
-  for(const n of p.lockNodes||[]){ctx.save();ctx.translate(n.x,n.y);ctx.fillStyle="#151925";ctx.strokeStyle="#f2e6ca";ctx.lineWidth=4;ctx.shadowColor="#dc3342";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(0,0,34,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="900 14px sans-serif";ctx.fillText(n.label,0,1);ctx.restore();}
+  for(const n of p.lockNodes||[]){ctx.save();ctx.translate(n.x,n.y);ctx.fillStyle="#151925";ctx.strokeStyle="#f2e6ca";ctx.lineWidth=4;ctx.shadowColor="#dc3342";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(0,0,34,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="900 14px Noto Sans KR, sans-serif";ctx.fillText(n.label,0,1);ctx.restore();}
 }
 
 function drawAuthCode(){
@@ -4453,16 +4453,16 @@ function drawAuthCode(){
   ctx.fillStyle="rgba(5,10,25,.82)";ctx.strokeStyle="#6f86bd";ctx.lineWidth=2;
   ctx.beginPath();ctx.roundRect(panelX,layout.panelY,layout.panelWidth,panelH,18);ctx.fill();ctx.stroke();
   ctx.fillStyle="#dce6ff";
-  ctx.font=layout.compact?"800 18px sans-serif":"800 16px sans-serif";
+  ctx.font=layout.compact?"800 18px Noto Sans KR, sans-serif":"800 16px Noto Sans KR, sans-serif";
   ctx.fillText("수강신청 4자리 인증코드",W/2,titleY);
   const shown=p.authStatus==="show"?p.authCode:p.authInput.padEnd(4,"_").split("").join("  ");
   ctx.fillStyle=p.authStatus==="success"?"#74d84d":p.authStatus==="failed"?"#ff5f6d":"#fff";
-  ctx.font=layout.compact?"1000 42px monospace":"1000 38px monospace";
+  ctx.font=layout.compact?"1000 42px Noto Sans KR, sans-serif":"1000 38px Noto Sans KR, sans-serif";
   ctx.fillText(shown,W/2,codeY);
   if(p.authStatus==="success"){
     // SUCCESS는 모든 보스/탄막 렌더링이 끝난 뒤 최상단 오버레이로 그립니다.
   }else if(p.authStatus==="failed"){
-    ctx.font="900 18px sans-serif";
+    ctx.font="900 18px Noto Sans KR, sans-serif";
     ctx.fillText("AUTH FAILED",W/2,layout.panelY+128);
   }
 
@@ -4479,7 +4479,7 @@ function drawAuthCode(){
     ctx.lineWidth=3;
     ctx.beginPath();ctx.arc(0,0,pad.r,0,TAU);ctx.fill();ctx.stroke();
     ctx.fillStyle=padsLocked?"#8791aa":"#fff";
-    ctx.font=layout.compact?"1000 30px monospace":"1000 25px monospace";
+    ctx.font=layout.compact?"1000 30px Noto Sans KR, sans-serif":"1000 25px Noto Sans KR, sans-serif";
     ctx.fillText(String(pad.digit),0,1);
     ctx.restore();
   }
@@ -4553,7 +4553,7 @@ function drawAuthResultTopOverlay(){
     ctx.shadowColor="#50ff8a";
     ctx.shadowBlur=30;
     ctx.fillStyle="#ffffff";
-    ctx.font="1000 58px sans-serif";
+    ctx.font="1000 58px Noto Sans KR, sans-serif";
     ctx.strokeStyle="rgba(0,25,12,.92)";
     ctx.lineWidth=9;
     ctx.strokeText("SUCCESS",0,0);
@@ -4564,7 +4564,7 @@ function drawAuthResultTopOverlay(){
 
 function drawServerQueue(){
   const p=state.pattern;
-  for(const token of p.queueTokens||[]){if(token.state==="done")continue;ctx.save();ctx.translate(token.x,token.y);const locked=token.state==="lock";ctx.shadowColor=locked?"#ff5f6d":"#4fd5ff";ctx.shadowBlur=locked?20:12;ctx.fillStyle=locked?"#641824":"#10284e";ctx.strokeStyle=locked?"#ff8a95":"#9fe9ff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,31,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="1000 20px monospace";ctx.fillText(String(token.number),0,-3);ctx.font="800 9px sans-serif";ctx.fillText(locked?"CONNECT":"WAIT",0,16);ctx.restore();if(locked){ctx.save();ctx.strokeStyle="rgba(255,95,109,.72)";ctx.lineWidth=2;ctx.setLineDash([7,6]);ctx.beginPath();ctx.moveTo(token.x,token.y);ctx.lineTo(state.player.x,state.player.y);ctx.stroke();ctx.restore();}}
+  for(const token of p.queueTokens||[]){if(token.state==="done")continue;ctx.save();ctx.translate(token.x,token.y);const locked=token.state==="lock";ctx.shadowColor=locked?"#ff5f6d":"#4fd5ff";ctx.shadowBlur=locked?20:12;ctx.fillStyle=locked?"#641824":"#10284e";ctx.strokeStyle=locked?"#ff8a95":"#9fe9ff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,31,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="1000 20px Noto Sans KR, sans-serif";ctx.fillText(String(token.number),0,-3);ctx.font="800 9px Noto Sans KR, sans-serif";ctx.fillText(locked?"CONNECT":"WAIT",0,16);ctx.restore();if(locked){ctx.save();ctx.strokeStyle="rgba(255,95,109,.72)";ctx.lineWidth=2;ctx.setLineDash([7,6]);ctx.beginPath();ctx.moveTo(token.x,token.y);ctx.lineTo(state.player.x,state.player.y);ctx.stroke();ctx.restore();}}
 }
 
 
@@ -4621,9 +4621,9 @@ function drawAnnouncementOverload() {
       ctx.fillStyle = danger ? '#ffffff' : '#b7c9e8';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = danger ? '1000 15px sans-serif' : '900 14px sans-serif';
+      ctx.font = danger ? '1000 15px Noto Sans KR, sans-serif' : '900 14px Noto Sans KR, sans-serif';
       ctx.fillText(item.text,0,-3);
-      ctx.font = '800 9px sans-serif';
+      ctx.font = '800 9px Noto Sans KR, sans-serif';
       ctx.fillStyle = danger ? palette[0] : '#91a5c7';
       ctx.fillText(danger ? palette[1] : '일반 공지',0,13);
       ctx.restore();
@@ -4646,7 +4646,7 @@ function drawAnnouncementOverload() {
     ctx.fillStyle = '#ffffff';
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    ctx.font='1000 11px sans-serif';
+    ctx.font='1000 11px Noto Sans KR, sans-serif';
     ctx.fillText(attack.type==='required'?'필독':attack.type==='change'?'변경':attack.type==='urgent'?'긴급':'점검', attack.x, attack.y);
     ctx.restore();
   }
@@ -4674,9 +4674,9 @@ function drawClassroomRoute() {
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 18px sans-serif';
+  ctx.font = '900 18px Noto Sans KR, sans-serif';
   ctx.fillText(`목표 강의실: ${route.targetRoom}`, W / 2, 230);
-  ctx.font = '700 12px sans-serif';
+  ctx.font = '700 12px Noto Sans KR, sans-serif';
   ctx.fillStyle = '#a9c8ff';
   ctx.fillText('올바른 안내 칸으로 이동하십시오', W / 2, 254);
   for (let i = 0; i < 4; i++) {
@@ -4716,7 +4716,7 @@ function drawClassroomRoute() {
     ctx.closePath();
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 15px sans-serif';
+    ctx.font = '900 15px Noto Sans KR, sans-serif';
     ctx.fillText(route.rooms[i], x + laneWidth / 2, 415);
     ctx.restore();
   }
@@ -4812,9 +4812,9 @@ function drawBroadcastConfusion() {
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = "#ffffff";
-  ctx.font = "900 19px sans-serif";
+  ctx.font = "900 19px Noto Sans KR, sans-serif";
   ctx.fillText("캠퍼스 안내 방송 채널 충돌", W / 2, 237);
-  ctx.font = "800 12px sans-serif";
+  ctx.font = "800 12px Noto Sans KR, sans-serif";
   ctx.fillStyle = p.broadcastStatus === "안내 방송 정상화" ? "#baffb9" : "#ffe9a8";
   ctx.fillText(p.broadcastStatus, W / 2, 263);
   ctx.restore();
@@ -4881,9 +4881,9 @@ function drawStudentScanGates() {
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 19px sans-serif';
+  ctx.font = '900 19px Noto Sans KR, sans-serif';
   ctx.fillText(p.scanSuccess ? '학생증 NFC 동기화 완료' : '학생증 NFC 인증 구간 동기화', W/2, 237);
-  ctx.font = '800 12px sans-serif';
+  ctx.font = '800 12px Noto Sans KR, sans-serif';
   ctx.fillStyle = p.scanSuccess ? '#caffbf' : '#a9fff0';
   ctx.fillText(`인증 성공 ${p.nfcSuccessCount || 0} / ${p.nfcTotal || 0} · 민트색 구간으로 링을 통과`, W/2, 263);
   ctx.restore();
@@ -4951,9 +4951,9 @@ function drawUnreadNotifications() {
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = "#ffffff";
-  ctx.font = "900 19px sans-serif";
+  ctx.font = "900 19px Noto Sans KR, sans-serif";
   ctx.fillText(p.unreadLocked ? "공지 5개가 누적 상태로 전환되었습니다" : "사방에서 읽지 않은 공지가 추적 중입니다", W / 2, 240);
-  ctx.font = "800 12px sans-serif";
+  ctx.font = "800 12px Noto Sans KR, sans-serif";
   ctx.fillStyle = p.unreadLocked ? "#ffb3bd" : "#ffe9a8";
   ctx.fillText(p.unreadLocked ? "곧 순서대로 폭발합니다" : "한곳에 몰리지 않도록 계속 이동하십시오", W / 2, 264);
   ctx.restore();
@@ -5007,14 +5007,14 @@ function drawUnreadNotifications() {
     ctx.fillStyle = locked ? "#ffffff" : "#27334f";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "1000 11px sans-serif";
+    ctx.font = "1000 11px Noto Sans KR, sans-serif";
     ctx.fillText(locked ? "누적" : "미확인", 0, 3);
     ctx.fillStyle = "#ff3345";
     ctx.beginPath();
     ctx.arc(28, -19, 12, 0, TAU);
     ctx.fill();
     ctx.fillStyle = "#ffffff";
-    ctx.font = "1000 11px sans-serif";
+    ctx.font = "1000 11px Noto Sans KR, sans-serif";
     ctx.fillText(String(node.index), 28, -19);
     ctx.restore();
   }
@@ -5044,9 +5044,9 @@ function drawAcademicSync() {
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = "#ffffff";
-  ctx.font = "900 19px sans-serif";
+  ctx.font = "900 19px Noto Sans KR, sans-serif";
   ctx.fillText("학사 데이터 강제 동기화", W / 2, 239);
-  ctx.font = "800 12px sans-serif";
+  ctx.font = "800 12px Noto Sans KR, sans-serif";
   ctx.fillStyle = p.syncStage === "collapse" ? "#ffb3bd" : "#bdefff";
   ctx.fillText(stageLabels[p.syncStage] || stageLabels.record, W / 2, 263);
   ctx.restore();
@@ -5102,7 +5102,7 @@ function drawAcademicSync() {
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "1000 10px sans-serif";
+    ctx.font = "1000 10px Noto Sans KR, sans-serif";
     ctx.fillText("SYNC", 0, 1);
     ctx.restore();
   }
@@ -5145,7 +5145,7 @@ function drawAcademicSync() {
     ctx.fillStyle = recorded ? "#8a5b00" : "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "1000 11px sans-serif";
+    ctx.font = "1000 11px Noto Sans KR, sans-serif";
     ctx.fillText(`D${node.index}`, 0, 1);
     ctx.restore();
   }

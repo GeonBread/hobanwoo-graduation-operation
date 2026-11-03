@@ -1841,7 +1841,7 @@ function drawEnemy(e){
 
  if(e.type==="pointer"&&(e.state==="aim"||e.state==="flash")){const oy=e.y;e.y=ry;drawPointerTelegraph(e);e.y=oy}
  if(e.type==="energy"&&(e.state==="summon"||e.state==="recall"||e.state==="overcharge")){ctx.save();ctx.translate(e.x,ry);ctx.strokeStyle="#a87cff";ctx.lineWidth=e.state==="overcharge"?9:6;ctx.globalAlpha=.38+.24*Math.sin(time*12);const rr=e.state==="recall"?112:e.state==="overcharge"?86:100;for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(0,0,rr-i*15,time*(1.3+i*.35)+i,time*(1.3+i*.35)+i+Math.PI*.9);ctx.stroke()}ctx.restore()}
- if(e.type==="countdown"&&e.state==="count"){ctx.save();ctx.fillStyle="#fff";ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.font="900 64px Arial";ctx.textAlign="center";ctx.strokeText(String(e.data.n||3),e.x,ry+18);ctx.fillText(String(e.data.n||3),e.x,ry+18);ctx.restore()}
+ if(e.type==="countdown"&&e.state==="count"){ctx.save();ctx.fillStyle="#fff";ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.font="900 64px Noto Sans KR";ctx.textAlign="center";ctx.strokeText(String(e.data.n||3),e.x,ry+18);ctx.fillText(String(e.data.n||3),e.x,ry+18);ctx.restore()}
  if(e.type==="compressor"){
   const phase=e.data.phase||1;ctx.save();for(let i=0;i<3;i++){ctx.fillStyle=i<phase?"#ff565d":"#59647a";ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(e.x-32+i*32,ry-96);ctx.lineTo(e.x-22+i*32,ry-86);ctx.lineTo(e.x-32+i*32,ry-76);ctx.lineTo(e.x-42+i*32,ry-86);ctx.closePath();ctx.fill();ctx.stroke()}ctx.restore();
   if(e.state==="charge"){const half=phase===1?125:phase===2?102:82,g=e.data.gapCurrent??e.data.gapTarget??e.data.gap,pulse=.48+.28*Math.abs(Math.sin(e.stateT*8.5)),sx=g-half,sw=half*2,sy=300,sh=H-300;ctx.save();ctx.fillStyle=`rgba(135,255,200,${pulse*.13})`;ctx.fillRect(sx,sy,sw,sh);ctx.strokeStyle=`rgba(181,255,215,${pulse*.95})`;ctx.lineWidth=phase===3?8:6;ctx.setLineDash([18,12]);ctx.lineDashOffset=-time*34;ctx.strokeRect(sx,sy,sw,sh);ctx.setLineDash([]);ctx.strokeStyle=`rgba(255,255,255,${pulse*.55})`;ctx.lineWidth=2;ctx.strokeRect(sx+8,sy+8,Math.max(0,sw-16),Math.max(0,sh-16));ctx.restore()}
@@ -2117,7 +2117,7 @@ function drawEffects(){
     ctx.save();ctx.rotate(i*Math.PI/4+time*1.6);
     ctx.beginPath();ctx.moveTo(0,-rr-16);ctx.lineTo(-5,-rr-4);ctx.lineTo(5,-rr-4);ctx.closePath();ctx.fill();ctx.restore()
    }
-   ctx.font="900 42px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+   ctx.font="900 42px Noto Sans KR";ctx.textAlign="center";ctx.textBaseline="middle";
    ctx.strokeStyle=INK;ctx.lineWidth=7;ctx.strokeText("!",0,2);ctx.fillText("!",0,2);
   }else if(e.type==="ghostMarker"){
    ctx.translate(e.x,e.y);ctx.strokeStyle=e.color;ctx.lineWidth=4;ctx.setLineDash([12,9]);
@@ -2198,7 +2198,7 @@ export function renderChapter2WaveHudSystem(engine: any) {
   ctx.shadowBlur = 0;
 
   ctx.textBaseline = "middle";
-  ctx.font = "900 12px 'Noto Sans KR', system-ui, sans-serif";
+  ctx.font = "900 12px 'Noto Sans KR', Noto Sans KR, sans-serif";
   ctx.fillStyle = "#fff1b5";
   ctx.textAlign = "left";
   ctx.fillText("정화 에너지", panelX + 14, panelY + 15);

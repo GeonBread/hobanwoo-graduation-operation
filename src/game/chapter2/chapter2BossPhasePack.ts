@@ -1292,7 +1292,7 @@ export class Chapter2BossPhasePack {
             const lines = this.wrapText(this.ctx, shown, maxWidth, paragraph.size, weight);
             for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
                 const line = lines[lineIndex];
-                this.ctx.font = `${weight} ${paragraph.size * this.scale}px Pretendard, Noto Sans KR, sans-serif`;
+                this.ctx.font = `${weight} ${paragraph.size * this.scale}px Noto Sans KR, sans-serif`;
                 const lineWidth = this.ctx.measureText(line).width;
                 const startX = paragraph.center ? this.W / 2 - lineWidth / 2 : left;
                 const matches = line.matchAll(/[가-힣A-Za-z0-9]+/g);
@@ -1363,7 +1363,7 @@ export class Chapter2BossPhasePack {
         ctx.rotate(missile.angle);
         ctx.shadowColor = COLORS.blue;
         ctx.shadowBlur = this.X(3 + attackProgress * 14);
-        ctx.font = `${missile.fontWeight} ${Math.max(13, missile.fontSize) * this.scale}px Pretendard, Noto Sans KR, sans-serif`;
+        ctx.font = `${missile.fontWeight} ${Math.max(13, missile.fontSize) * this.scale}px Noto Sans KR, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         if (attackProgress > 0.05) {
@@ -1440,7 +1440,7 @@ export class Chapter2BossPhasePack {
         }
     }
     text(ctx, value, x, y, size, color, align = 'center', weight = 800, maxWidth) {
-        ctx.font = `${weight} ${size * this.scale}px Pretendard, Noto Sans KR, sans-serif`;
+        ctx.font = `${weight} ${size * this.scale}px Noto Sans KR, sans-serif`;
         ctx.textAlign = align;
         ctx.textBaseline = 'middle';
         ctx.fillStyle = color;
@@ -1450,7 +1450,7 @@ export class Chapter2BossPhasePack {
             ctx.fillText(value, x, y);
     }
     wrapText(ctx, value, maxWidth, size, weight) {
-        ctx.font = `${weight} ${size * this.scale}px Pretendard, Noto Sans KR, sans-serif`;
+        ctx.font = `${weight} ${size * this.scale}px Noto Sans KR, sans-serif`;
         const lines = [];
         let line = '';
         for (const character of value) {
@@ -1468,7 +1468,7 @@ export class Chapter2BossPhasePack {
         return lines;
     }
     fitLabel(ctx, value, maxWidth, size, weight) {
-        ctx.font = `${weight} ${size * this.scale}px Pretendard, Noto Sans KR, sans-serif`;
+        ctx.font = `${weight} ${size * this.scale}px Noto Sans KR, sans-serif`;
         if (ctx.measureText(value).width <= maxWidth)
             return value;
         let result = value;

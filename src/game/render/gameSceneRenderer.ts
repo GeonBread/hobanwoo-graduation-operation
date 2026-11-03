@@ -729,7 +729,7 @@ export function renderGameSceneSystem(engine: GameSceneRenderEngine): void {
           }
 
           engine.ctx.fillStyle = "#facc15";
-          engine.ctx.font = 'bold 11px "JetBrains Mono", monospace';
+          engine.ctx.font = 'bold 11px Noto Sans KR, sans-serif';
           engine.ctx.textAlign = "center";
           engine.ctx.fillText(
             `GROGGY (${e.bossStunTimer.toFixed(1)}s)`,
@@ -738,7 +738,7 @@ export function renderGameSceneSystem(engine: GameSceneRenderEngine): void {
           );
         } else {
           engine.ctx.fillStyle = "#cbd5e1";
-          engine.ctx.font = '9px "JetBrains Mono", monospace';
+          engine.ctx.font = '800 9px Noto Sans KR, sans-serif';
           engine.ctx.textAlign = "center";
           engine.ctx.fillText(`PHASE ${e.phase}`, e.x + e.width / 2, e.y - 10);
         }
@@ -1479,7 +1479,7 @@ export function renderGameSceneSystem(engine: GameSceneRenderEngine): void {
         ctx.fillStyle = "#ef3f45";
         ctx.strokeStyle = "#07090d";
         ctx.lineWidth = 4;
-        ctx.font = "900 22px Arial, sans-serif";
+        ctx.font = "900 22px Noto Sans KR, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.strokeText("P", 0, 1);

@@ -28,7 +28,7 @@
 
 .hobanwooPauseEyebrow {
   color: #c81f30;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: 10px;
   font-weight: 1000;
   letter-spacing: 0.16em;
@@ -120,7 +120,7 @@
     inset 0 0 52px rgba(120, 0, 10, .16);
   color: #fff;
   text-align: center;
-  font-family: "Noto Sans KR", "Courier New", monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
 
 .chapterGamePauseDialog::before,
@@ -141,7 +141,7 @@
   display: block;
   margin-bottom: 10px;
   color: #ff3b3b;
-  font: 1000 clamp(10px, 1.2vw, 13px) ui-monospace, monospace;
+  font: 1000 clamp(10px, 1.2vw, 13px) "Noto Sans KR", "Malgun Gothic", sans-serif;
   letter-spacing: .28em;
   text-shadow: 2px 2px 0 #000;
 }
@@ -383,7 +383,7 @@
   display: block;
   margin-bottom: 3px;
   color: #c81f30;
-  font: 1000 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 1000 10px/1 "Noto Sans KR", "Malgun Gothic", sans-serif;
   letter-spacing: .18em;
 }
 
@@ -499,7 +499,7 @@
 
 .hobanwooOptionLabel small {
   color: #76634c;
-  font: 900 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 900 9px/1 "Noto Sans KR", "Malgun Gothic", sans-serif;
   letter-spacing: .02em;
 }
 
@@ -510,7 +510,7 @@
   padding: 4px 8px;
   background: #10233f;
   color: #fff7df;
-  font: 1000 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 1000 10px/1 "Noto Sans KR", "Malgun Gothic", sans-serif;
   text-align: center;
 }
 
@@ -820,7 +820,7 @@
 .hobanwooProductionGithubLink > span {
   display: block;
   color: #178443;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: 10px;
   font-weight: 1000;
   letter-spacing: .16em;
