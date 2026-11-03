@@ -102,7 +102,7 @@ interface Chapter2StoryExperienceProps {
 
 const BRIDGE_CHANNEL = "sky-strike-chapter2-story";
 const STORY_SEGMENT = "chapter2_full";
-const CHAPTER2_WAVE_COUNT = 20;
+const CHAPTER2_WAVE_COUNT = 24;
 const withRuntimeQuery = (url: string, query: string) => `${url}${url.includes("?") ? "&" : "?"}${query}`;
 // STORY_DATA 기준: "비어 있는 공유 폴더" section-marker가 index 53,
 // 날짜 경과 time-card가 index 54, 빈 공유 폴더 화면 뒤 첫 대사가 index 57,

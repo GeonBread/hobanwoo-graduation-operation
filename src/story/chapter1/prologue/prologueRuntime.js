@@ -16,73 +16,49 @@
   // 922x960 coordinates are invalid once the cinematic enters a wide viewport.
   let crackLayout=null;
   function createCrackLayout(width,height){
-    const cx=width*.5,cy=height*.5,shortSide=Math.min(width,height);
+    const cx=width*.5,cy=height*.5,shortSide=Math.min(width,height),targets=[];
     let state=0x6d2b79f5;
     const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
-    const point=(x,y)=>({x,y});
-    const targets=[];
-    // All four corners and three landmarks on EACH side are mandatory,
-    // but the total ray count should stay restrained so the fracture does not
-    // become visually noisy.
-    for(const [x,y] of [[0,0],[width,0],[width,height],[0,height]])targets.push({x,y,mandatory:true});
-    for(const ratio of [.24,.5,.76]){
-      targets.push({x:width*ratio,y:0,mandatory:true});
-      targets.push({x:width*ratio,y:height,mandatory:true});
-      targets.push({x:0,y:height*ratio,mandatory:true});
-      targets.push({x:width,y:height*ratio,mandatory:true});
+    // Twelve deliberate impact fractures cover the entire screen without
+    // the dense, nearly parallel rays of the previous version.
+    for(const [x,y] of [[0,0],[width,0],[width,height],[0,height]])targets.push({x,y});
+    for(const u of [1/3,2/3]){
+      targets.push({x:width*u,y:0},{x:width*u,y:height},{x:0,y:height*u},{x:width,y:height*u});
     }
-    // Add only a small number of extra directions to avoid an overly dense spiderweb.
-    for(let i=0;i<8;i++){
-      const angle=(i+(random()-.5)*.56)*Math.PI*2/8;
-      const ux=Math.cos(angle),uy=Math.sin(angle);
-      const span=Math.min(ux>1e-6?(width-cx)/ux:ux < -1e-6?-cx/ux:Infinity,
-                          uy>1e-6?(height-cy)/uy:uy < -1e-6?-cy/uy:Infinity);
-      const x=cx+span*ux,y=cy+span*uy;
-      const duplicate=targets.some(q=>Math.hypot(q.x-x,q.y-y)<shortSide*.075);
-      if(!duplicate)targets.push({x,y,mandatory:false});
-    }
-    function jaggedPath(from,to,steps,roughness,extension=0){
-      const dx=to.x-from.x,dy=to.y-from.y,length=Math.hypot(dx,dy)||1;
-      const nx=-dy/length,ny=dx/length,ux=dx/length,uy=dy/length;
-      const points=[point(from.x,from.y)];
-      let drift=0;
-      for(let k=1;k<steps;k++){
-        const u=k/steps;
-        // A bounded random walk makes genuine zigzags instead of smooth rays.
-        // Near the center, even small lateral drift can make adjacent rays
-        // intersect and their falling polygons overlap. Bound the offset by
-        // traveled radius so sector boundaries stay non-intersecting.
-        const maxJitter=Math.min(roughness*.68,length*u*.022);
-        drift=clamp(drift+(random()-.5)*maxJitter*.7,-maxJitter*.62,maxJitter*.62);
-        const jag=(random()-.5)*maxJitter*.55+drift;
-        points.push(point(from.x+dx*u+nx*jag,from.y+dy*u+ny*jag));
+    const pi2=Math.PI*2;
+    const raysByAngle=targets.map(target=>({
+      target,
+      angle:(Math.atan2(target.y-cy,target.x-cx)+pi2)%pi2,
+      radius:Math.hypot(target.x-cx,target.y-cy)
+    })).sort((a,b)=>a.angle-b.angle);
+    const rays=raysByAngle.map((ray,i)=>{
+      const previous=raysByAngle[(i+raysByAngle.length-1)%raysByAngle.length];
+      const following=raysByAngle[(i+1)%raysByAngle.length];
+      const leftGap=(ray.angle-previous.angle+pi2)%pi2;
+      const rightGap=(following.angle-ray.angle+pi2)%pi2;
+      // Angular guardrails keep adjacent zigzag rays from crossing, so they
+      // also form valid polygon boundaries for falling image fragments.
+      const zigCap=Math.min(.125,Math.min(leftGap,rightGap)*.34);
+      const count=Math.max(10,Math.ceil(ray.radius/54));
+      const points=[{x:cx,y:cy}];
+      let direction=random()<.5?-1:1;
+      for(let k=1;k<count;k++){
+        const u=k/count;
+        if(random()<.58)direction*=-1;
+        const envelope=Math.pow(Math.sin(Math.PI*u),.57);
+        const jitter=direction*(.65+random()*.35)*zigCap*envelope;
+        const minor=(random()-.5)*zigCap*.24*envelope;
+        const a=ray.angle+jitter+minor,r=ray.radius*u;
+        // Endpoints on the physical border must not cause an intermediate
+        // zigzag to slip outside the viewport and self-intersect its fragment.
+        const inset=Math.max(.25,Math.min(1.25,shortSide*.0008));
+        points.push({x:clamp(cx+Math.cos(a)*r,inset,width-inset),
+                     y:clamp(cy+Math.sin(a)*r,inset,height-inset)});
       }
-      points.push(point(to.x,to.y)); // guaranteed, exact viewport edge/corner
-      if(extension)points.push(point(to.x+ux*extension,to.y+uy*extension));
-      return points;
-    }
-    const rays=targets.map((target,i)=>{
-      const a=Math.atan2(target.y-cy,target.x-cx);
-      const distance=Math.hypot(target.x-cx,target.y-cy),steps=Math.max(12,Math.ceil(distance/52));
-      const points=jaggedPath(point(cx,cy),target,steps,Math.min(52,shortSide*.054),Math.max(55,shortSide*.09));
-      const branches=[];
-      const count=target.mandatory?(random()>.5?1:0):(random()>.82?1:0);
-      for(let j=0;j<count;j++){
-        const anchorIndex=3+Math.floor(random()*Math.max(1,points.length-7));
-        const anchor=points[Math.min(anchorIndex,points.length-3)];
-        const direction=a+(random()>.5?1:-1)*(.39+random()*.73);
-        const bx=Math.cos(direction),by=Math.sin(direction);
-        const edgeDistance=Math.min(bx>1e-6?(width-anchor.x)/bx:bx < -1e-6?-anchor.x/bx:Infinity,
-                                    by>1e-6?(height-anchor.y)/by:by < -1e-6?-anchor.y/by:Infinity);
-        const reach=edgeDistance*(.59+random()*.49);
-        const end=point(anchor.x+bx*reach,anchor.y+by*reach);
-        const branchSteps=Math.max(5,Math.ceil(reach/55));
-        const path=jaggedPath(anchor,end,branchSteps,Math.min(20,shortSide*.021),0);
-        const start=.18+anchorIndex/(points.length-1)*1.72+random()*.16;
-        branches.push({points:path,start,width:1.25+random()*0.55});
-      }
-      const corner=i<4;
-      return {points,branches,delay:corner?0:(i<16?.06+random()*.12:.12+random()*.16),width:corner?3.6:target.mandatory?3.05:2.55};
+      points.push({x:ray.target.x,y:ray.target.y});
+      const reach=Math.max(64,shortSide*.095);
+      points.push({x:ray.target.x+Math.cos(ray.angle)*reach,y:ray.target.y+Math.sin(ray.angle)*reach});
+      return {points,branches:[],delay:(i%3)*.055,width:i%3===0?3.6:3.0};
     });
     return {width,height,cx,cy,rays};
   }
@@ -93,6 +69,11 @@
   const campus=new Image(),core=new Image();campus.src='/assets/chapter1/story/prologue/campus_night.png';core.src='/assets/chapter1/story/prologue/core_interior.png';campus.decode?.().catch(()=>{});core.decode?.().catch(()=>{});
   let layer,canvas,ctx,title,stage,style,mode='',start=0,skyStart=0,raf=null,lastFrame=0,snapshot=null,fragments=[];
   let camera={...BUILDING_CAMERA},gatherFrom={...SKY_CAMERA},gatherSkyAge=4;
+  let coreApproachEnter=null,coreApproachExit=null;
+  function copyCurrentPrologueFrame(){
+    const frame=document.createElement('canvas');frame.width=W;frame.height=H;
+    frame.getContext('2d').drawImage(canvas,0,0);return frame;
+  }
   function rewrite(segments){
     if(segments.prologue?.[0]?.prologueV2)return;
     const old=segments.prologue||[],i=old.findIndex(x=>x.effect==='scene-preview'&&x.scene?.id==='prologue-entrance-day');
@@ -127,6 +108,10 @@
     v7SyncPresentation(next,item);
     stage.classList.toggle('is-core-v5',['core-reveal','core-title','orbits','connections','seed','growth','burst','fracture','shatter'].includes(next));
     if(mode!==next){
+      // Capture the last rendered frame before switching cinematic beats. Both
+      // threshold -> voyage and voyage -> core reveal fade across that frame.
+      if(next==='core-approach')coreApproachEnter=mode==='threshold'?copyCurrentPrologueFrame():null;
+      if(next==='core-reveal')coreApproachExit=mode==='core-approach'?copyCurrentPrologueFrame():null;
       beginRealityCG(next,now);
       if(next==='shatter'){ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);drawCore(1,10,4);gas(6,1);drawCracks(4);makeFragments();}
       if(next==='sky'){skyStart=now;camera={...BUILDING_CAMERA};}
@@ -139,7 +124,7 @@
     }
     title.style.opacity='0';if(raf===null){lastFrame=now;raf=requestAnimationFrame(tick);}
   }
-  function clear(){v7ResetPresentation();resetRealityCG();if(raf!==null)cancelAnimationFrame(raf);raf=null;if(layer)layer.hidden=true;stage?.classList.remove('has-prologue-v2','is-core-v5');mode='';snapshot=null;fragments=[];camera={...BUILDING_CAMERA};}
+  function clear(){v7ResetPresentation();resetRealityCG();if(raf!==null)cancelAnimationFrame(raf);raf=null;if(layer)layer.hidden=true;stage?.classList.remove('has-prologue-v2','is-core-v5');mode='';snapshot=null;fragments=[];coreApproachEnter=null;coreApproachExit=null;camera={...BUILDING_CAMERA};}
   function cover(image,zoom=1,pan=0,alpha=1){if(!image.complete||!image.naturalWidth)return;const s=Math.max(W/image.naturalWidth,H/image.naturalHeight)*zoom,w=image.naturalWidth*s,h=image.naturalHeight*s;ctx.save();ctx.globalAlpha*=alpha;ctx.drawImage(image,(W-w)/2,(H-h)/2+pan,w,h);ctx.restore();}
   // 3.1-second voyage: the camera travels along converging starlight into
   // the sealed core, rather than just fading in a static background.
@@ -149,36 +134,42 @@
     return {angle,lane,depth:(i*.569840291%1),size:.65+(i*.313379%1)*1.4,phase:i*2.39996};
   });
   function drawCoreApproach(t){
-    const p=clamp(t/3.1),cx=W*.5,cy=H*.5,extent=Math.hypot(W,H)*.67;
+    const p=clamp(t/3.1),travel=ease(clamp((t-.18)/2.75)),intro=ease(t/.82),cx=W*.5,cy=H*.5;
+    const extent=Math.hypot(W,H)*.67,finishEase=ease((t-2.35)/.75),starOpacity=intro*(1-.66*finishEase);
+    // The first frame inherits the almost-black threshold scene. Tunnel light
+    // and forward movement rise gradually instead of appearing at full speed.
     const bg=ctx.createRadialGradient(cx,cy,5,cx,cy,extent);
-    bg.addColorStop(0,'#241c36');bg.addColorStop(.2,'#0a1529');bg.addColorStop(.66,'#040916');bg.addColorStop(1,'#010307');
-    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    bg.addColorStop(0,'#241c36');bg.addColorStop(.2,'#0a1529');
+    bg.addColorStop(.66,'#040916');bg.addColorStop(1,'#010307');
+    ctx.save();ctx.globalAlpha=intro*.91;ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);ctx.restore();
     ctx.save();ctx.translate(cx,cy);
-    // Perspective tunnel rings originate at the same point where the stars gathered.
     for(let i=0;i<7;i++){
-      const q=(i/7+p*1.45)%1,r=12+Math.pow(q,2.32)*extent*.85;
-      ctx.beginPath();ctx.ellipse(0,0,r,r*(.53+.16*Math.sin(p*5+i)),p*.38+i*.23,0,Math.PI*2);
-      ctx.lineWidth=.6+2.6*q;ctx.strokeStyle=`rgba(232,201,144,${(.22+.28*q)*(1-ease((q-.9)/.12))})`;ctx.stroke();
-    }
-    for(const star of gatewayParticles){
-      // Stars expand in perspective as the camera moves FORWARD toward the focus.
-      const q=(star.depth+p*.84)%1,r=8+Math.pow(q,2.23)*extent*star.lane;
-      const a=star.angle+p*.12;
-      const x=Math.cos(a)*r,y=Math.sin(a)*r;
-      const previous=Math.max(2,r-(4+q*44+76*p*p));
-      ctx.beginPath();ctx.moveTo(Math.cos(a)*previous,Math.sin(a)*previous);ctx.lineTo(x,y);
-      ctx.lineWidth=star.size*(.6+q*1.8);
-      ctx.strokeStyle=`rgba(255,232,185,${(.22+.56*q)*ease(q/.09)*(1-ease((q-.94)/.065))})`;
+      const q=(i/7+travel*1.45)%1,r=12+Math.pow(q,2.32)*extent*.85;
+      ctx.beginPath();ctx.ellipse(0,0,r,r*(.53+.16*Math.sin(travel*5+i)),travel*.38+i*.23,0,Math.PI*2);
+      ctx.lineWidth=.6+2.6*q;
+      ctx.strokeStyle=`rgba(232,201,144,${starOpacity*(.22+.28*q)*(1-ease((q-.9)/.12))})`;
       ctx.stroke();
     }
-    const portalPulse=.75+.25*Math.sin(t*8),portalRadius=18+82*ease(p);
+    for(const star of gatewayParticles){
+      const q=(star.depth+travel*.84)%1,r=8+Math.pow(q,2.23)*extent*star.lane;
+      const a=star.angle+travel*.12,x=Math.cos(a)*r,y=Math.sin(a)*r;
+      const previous=Math.max(2,r-(4+q*44+76*travel*travel));
+      ctx.beginPath();ctx.moveTo(Math.cos(a)*previous,Math.sin(a)*previous);ctx.lineTo(x,y);
+      ctx.lineWidth=star.size*(.6+q*1.8);
+      ctx.strokeStyle=`rgba(255,232,185,${starOpacity*(.22+.56*q)*ease(q/.09)*(1-ease((q-.94)/.065))})`;
+      ctx.stroke();
+    }
+    const portalPulse=.75+.25*Math.sin(t*7),portalRadius=18+82*travel;
     ctx.beginPath();ctx.arc(0,0,portalRadius*(.72+.28*portalPulse),0,Math.PI*2);
-    ctx.lineWidth=1.5+2*ease(p);ctx.strokeStyle=`rgba(254,230,185,${.48+.3*p})`;ctx.stroke();
+    ctx.lineWidth=1.5+2*travel;ctx.strokeStyle=`rgba(254,230,185,${intro*(.36+.37*travel)})`;ctx.stroke();
     ctx.restore();
-    glow(cx,cy,60+260*ease(p),'245,213,169',.24+.43*ease(p));
-    glow(cx,cy,20+95*ease((p-.68)/.32),'255,252,238',.28+.56*ease((p-.68)/.32));
-    // A concentrated convergence flash bridges into the next existing core reveal.
-    if(p>.85){ctx.fillStyle=`rgba(255,247,228,${ease((p-.85)/.15)*.16})`;ctx.fillRect(0,0,W,H);}
+    glow(cx,cy,45+260*travel,'245,213,169',.18+.34*travel);
+    glow(cx,cy,20+95*ease((travel-.67)/.33),'255,252,238',.12+.38*ease((travel-.67)/.33));
+    // No white hard-cut: maintain the final portal frame so the subsequent
+    // core reveal can crossfade from precisely these pixels.
+    if(coreApproachEnter&&t<.9){
+      ctx.save();ctx.globalAlpha=1-ease(t/.9);ctx.drawImage(coreApproachEnter,0,0,W,H);ctx.restore();
+    }
   }
   function drawCore(alpha=1,wobble=0,t=0){
     if(!core.complete||!core.naturalWidth)return;
@@ -465,7 +456,7 @@
       if(entry.mark.parentNode)entry.mark.replaceWith(entry.element);else entry.element.remove();
     }
     state.host.remove();W=922;H=960;canvas.width=W;canvas.height=H;ctx=canvas.getContext('2d',{alpha:false});
-    snapshot=null;fragments=[];
+    snapshot=null;fragments=[];coreApproachEnter=null;coreApproachExit=null;
   }
   function v7SyncPresentation(next,item){
     v7EnsureStyle();if(v7OriginalTitleHTML===null)v7OriginalTitleHTML=title.innerHTML;
@@ -502,8 +493,13 @@
     else if(mode==='threshold')glow(W*CORRUPTION_FOCUS.x,H*CORRUPTION_FOCUS.y,44,'255,220,144',.24+.06*Math.sin(t));
     else if(mode==='core-approach')drawCoreApproach(t);
     else if(['core-reveal','core-title','orbits','connections','seed','growth','burst','fracture'].includes(mode)){
-      ctx.save();if(mode==='fracture'){const impact=Math.pow(Math.max(0,Math.sin(t*7)),10)*(3+t*1.5);ctx.translate(Math.sin(t*79)*impact,Math.cos(t*97)*impact);}drawCore(mode==='core-reveal'?ease(t/5):1,mode==='fracture'?3+t*3.5:mode==='burst'?3:0,t);ctx.restore();
-      if(mode==='core-reveal')glow(W*.5,H*.5,240+80*ease(t/1.8),'255,234,194',.62*(1-ease(t/1.6)));
+      ctx.save();if(mode==='fracture'){const impact=Math.pow(Math.max(0,Math.sin(t*7)),10)*(3+t*1.5);ctx.translate(Math.sin(t*79)*impact,Math.cos(t*97)*impact);}
+      drawCore(mode==='core-reveal'&&coreApproachExit?.width===W&&coreApproachExit?.height===H?(.68+.32*ease(t/4.7)):mode==='core-reveal'?ease(t/5):1,mode==='fracture'?3+t*3.5:mode==='burst'?3:0,t);ctx.restore();
+      if(mode==='core-reveal'){
+        if(coreApproachExit?.width===W&&coreApproachExit?.height===H){
+          ctx.save();ctx.globalAlpha=1-ease(t/1.28);ctx.drawImage(coreApproachExit,0,0,W,H);ctx.restore();
+        }else glow(W*.5,H*.5,240+80*ease(t/1.8),'255,234,194',.45*(1-ease(t/1.6)));
+      }
       if(mode==='core-title'){const a=ease(t/.9)*ease((4.4-t)/1.1);title.style.opacity=String(a);title.style.transform=`translateY(${(1-a)*10}px)`;}
       if(mode==='orbits'||mode==='connections')orbits(t,mode==='connections');if(mode==='seed'||mode==='growth')orb(t,mode==='growth');
       if(mode==='burst'){const p=clamp(t/1.8);gas(t,ease(p*3));glow(W*CORRUPTION_FOCUS.x,H*CORRUPTION_FOCUS.y,56+ease(p)*1320,'161,58,255',.9*(1-p));}if(mode==='fracture'){gas(t+2);drawCracks(t);}
