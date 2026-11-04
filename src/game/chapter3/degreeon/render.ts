@@ -173,6 +173,27 @@ function drawExiledArena(e:Engine,c:CanvasRenderingContext2D){
   rounded(c,295,6,332,32,14);c.fillStyle='rgba(5,16,44,.88)';c.fill();c.lineWidth=4;c.strokeStyle='#0a0a0d';c.stroke();c.fillStyle='#f4f0f6';c.font=`900 18px ${font}`;c.textAlign='center';c.textBaseline='middle';c.fillText('미졸업의 군주 디그리온',CANVAS_CX,22);
   c.translate(CANVAS_CX,62);drawHpBar(c,e.bossHp/e.bossHpMax,e.stage);c.restore();
 }
+/** An unmistakable screen-DOWN gravity cue during the flight quarter-turn.
+ * This overlay is drawn AFTER the world transform has been restored, so its
+ * arrows must stay in screen-space and must never inherit field rotation.
+ */
+export function drawFlightGravityCue(e:Engine,c:CanvasRenderingContext2D){
+ if(e.pattern.id!=='flight'||e.phase!=='intro')return;
+ const t=e.phaseTime,alpha=smooth((t-.33)/.42)*(1-smooth((t-1.68)/.48));
+ if(alpha<=.005)return;
+ c.save();c.globalAlpha=alpha;
+ const cx=e.canvas.width/2,cy=e.canvas.height/2,w=560,h=330,x=cx-w/2,y=cy-h/2;
+ const grad=c.createRadialGradient(cx,cy,30,cx,cy,370);
+ grad.addColorStop(0,'rgba(7,5,20,.94)');grad.addColorStop(.7,'rgba(7,5,20,.66)');grad.addColorStop(1,'rgba(7,5,20,0)');c.fillStyle=grad;c.fillRect(x-90,y-90,w+180,h+180);
+ c.fillStyle='#fff3b8';c.strokeStyle='#090712';c.shadowColor='#f4d879';c.shadowBlur=25;c.textAlign='center';c.textBaseline='middle';c.lineWidth=8;
+ c.font='900 37px "Noto Sans KR",sans-serif';c.strokeText('중력 방향',cx,cy-111);c.fillText('중력 방향',cx,cy-111);
+ for(let i=-1;i<=1;i++){const xx=cx+i*110,top=cy-65,bottom=cy+116;
+  c.beginPath();c.moveTo(xx,top);c.lineTo(xx,bottom-34);c.strokeStyle='#0a0614';c.lineWidth=21;c.stroke();
+  c.strokeStyle='#fff2a5';c.lineWidth=11;c.stroke();
+  c.beginPath();c.moveTo(xx-27,bottom-41);c.lineTo(xx,bottom);c.lineTo(xx+27,bottom-41);c.strokeStyle='#0a0614';c.lineWidth=19;c.stroke();c.strokeStyle='#fff2a5';c.lineWidth=10;c.stroke();
+ }
+ c.shadowBlur=0;c.restore();
+}
 export function drawScene(e:Engine){
   const c=e.ctx;c.clearRect(0,0,e.canvas.width,e.canvas.height);c.fillStyle='#080b17';c.fillRect(0,0,e.canvas.width,e.canvas.height);
   if(isMenuDeception(e)){
@@ -252,6 +273,7 @@ export function drawScene(e:Engine){
   if(!outside)drawSmartBomb(e,c);
   c.restore(); // HUD and title cards are part of the physical rotating screen.
   drawTransition(e,c);
+  drawFlightGravityCue(e,c);
   if(e.rotation&&e.phase==='active'){c.fillStyle='#141324df';c.fillRect(211,91,500,38);c.fillStyle='#d7b7ff';c.font=`13px ${font}`;c.textAlign='center';c.fillText(e.rotationLive?'전장 회전 · 공격 유지 · 화면 기준 이동':'전장 회전 · 공격 일시 정지',CANVAS_CX,116);}
   if(e.damageFlash>0){c.fillStyle=`rgba(210,0,24,${.24*clamp(e.damageFlash/.85,0,1)})`;c.fillRect(0,0,CANVAS_W,CANVAS_H);}
   drawBossHud(c,e);drawFinalStandHud(c,e);drawPauseStormOverlay(e,c);drawPause(e,c);drawGameOver(e,c);c.restore();

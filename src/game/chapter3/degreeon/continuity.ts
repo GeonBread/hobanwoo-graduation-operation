@@ -27,7 +27,7 @@ export function attackSettled(e:Engine){
   case 'corridor-vertical':case 'corridor-horizontal':return e.corridor.fired===e.corridor.total&&e.corridor.beams.length===0;
   case 'tail-shed':return e.extraNormal.chains.every(c=>c.detached&&c.released===c.tails.length);
   case 'graduation-stamp':return e.graduationStamp.phase==='rest'&&!e.graduationStamp.lingering.length&&!e.graduationStamp.imprints.length;
-  case 'link':return !e.hazards.some(h=>h.group!==undefined);
+  case 'link':return e.linkFinishing||!e.hazards.some(h=>h.group!==undefined);
   case 'hp-sword':return e.advanced.sword.state==='home'&&e.advanced.sword.time>=.9;
   case 'split8':return e.tileState==='recover'||e.tileState==='idle';
   case 'tile-stream':return !e.tileStream.batches.length;
@@ -36,7 +36,7 @@ export function attackSettled(e:Engine){
   case 'exile':return e.advanced.exile.state==='done';
   case 'pause-storm':return e.pauseStorm.phase==='done';
   case 'menu-deception':return e.menuDeception.phase==='drain'&&!e.menuDeception.projectiles.length;
-  case 'menu-deception-mobs':return e.menuDeception.spawned===20&&e.menuDeception.spawns.every(s=>s.done)&&(e.menuDeception.wave?.count??0)===0&&(e.menuDeception.wave?.bulletCount??0)===0;
+  case 'menu-deception-mobs':return e.menuDeception.spawned===e.menuDeception.spawnTarget&&e.menuDeception.spawns.every(s=>s.done)&&(e.menuDeception.wave?.count??0)===0&&(e.menuDeception.wave?.bulletCount??0)===0&&(e.menuDeception.guests?.count??0)===0&&(e.menuDeception.guests?.bulletCount??0)===0;
   case 'fluid':return e.fluidFill<.005;
   case 'flight':case 'rhythm':return !e.hazards.length;
   case 'graduation-gate':return e.unseen.gate.phase==='expose'&&e.unseen.gate.phaseAge>=3.4||e.unseen.gate.phase==='locks'&&e.unseen.gate.age>=29;
@@ -49,6 +49,11 @@ function rayPoint(poly:Vec[],a:number):Vec{const d={x:Math.cos(a),y:Math.sin(a)}
 }
 export function tickHandoff(e:Engine,dt:number){
  const f=e.continuity;if(!e.encounter.enabled||!f.closing||e.phase!=='active')return;f.age+=dt;
+ // Last electric junction salvo has been emitted. The next scene is a
+ // full-screen flight; clean up its links after a brief visible exit flash,
+ // rather than waiting up to eleven seconds for all nodes to expire.
+ if(e.pattern.id==='link'&&e.linkFinishing&&f.age>=.34){e.hazards=e.hazards.filter(h=>h.group===undefined);e.links=[];}
+
  for(const z of e.advanced.zones)z.scale=1+(z.scale-1)*Math.exp(-7*dt);
  // Rejoin a cut arena before the next rule takes ownership of its boundary.
  if(e.cutEnabled&&!e.cutTelegraph&&e.cutPolygon.length>=3){

@@ -45,6 +45,12 @@ function drawSkin(c:CanvasRenderingContext2D,part:Part){
 export function drawHands(e:Engine,c:CanvasRenderingContext2D){for(const h of e.unseen.hands.hands){
  if(h.age<h.warn){c.save();c.beginPath();const samples=h.mode==='stir'?36:h.mode==='flurry'?30:18;
   for(let i=0;i<=samples;i++){const future={...h,age:h.warn+h.life*i/samples},f=handFrame(e,future);for(const p of handParts(e,future))path(c,p.points.map(v=>({x:f.x+v.x*Math.cos(f.a)-v.y*Math.sin(f.a),y:f.y+v.x*Math.sin(f.a)+v.y*Math.cos(f.a)})));}
-  c.fillStyle='#da9dff20';c.fill();const future={...h,age:h.warn+.3},f=handFrame(e,future);c.strokeStyle='#e6bbff99';c.lineWidth=2;c.setLineDash([7,8]);c.beginPath();for(const p of handParts(e,future))path(c,p.points.map(v=>({x:f.x+v.x*Math.cos(f.a)-v.y*Math.sin(f.a),y:f.y+v.x*Math.sin(f.a)+v.y*Math.cos(f.a)})));c.stroke();c.restore();
+  c.fillStyle='rgba(255,221,123,.095)';c.fill();
+  const future={...h,age:h.warn+.3},f=handFrame(e,future);
+  c.save();c.setLineDash([15,9]);c.beginPath();for(const p of handParts(e,future))path(c,p.points.map(v=>({x:f.x+v.x*Math.cos(f.a)-v.y*Math.sin(f.a),y:f.y+v.x*Math.sin(f.a)+v.y*Math.cos(f.a)})));
+  c.strokeStyle='#080411';c.lineWidth=10;c.stroke();c.strokeStyle='#fff1a7';c.lineWidth=4.8;c.shadowColor='#ffe69c';c.shadowBlur=12;c.stroke();c.restore();
+  // The broad shaded region is the full actual swept attack path.
+  c.beginPath();for(const part of handParts(e,future))path(c,part.points.map(v=>({x:f.x+v.x*Math.cos(f.a)-v.y*Math.sin(f.a),y:f.y+v.x*Math.sin(f.a)+v.y*Math.cos(f.a)})));
+  c.strokeStyle='#100a19';c.lineWidth=2;c.stroke();c.restore();
  }else{const f=handFrame(e,h);c.save();c.translate(f.x,f.y);c.rotate(f.a);const parts=handParts(e,h);c.save();c.translate(5,9);c.beginPath();for(const p of parts)path(c,p.points);c.fillStyle='#07030b99';c.shadowColor='#0a030d';c.shadowBlur=17;c.fill();c.restore();for(const p of [parts[1],parts[0],...parts.slice(2)])drawSkin(c,p);c.restore();}
 }}

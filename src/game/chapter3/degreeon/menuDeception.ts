@@ -5,13 +5,14 @@ import {BASE_FIELD_W,BASE_FIELD_H,CANVAS_CX,CANVAS_CY,PLAYER_MOVE_SPEED,PLAYER_H
 import {menuArt,menuLayout,menuBackgroundPath,drawMenuBackground,drawUiImage} from './originalUi';
 import {createChapter3WaveRuntime} from './originalChapter3';
 import {drawBombEffects,bombReaches} from './bomb';
+import {MenuGuestRuntime,randomizedMenuRoster,MENU_NATIVE_CH3_TYPES,type MenuMonsterSpec} from './menuMonsterMix';
 import {sampleMenuCinematic,MENU_SLIDE_START,MENU_LAND_TIME,ARENA_BREACH_TIME,ARENA_BREACH_Y,arenaExitX} from './menuCinematic';
 export const MENU_ATTACK_START=5.4,MENU_RETURN_DURATION=2.2;
 export type MenuPhase='throw'|'reveal'|'shake'|'scatter'|'attack'|'drain'|'return';
 export type MenuProjectile=Vec&{id:number;art:number;vx:number;vy:number;w:number;h:number;age:number;warn:number;life:number;cleared:boolean;};
-type Spawn=Vec&{age:number;duration:number;done:boolean};
-export type MenuDeceptionState={age:number;phase:MenuPhase;variant:1|2;background:string;heading:number;throwFrom:Vec;returnFrom:Vec;returnW:number;returnH:number;returnAge:number;attackDuration:number;shotTimer:number;serial:number;projectiles:MenuProjectile[];spawned:number;spawnTimer:number;spawns:Spawn[];spawnLog:{type:string;name:string;x:number;y:number}[];wave:ReturnType<typeof createChapter3WaveRuntime>|null;};
-export const freshMenuDeception=():MenuDeceptionState=>({age:0,phase:'throw',variant:1,background:'',heading:0,throwFrom:{x:0,y:404},returnFrom:{x:0,y:0},returnW:BASE_FIELD_W,returnH:BASE_FIELD_H,returnAge:0,attackDuration:8,shotTimer:0,serial:0,projectiles:[],spawned:0,spawnTimer:0,spawns:[],spawnLog:[],wave:null});
+type Spawn=Vec&{age:number;duration:number;done:boolean;spec?:MenuMonsterSpec};
+export type MenuDeceptionState={age:number;phase:MenuPhase;variant:1|2;background:string;heading:number;throwFrom:Vec;returnFrom:Vec;returnW:number;returnH:number;returnAge:number;attackDuration:number;shotTimer:number;serial:number;projectiles:MenuProjectile[];spawned:number;spawnTimer:number;spawns:Spawn[];spawnLog:{type:string;name:string;x:number;y:number}[];wave:ReturnType<typeof createChapter3WaveRuntime>|null;guests:MenuGuestRuntime|null;roster:MenuMonsterSpec[];spawnTarget:number;};
+export const freshMenuDeception=():MenuDeceptionState=>({age:0,phase:'throw',variant:1,background:'',heading:0,throwFrom:{x:0,y:404},returnFrom:{x:0,y:0},returnW:BASE_FIELD_W,returnH:BASE_FIELD_H,returnAge:0,attackDuration:8,shotTimer:0,serial:0,projectiles:[],spawned:0,spawnTimer:0,spawns:[],spawnLog:[],wave:null,guests:null,roster:[],spawnTarget:20});
 export const isMenuDeception=(e:Engine)=>e.pattern.id==='menu-deception'||e.pattern.id==='menu-deception-mobs';
 export const menuInputLocked=(e:Engine)=>isMenuDeception(e)&&(e.menuDeception.phase==='throw'||e.menuDeception.phase==='reveal'||e.menuDeception.phase==='return');
 export function syncMenuField(e:Engine){
@@ -30,13 +31,14 @@ export function moveMenuPlayer(e:Engine,dt:number,dx:number,dy:number){
 }
 export function enterMenuDeception(e:Engine,variant:1|2){
  const s=freshMenuDeception();s.variant=variant;s.background=menuBackgroundPath();s.attackDuration=variant===1?7+e.stage:14;s.throwFrom=e.localPlayer();
+ if(variant===2){s.roster=randomizedMenuRoster(()=>e.random(),e.stage>=2);s.spawnTarget=s.roster.length;s.guests=new MenuGuestRuntime(()=>e.random());}
  if(variant===2&&typeof document!=='undefined')s.wave=createChapter3WaveRuntime(document.createElement('canvas'),tag=>e.hit(tag),()=>e.random());
  e.menuDeception=s;e.angle=e.targetAngle=e.fromAngle=0;e.orientation=0;e.rotation=0;e.playerFacing=0;e.phase='active';e.phaseTime=0;e.keys.clear();e.clearAttack();
  const v=e.gridSize();s.wave?.start(v.w,v.h);e.log('디그리온이 호반우를 전장 밖으로 던집니다.');
 }
 export function beginMenuReturn(e:Engine){
  const s=e.menuDeception;if(s.phase==='return')return;s.phase='return';s.returnAge=0;s.returnFrom=e.localPlayer();s.returnW=e.fieldW;s.returnH=e.fieldH;
- e.phase='outro';e.phaseTime=0;e.shots=[];e.hazards=[];s.wave?.clear();e.cooldown=Math.max(e.cooldown,2.2);e.log('패턴 종료 · 메인 화면이 걷히고 원래 전장으로 복귀합니다.');
+ e.phase='outro';e.phaseTime=0;e.shots=[];e.hazards=[];s.wave?.clear();s.guests?.clear();e.cooldown=Math.max(e.cooldown,2.2);e.log('패턴 종료 · 메인 화면이 걷히고 원래 전장으로 복귀합니다.');
 }
 export function updateMenuReturn(e:Engine,dt:number){const s=e.menuDeception;s.returnAge+=dt;syncMenuField(e);moveMenuPlayer(e,0,0,0);}
 export function spawnMenuProjectile(e:Engine){
@@ -55,6 +57,7 @@ export function clearMenuByBomb(e:Engine){
  if(!isMenuDeception(e)||!['attack','drain'].includes(e.menuDeception.phase))return;
  for(const h of e.menuDeception.projectiles)if(h.age>=h.warn&&bombReaches(e,h,Math.hypot(h.w,h.h)/2))h.cleared=true;
  e.menuDeception.wave?.bomb(e.smartBombWorldOrigin,e.smartBombRadius);
+ e.menuDeception.guests?.bomb(e.smartBombWorldOrigin,e.smartBombRadius);
 }
 function update(e:Engine,dt:number){
  const s=e.menuDeception;if(s.phase==='return')return;s.age+=dt;s.phase=s.age<2.5?'throw':s.age<3.25?'reveal':s.age<4.45?'shake':s.age<MENU_ATTACK_START?'scatter':'attack';syncMenuField(e);
@@ -67,16 +70,34 @@ function update(e:Engine,dt:number){
   s.projectiles=s.projectiles.filter(h=>!h.cleared&&!menuProjectileExited(e,h));
   if(elapsed>=s.attackDuration&&s.projectiles.length===0)e.finish();
  }else{
-  s.spawnTimer-=dt;if(s.spawned<20&&s.spawnTimer<=0){
-   let p:Vec={x:0,y:0};for(let tries=0;tries<30;tries++){p={x:(e.random()-.5)*(e.fieldW-140),y:(e.random()-.5)*(e.fieldH-180)};if(Math.hypot(p.x-e.localPlayer().x,p.y-e.localPlayer().y)>180)break;}
-   s.spawns.push({...p,age:0,duration:.65,done:false});s.spawned++;s.spawnTimer=.22+e.random()*.1;
+  // The false menu darkens GRADUALLY; enemies only appear after the fade.
+  if(elapsed>=1.45){
+   s.spawnTimer-=dt;if(s.spawned<s.spawnTarget&&s.spawnTimer<=0){
+    let p:Vec={x:0,y:0};for(let tries=0;tries<30;tries++){p={x:(e.random()-.5)*(e.fieldW-160),y:(e.random()-.5)*(e.fieldH-200)};if(Math.hypot(p.x-e.localPlayer().x,p.y-e.localPlayer().y)>175)break;}
+    const spec=s.roster[s.spawned];s.spawns.push({...p,age:0,duration:.58,done:false,spec});s.spawned++;s.spawnTimer=.23+e.random()*.15;
+   }
   }
-  for(const p of s.spawns){p.age+=dt;if(!p.done&&p.age>=p.duration){p.done=true;const item=s.wave?.spawn({x:p.x+e.fieldW/2,y:p.y+e.fieldH/2});if(item)s.spawnLog.push(item);}}
+  for(const p of s.spawns){p.age+=dt;if(!p.done&&p.age>=p.duration){p.done=true;const spec=p.spec;
+    if(spec){if(spec.chapter===3&&MENU_NATIVE_CH3_TYPES.has(spec.type)){
+      const item=s.wave?.spawn({x:p.x+e.fieldW/2,y:p.y+e.fieldH/2},spec.type);if(item)s.spawnLog.push(item);
+    }else{s.guests?.spawn(spec,p);s.spawnLog.push({type:spec.type,name:spec.name,x:p.x,y:p.y});}}
+   }}
   s.spawns=s.spawns.filter(p=>p.age<p.duration+.35);
   const p=e.localPlayer();s.wave?.step(dt,{x:p.x+e.fieldW/2,y:p.y+e.fieldH/2,r:PLAYER_HIT_RADIUS,dead:e.dead>0||e.gameOver});s.wave?.hitShots(e.shots);
-  const cleared=(s.wave?.count??0)===0&&(s.wave?.bulletCount??0)===0;
-  if(s.spawned===20&&s.spawns.every(p=>p.done)&&(cleared||!e.encounter.enabled&&elapsed>=s.attackDuration))e.finish();
+  s.guests?.step(e,dt);s.guests?.hitShots(e.shots);
+  const cleared=(s.wave?.count??0)===0&&(s.wave?.bulletCount??0)===0&&(s.guests?.count??0)===0&&(s.guests?.bulletCount??0)===0;
+  if(s.spawned===s.spawnTarget&&s.spawns.every(p=>p.done)&&(cleared||!e.encounter.enabled&&elapsed>=s.attackDuration+1.5))e.finish();
  }
+}
+/** Two-tone warnings selected from the ACTUAL menu backdrop (day/dusk/night).
+ * The dark outer keyline stays visible on light maps and the bright inner
+ * dash stays visible on night maps. Both trace the projectile's real lane.
+ */
+export function menuWarningPalette(background:string){
+ const night=/night|dawn/i.test(background),dusk=/evening/i.test(background);
+ return night?{outline:'#02030d',dash:'#fff0a0',fill:'rgba(255,231,127,.20)'}:
+        dusk?{outline:'#15051c',dash:'#fdffff',fill:'rgba(255,255,255,.19)'}:
+             {outline:'#090d20',dash:'#fef77b',fill:'rgba(13,16,34,.20)'};
 }
 /** Remove a jagged section from a real panel edge; the player crosses this opening. */
 function clipPanel(c:CanvasRenderingContext2D,w:number,h:number,side:-1|1,y:number,depth:number){
@@ -108,6 +129,7 @@ export function drawMenuScene(e:Engine,c:CanvasRenderingContext2D,player:(p:Vec)
  if(menuVisible){
   c.save();c.translate(menuX,0);const gap=!returning&&s.age>=entry.time?26*(1-smooth((s.age-entry.time-.2)/.7)):0;
   clipPanel(c,v.w,v.h,1,entry.y,gap);drawMenuBackground(c,v.w,v.h,s.background);
+  if(s.variant===2&&s.age>=MENU_ATTACK_START){const fade=smooth((s.age-MENU_ATTACK_START)/1.45);c.fillStyle=`rgba(2,4,13,${(.46+(s.background.includes('night')?.12:0))*fade})`;c.fillRect(-v.w/2,-v.h/2,v.w,v.h);}
   if(!returning&&!['attack','drain'].includes(s.phase))for(const [i,a] of menuLayout(v.w,v.h).entries()){
    let x=a.x,y=a.y;const shake=s.phase==='shake'?smooth((s.age-3.25)/1.2):0;x+=Math.sin(s.age*57+i*4)*9*shake;y+=Math.cos(s.age*71+i)*6*shake;
    if(s.phase==='scatter'){const k=Math.pow(clamp((s.age-4.45)/.95,0,1),2);if(i%2)x+=(i%4<2?-1:1)*(v.w+a.w)*k;else y+=(i%4<2?-1:1)*(v.h+a.h)*k;}
@@ -123,10 +145,16 @@ export function drawMenuScene(e:Engine,c:CanvasRenderingContext2D,player:(p:Vec)
  if(!returning){drawShatter(c,frame.arenaBreach,s.age-ARENA_BREACH_TIME);drawShatter(c,entry,s.age-entry.time,true);}
  c.save();
  for(const h of s.projectiles){c.save();if(returning)c.globalAlpha*=1-smooth(ra/.5);if(h.age<h.warn){
-   const horizontal=!!h.vx,sign=Math.sign(h.vx||h.vy);c.strokeStyle='#ff583d';c.fillStyle='#ffddbf';c.lineWidth=3;c.setLineDash([10,8]);c.globalAlpha*=.35+.5*h.age/h.warn;c.beginPath();if(horizontal){c.moveTo(-e.fieldW/2,h.y);c.lineTo(e.fieldW/2,h.y);}else{c.moveTo(h.x,-e.fieldH/2);c.lineTo(h.x,e.fieldH/2);}c.stroke();c.setLineDash([]);
-   const x=horizontal?-sign*(e.fieldW/2-20):h.x,y=horizontal?h.y:-sign*(e.fieldH/2-20);c.translate(x,y);c.rotate(horizontal?sign>0?0:Math.PI:sign>0?Math.PI/2:-Math.PI/2);c.beginPath();c.moveTo(15,0);c.lineTo(-10,-12);c.lineTo(-10,12);c.closePath();c.fill();
+   const horizontal=!!h.vx,sign=Math.sign(h.vx||h.vy),colors=menuWarningPalette(s.background);
+   c.globalAlpha*=.67+.33*h.age/h.warn;c.fillStyle=colors.fill;
+   if(horizontal)c.fillRect(-e.fieldW/2,h.y-h.h/2,e.fieldW,h.h);else c.fillRect(h.x-h.w/2,-e.fieldH/2,h.w,e.fieldH);
+   c.setLineDash([18,9]);c.lineWidth=10;c.strokeStyle=colors.outline;c.beginPath();
+   if(horizontal){c.moveTo(-e.fieldW/2,h.y);c.lineTo(e.fieldW/2,h.y);}else{c.moveTo(h.x,-e.fieldH/2);c.lineTo(h.x,e.fieldH/2);}c.stroke();
+   c.lineWidth=5;c.strokeStyle=colors.dash;c.shadowColor=colors.dash;c.shadowBlur=10;c.stroke();c.shadowBlur=0;c.setLineDash([]);
+   const x=horizontal?-sign*(e.fieldW/2-20):h.x,y=horizontal?h.y:-sign*(e.fieldH/2-20);c.fillStyle=colors.dash;c.translate(x,y);c.rotate(horizontal?sign>0?0:Math.PI:sign>0?Math.PI/2:-Math.PI/2);c.beginPath();c.moveTo(15,0);c.lineTo(-10,-12);c.lineTo(-10,12);c.closePath();c.fill();
   }else{const a=menuArt[h.art];c.shadowColor='#00132c';c.shadowBlur=12;drawUiImage(c,a.path,h.x,h.y,h.w,h.h);}c.restore();}
  if(s.wave&&s.phase==='attack'){const cv=s.wave.render();c.drawImage(cv,-v.w/2,-v.h/2,v.w,v.h);}
+ if(s.variant===2&&s.phase==='attack')s.guests?.render(c);
  for(const p of s.spawns){if(p.done)continue;const k=p.age/p.duration;c.save();c.globalAlpha=.25+k*.6;c.strokeStyle='#f9b866';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,12+46*(1-k),0,Math.PI*2);c.stroke();c.beginPath();c.moveTo(p.x-17,p.y);c.lineTo(p.x+17,p.y);c.moveTo(p.x,p.y-17);c.lineTo(p.x,p.y+17);c.stroke();c.restore();}
  c.restore();
  if(menuInputLocked(e)&&s.phase!=='return'&&s.age>.65&&s.age<MENU_LAND_TIME){const p=e.localPlayer(),k=1-smooth((s.age-2.5)/.75);c.save();c.strokeStyle='#e4b8ff';c.lineWidth=2;c.globalAlpha=.7*k;for(let i=0;i<14;i++){const y=p.y+(i-7)*14;c.beginPath();c.moveTo(p.x+40+(i%3)*15,y);c.lineTo(p.x+180+(i%5)*45,y);c.stroke();}c.restore();}
@@ -136,7 +164,7 @@ export function drawMenuScene(e:Engine,c:CanvasRenderingContext2D,player:(p:Vec)
 }
 export const menuDeceptionPatterns:Pattern[]=([1,2] as const).map(variant=>({
  id:variant===1?'menu-deception':'menu-deception-mobs',name:variant===1?'메인 화면 사기':'메인 화면 사기 2 · CH3 미리보기',english:variant===1?'FALSE MAIN MENU':'FALSE MENU / ORIGINAL WAVE',category:'special',orientation:0,duration:Infinity,
- subtitle:variant===1?'메인 화면의 버튼과 로고가 수평·수직으로 돌진합니다.':'원본 챕터 3 일반 몬스터 20마리. 챕터 1·2는 원본 웨이브 소스 추가 후 연결합니다.',
- stages:variant===1?['7초 버튼·로고 돌진','8초 사방 교차','9초 연속 돌진','10초 메뉴 폭주']:['원본 일반 몬스터 20마리','무작위 출현','원본 웨이브 동작','사방 조향 전투'],
- enter:e=>enterMenuDeception(e,variant),update,render:()=>{},exit:e=>{e.menuDeception.wave?.clear();e.menuDeception=freshMenuDeception();e.playerFacing=0;}
+ subtitle:variant===1?'메인 화면의 버튼과 로고가 수평·수직으로 돌진합니다.':'화면이 어두워진 뒤 챕터 1·2·3 일반 몬스터가 무작위로 등장합니다.',
+ stages:variant===1?['7초 버튼·로고 돌진','8초 사방 교차','9초 연속 돌진','10초 메뉴 폭주']:['3개 챕터 몬스터 12마리','무작위 출현','숙련 몬스터 25마리','암전 후 사방 전투'],
+ enter:e=>enterMenuDeception(e,variant),update,render:()=>{},exit:e=>{e.menuDeception.wave?.clear();e.menuDeception.guests?.clear();e.menuDeception=freshMenuDeception();e.playerFacing=0;}
 }));

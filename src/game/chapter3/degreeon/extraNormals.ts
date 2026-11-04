@@ -34,9 +34,24 @@ function tailUpdate(e:Engine,dt:number){
 }
 function drawTails(e:Engine,c:CanvasRenderingContext2D){
  const alive=new Set(e.hazards.map(h=>h.id));
- for(const chain of e.extraNormal.chains){if(!chain.detached)continue;
-  for(let i=chain.released;i<chain.tails.length;i++){const p=chain.tails[i];if(!alive.has(p.id))continue;const d=tailLaunchDirection(chain,i),f=clamp(chain.releaseClocks[i]/(.38+i*.065),0,1);
-   c.save();c.translate(p.x,p.y);c.strokeStyle='#ffe5ad';c.lineWidth=2;c.globalAlpha=.35+.65*f;c.beginPath();c.arc(0,0,15,-Math.PI/2,-Math.PI/2+Math.PI*2*f);c.stroke();c.rotate(Math.atan2(d.y,d.x));c.beginPath();c.moveTo(18,-5);c.lineTo(26,0);c.lineTo(18,5);c.stroke();c.restore();
+ for(const chain of e.extraNormal.chains){
+  // The horizontal guide is now the ACTUAL large head's collision path.
+  // It disappears at launch; a solid, harmful projectile follows the lane.
+  if(!chain.detached&&chain.age>1.03&&alive.has(chain.head.id)){
+   const h=chain.head,sign=chain.side,k=clamp((chain.age-1.03)/.52,0,1),edge=sign>0?e.fieldW/2:-e.fieldW/2;
+   c.save();c.globalAlpha=.56+k*.38;c.setLineDash([14,8]);c.lineWidth=11;c.strokeStyle='#0b0714';c.beginPath();c.moveTo(h.x,h.y);c.lineTo(edge,h.y);c.stroke();
+   c.strokeStyle='#fff3ac';c.lineWidth=5;c.shadowColor='#fff0a0';c.shadowBlur=13;c.stroke();c.shadowBlur=0;c.setLineDash([]);
+   c.fillStyle='#fff3ac';c.strokeStyle='#0b0714';c.lineWidth=3;c.beginPath();c.moveTo(edge,h.y);c.lineTo(edge-sign*25,h.y-12);c.lineTo(edge-sign*25,h.y+12);c.closePath();c.fill();c.stroke();c.restore();
+  }
+  if(!chain.detached)continue;
+  for(let i=chain.released;i<chain.tails.length;i++){
+   const p=chain.tails[i];if(!alive.has(p.id))continue;
+   const d=tailLaunchDirection(chain,i),f=clamp(chain.releaseClocks[i]/(.38+i*.065),0,1);
+   // Warn along the exact saved target / fan vector, not a decorative arrow.
+   c.save();c.translate(p.x,p.y);c.rotate(Math.atan2(d.y,d.x));c.globalAlpha=.32+.66*f;
+   c.strokeStyle='#110915';c.lineWidth=8;c.setLineDash([10,6]);c.beginPath();c.moveTo(12,0);c.lineTo(155,0);c.stroke();
+   c.strokeStyle='#ffefa8';c.lineWidth=3.5;c.shadowColor='#ffe7a2';c.shadowBlur=10;c.stroke();c.setLineDash([]);
+   c.fillStyle='#fff2bd';c.strokeStyle='#180b21';c.lineWidth=2;c.beginPath();c.moveTo(160,0);c.lineTo(138,-10);c.lineTo(138,10);c.closePath();c.fill();c.stroke();c.restore();
   }
  }
 }

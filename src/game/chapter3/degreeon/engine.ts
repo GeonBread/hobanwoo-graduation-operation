@@ -28,7 +28,7 @@ import {updateBossSupportActor,updateBossSupportSchedule,defeatBossSupport} from
 export * from './core';
 import { Vec, BombParticle, Phase, CutPiece, CutTelegraph, Entity, Shot, WorldActor, Effect, Link, Laser, Pattern, polygonArea, polygonCentroid, pointInPolygon, clipPolygon, constrainToPolygon, segmentDistance, circleRect, reflectedPath, CANVAS_W, CANVAS_H, CANVAS_CX, CANVAS_CY, PLAYER_MOVE_SPEED, PLAYER_HIT_RADIUS, MAX_HP, MAX_BOMBS, BASE_FIELD_W, BASE_FIELD_H, BOMBARD_FIELD_W, BOMBARD_FIELD_H, SMART_BOMB_SPEED, SMART_BOMB_BOSS_DAMAGE, modes, clamp, smooth, distance, dot } from './core';
 export class Engine {
-  nativeWeapon=freshNativeWeapon();
+  nativeWeapon=freshNativeWeapon();linkFinishing=false;
   continuity=freshContinuity();bossVisibility=1;bossVisualSize=268;
   flightPresence=freshFlightPresence();
   get emitting(){return !this.encounter.enabled||!this.continuity.closing;}
@@ -129,7 +129,7 @@ export class Engine {
     this.fluidWet=false;this.fluidFill=0;this.fluidPlayerV={x:0,y:0};this.fluidHeading=0;this.fluidThrottle=0;this.fluidFlow={x:0,y:0};this.fluidTilt=0;
     this.boss={x:0,y:-300};
     if(carry){this.boss={...carry.boss};this.player=this.screen(carry.player);}
-    this.visited.add(this.pattern.id);this.pattern.enter(this);if(this.pattern.category==='support')this.combatPattern.enter(this);configureZones(this);
+    this.visited.add(this.pattern.id);this.linkFinishing=false;this.pattern.enter(this);if(this.pattern.category==='support')this.combatPattern.enter(this);configureZones(this);
     this.rotation=0;this.rotateTo(supports(this).has('wall')?1:this.pattern.orientation,false);
     if(this.pattern.id==='rhythm')this.boss.y=-this.fieldH/2+180;
     initSpaceCut(this);

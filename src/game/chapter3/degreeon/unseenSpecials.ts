@@ -14,13 +14,13 @@ export type UnseenState={hands:HandState;inspection:InspectionState;gate:GateSta
 export const freshUnseen=():UnseenState=>({hands:{age:0,round:0,timer:.3,hands:[]},inspection:{age:0,angle:Math.PI/2,lastPlayer:{x:0,y:0},motion:0,detection:0,cooldown:0,detections:0,eyes:[]},gate:{age:0,phase:'locks',phaseAge:0,locks:[],order:[1,0,2],opened:0,timer:1}});
 function spawnHand(e:Engine,side:number,mode:Hand['mode'],u:number){const life=mode==='flurry'?2.5:mode==='stir'?2.6:mode==='deep'?2:mode==='cage'?2:1.7;e.unseen.hands.hands.push({side,u,mode,age:0,warn:1.1-e.stage*.06,life,impacted:false,impacts:0});}
 function updateHands(e:Engine,dt:number){const s=e.unseen.hands;s.age+=dt;s.timer-=dt;
- if(e.emitting&&s.timer<=0&&s.age<24){const n=s.round++,mode:Hand['mode']=['slam','deep','sweep','flurry','stir','cage'][n%6] as Hand['mode'];
+ if(e.emitting&&s.timer<=0&&s.round<8&&s.age<28){const n=s.round++,mode:Hand['mode']=['slam','deep','sweep','flurry','stir','cage'][n%6] as Hand['mode'];
   if(mode==='cage'){const center=clamp(e.localPlayer().y,-e.fieldH/2+150,e.fieldH/2-150)/e.fieldH;spawnHand(e,1,mode,center);spawnHand(e,3,mode,-center);s.timer=3;}
   else{const side=n%4,p=e.localPlayer(),a=side*Math.PI/2,span=side%2?e.fieldH:e.fieldW,u=clamp((p.x*Math.cos(a)+p.y*Math.sin(a))/span,-.35,.35);spawnHand(e,side,mode,mode==='sweep'||mode==='stir'?0:u);s.timer=mode==='flurry'?3.25:mode==='stir'?3.2:mode==='deep'?2.5:1.85-e.stage*.09;}}
  for(const h of s.hands){h.age+=dt;const t=h.age-h.warn,cycle=h.mode==='flurry'?Math.floor(Math.max(0,t)/.78):0,impactTime=h.mode==='flurry'?cycle*.78+.18:.26;
   if(t>=impactTime&&(h.impacts??0)<=cycle&&(h.mode!=='flurry'||cycle<3)){h.impacted=true;h.impacts=cycle+1;e.shake=Math.max(e.shake,.15);const f=handFrame(e,h),p=handRects(e,h)[0];e.fx({x:f.x+p.x*Math.cos(f.a)-p.y*Math.sin(f.a),y:f.y+p.x*Math.sin(f.a)+p.y*Math.cos(f.a)},'burst',95,'#ddaeff',.6);}
   for(const b of e.bodies())if(handHits(e,h,e.local(b)))e.hit('전장 밖 거대한 손',b);}
- s.hands=s.hands.filter(h=>h.age<h.warn+h.life);if(s.age>24&&!s.hands.length)e.finish();
+ s.hands=s.hands.filter(h=>h.age<h.warn+h.life);if((s.round>=8||s.age>28)&&!s.hands.length)e.finish();
 }
 function inspectionOrigin(e:Engine,eye:InspectionEye):Vec{return{x:eye.x,y:-e.fieldH/2+130};}
 function inspectionEyeSees(e:Engine,eye:InspectionEye,p:Vec){

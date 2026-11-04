@@ -139,6 +139,17 @@ export const patterns:Pattern[]=[
     if(e.stage>0){const sign=e.counter%2?1:-1;e.add({kind:'spike',x:center+sign*(gap/2+18),y:-e.fieldH/2-100,w:42,h:46,vx:-sign*.001,vy:155+e.stage*12,warn:1,life:(e.fieldH+160)/(155+e.stage*12)+2,tag:'비행 가시'});}
     e.counter++;
   },(e,c)=>{c.fillStyle='#71479899';c.fillRect(-e.fieldW/2,-e.fieldH/2,9,e.fieldH);c.fillRect(e.fieldW/2-9,-e.fieldH/2,9,e.fieldH);c.strokeStyle='#c193ed';c.setLineDash([12,8]);c.strokeRect(-e.fieldW/2+9,-e.fieldH/2,e.fieldW-18,e.fieldH);c.setLineDash([]);
+    // The local +X wall is the visible floor after the quarter-turn.
+    // Flames are drawn on that SAME collidable edge, not on a decorative stripe.
+    c.save();const floor=e.fieldW/2-10,fireWidth=31;
+    const grad=c.createLinearGradient(floor-fireWidth,0,floor+8,0);
+    grad.addColorStop(0,'rgba(136,35,193,0)');grad.addColorStop(.45,'rgba(203,58,255,.43)');grad.addColorStop(1,'rgba(252,129,74,.82)');
+    c.fillStyle=grad;c.fillRect(floor-fireWidth,-e.fieldH/2,fireWidth+9,e.fieldH);
+    for(let j=0;j<Math.ceil(e.fieldH/27);j++){
+      const y=-e.fieldH/2+j*27,flame=12+9*Math.sin(e.clock*10+j*1.73),outer=floor-fireWidth+6;
+      c.fillStyle=j%3?'rgba(207,75,250,.66)':'rgba(255,177,97,.74)';c.shadowColor='#ce48fb';c.shadowBlur=10;
+      c.beginPath();c.moveTo(floor+3,y-14);c.quadraticCurveTo(outer-flame,y-9+Math.sin(e.clock*7+j)*7,floor-7,y+8);c.lineTo(floor+3,y+14);c.closePath();c.fill();
+    }c.restore();
     // Local +X becomes visible downward gravity after the quarter turn.
     c.save();c.translate(-e.fieldW/2+86,e.fieldH/2-80);c.strokeStyle='#ffe7a8';c.lineWidth=4;c.shadowColor='#b58ce3';c.shadowBlur=12;
     for(let i=0;i<3;i++){const x=i*20+(e.clock*24)%20;c.globalAlpha=.35+i*.2;c.beginPath();c.moveTo(x-8,-11);c.lineTo(x+2,0);c.lineTo(x-8,11);c.stroke();}c.restore();}),
@@ -149,9 +160,14 @@ export const patterns:Pattern[]=[
     if(e.pendingBombard&&e.miss>=e.missCap)e.finish();
   }),
   make('link','탄환 접합','ELECTRIC JUNCTION','삼각형·사각형·육각형·별 진형이 이동하고 회전하며 전기장을 만듭니다.',0,['삼각형 / 사각형','회전 사각형 / 육각형','별 / 교차 연결','겹치는 기하 진형'],30,(e,dt)=>{
-    if(e.emitting&&e.beat<=0){e.beat=2.5-e.stage*.25;const count=[3,4,6,8][(e.counter+e.stage)%4],group=++e.counter,origin={x:(e.random()-.5)*(e.fieldW-340),y:-e.fieldH/2-140},orbs:Entity[]=[],radius=100+e.stage*8;
+    const maxSalvos=e.stage>=2?9:5;
+    if(e.emitting&&e.beat<=0&&e.counter<maxSalvos){
+      e.beat=e.stage>=2?1.10:Math.max(1.65,2.05-e.stage*.16);
+      const count=e.stage>=2?[8,6,8,6][e.counter%4]:[3,4,6,8][(e.counter+e.stage)%4],
+      group=++e.counter,origin={x:(e.random()-.5)*(e.fieldW-340),y:-e.fieldH/2-140},orbs:Entity[]=[],radius=100+e.stage*8;
       for(let i=0;i<count;i++){const a=i*Math.PI*2/count;orbs.push(e.add({x:origin.x+Math.cos(a)*radius,y:origin.y+Math.sin(a)*radius,r:14,warn:.9,life:11,color:purple,tag:'접합 탄체',group,vertex:i,vertices:count,origin:{...origin},rotation:a}));}
       for(let i=0;i<count;i++){const next=count===8?(i+3)%count:(i+1)%count;e.links.push({a:orbs[i],b:orbs[next],age:0,strength:0,active:false});}if(e.stage>=2&&count===4){e.links.push({a:orbs[0],b:orbs[2],age:0,strength:0,active:false},{a:orbs[1],b:orbs[3],age:0,strength:0,active:false});}
+      if(group>=maxSalvos&&!e.linkFinishing){e.linkFinishing=true;e.finish();}
     }
     const orbs=e.hazards.filter(h=>h.tag==='접합 탄체'||h.tag==='접합 탄체');
     for(const h of orbs){if(h.group===undefined)continue;const hd=dt*e.localTime(h),a=(h.rotation??0)+(h.age-h.warn)*(.5+e.stage*.09)*(h.group%2?1:-1),r=100+e.stage*8+Math.sin(h.age*2)*18;h.origin!.y+=(95+e.stage*15)*hd;h.x=h.origin!.x+Math.cos(a)*r+Math.sin(h.age*1.3+h.group)*50;h.y=h.origin!.y+Math.sin(a)*r;}
@@ -196,7 +212,20 @@ export const patterns:Pattern[]=[
     e.player=e.screen(rotationAnchor);
     e.orientation=(Math.round(e.angle/(Math.PI/2))%4+4)%4;const g=e.gravityLocal(),t={x:-g.y,y:g.x},fall=42+e.stage*18+Math.abs(Math.sin(e.angle))*20,side=Math.sin(e.t*.72)*22;
     e.fluidFlow={x:g.x*fall+t.x*side,y:g.y*fall+t.y*side};
-    if(e.emitting&&fluidReadyToFire(e)&&e.beat<=0){e.beat=Math.max(.82,1.48-e.stage*.14);const spawn=(sideIndex:number)=>{const along=e.random()-.5,p=sideIndex===0?{x:along*e.fieldW,y:-e.fieldH/2-16}:sideIndex===1?{x:e.fieldW/2+16,y:along*e.fieldH}:sideIndex===2?{x:along*e.fieldW,y:e.fieldH/2+16}:{x:-e.fieldW/2-16,y:along*e.fieldH},target=e.localPlayer(),a=Math.atan2(target.y-p.y,target.x-p.x)+(e.random()-.5)*.22,sp=45+e.stage*7+e.random()*14;e.add({...p,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:9+e.random()*3,warn:.7,life:11,color:'#c477ff',tag:'유체 오염탄'});};const sideIndex=e.counter%4;spawn(sideIndex);if(e.stage>=2)spawn((sideIndex+2)%4);e.counter++;}
+    if(e.emitting&&fluidReadyToFire(e)&&e.beat<=0){
+      // Flood FIRST, then dense waves from alternating edges. No shots while filling.
+      e.beat=[1.16,1.04,.79,.66][e.stage]??.66;
+      const count=[3,4,6,8][e.stage]??8;
+      const spawn=(sideIndex:number,spread:number)=>{
+        const along=clamp((e.random()-.5)*.8+spread,-.48,.48),
+        p=sideIndex===0?{x:along*e.fieldW,y:-e.fieldH/2-16}:sideIndex===1?{x:e.fieldW/2+16,y:along*e.fieldH}:sideIndex===2?{x:along*e.fieldW,y:e.fieldH/2+16}:{x:-e.fieldW/2-16,y:along*e.fieldH},
+        target=e.localPlayer(),a=Math.atan2(target.y-p.y,target.x-p.x)+(e.random()-.5)*.30,
+        sp=56+e.stage*8+e.random()*26;
+        e.add({...p,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:8+e.random()*3,warn:.64,life:13,color:'#d88bff',tag:'유체 오염탄'});
+      };
+      for(let i=0;i<count;i++){const side=(e.counter+i%4)%4;spawn(side,(i-(count-1)/2)*.075);}
+      e.counter++;
+    }
   },drawFluid,e=>{e.fieldW=CANVAS_W;e.fieldH=CANVAS_H;e.fluidFill=.05;e.fluidPlayerV={x:0,y:0};e.fluidHeading=0;e.fluidThrottle=0;e.fluidFlow={x:0,y:25};e.boss={x:0,y:-230};})
   ,...advancedPatterns,...menuDeceptionPatterns,...normalBulletPatterns,...corridorPatterns,finalStandPattern,pauseStormPattern,graduationStampPattern,pathFoldPattern,recyclePattern,...unseenPatterns,...fieldTrickPatterns,...extraNormalPatterns,tileStreamPattern
 ];

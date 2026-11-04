@@ -2075,7 +2075,7 @@ function update(dt){
 function drawParallaxLayer(img,speed,alpha=1){if(!img||!img.complete||!img.naturalWidth)return false;const offset=(mapScroll*speed)%H;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(img,0,offset-H,W,H);ctx.drawImage(img,0,offset,W,H);ctx.restore();return true;}
 function drawBG(){ctx.fillStyle='#07101a';ctx.fillRect(0,0,W,H);let drawn=false;drawn=drawParallaxLayer(CHAPTER1_BG_IMAGES[0],8,1)||drawn;drawn=drawParallaxLayer(CHAPTER1_BG_IMAGES[1],18,.94)||drawn;drawn=drawParallaxLayer(CHAPTER1_BG_IMAGES[2],34,.96)||drawn;if(!drawn){ctx.fillStyle='#070a12';ctx.fillRect(0,0,W,H);}ctx.fillStyle='rgba(5,8,14,.10)';ctx.fillRect(0,0,W,H);}
 function circle(x,y,r,fill,stroke=null,lw=2){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();}}
-function label(text,x,y,size=10,color='#fff'){ctx.fillStyle=color;ctx.font=`700 ${size}px Noto Sans KR`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y);}
+function label(text,x,y,size=10,color='#fff'){ctx.fillStyle=color;ctx.font=`700 ${size}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y);}
 
 function enemyGlowColor(e){
  const map={
@@ -2455,7 +2455,7 @@ function drawPowerUps(){
    ctx.fillStyle='#ef3f45';
    ctx.strokeStyle='#07090d';
    ctx.lineWidth=4;
-   ctx.font='900 22px Noto Sans KR, sans-serif';
+   ctx.font='900 22px Arial, sans-serif';
    ctx.textAlign='center';
    ctx.textBaseline='middle';
    ctx.strokeText('P',0,1);
@@ -2579,7 +2579,7 @@ function drawChapter1PurificationHud069(){
  ctx.shadowBlur=0;
 
  ctx.textBaseline='middle';
- ctx.font="900 12px 'Noto Sans KR', Noto Sans KR, sans-serif";
+ ctx.font="900 12px 'Noto Sans KR', system-ui, sans-serif";
  ctx.fillStyle='#fff1b5';
  ctx.textAlign='left';
  ctx.fillText('정화 에너지',panelX+14,panelY+15);
@@ -2626,8 +2626,8 @@ function render(){syncAttackDisabledStatus073(false);ctx.save();if(chapter2Death
   types:regularTypes,
   start(w,h){W=w;H=h;CX=w/2;cvs.width=Math.round(w);cvs.height=Math.round(h);enemies=[];bullets=[];playerBullets=[];effects=[];links=[];tractorPairs=[];boomerangs=[];powerups=[];snakeState=null;waveTime=0;waveIndex=0;gameOver=false;finalPurification.active=false;combatView={x:0,y:0,w:W,h:H};specialState={};},
   resize(w,h){if(w===W&&h===H)return;const sx=w/W,sy=h/H;for(const e of enemies){e.x*=sx;e.y*=sy;if(e.target){e.target.x*=sx;e.target.y*=sy;}if(e.anchor){e.anchor.x*=sx;e.anchor.y*=sy;}if(e.targetX!=null)e.targetX*=sx;if(e.targetY!=null)e.targetY*=sy;}for(const b of [...bullets,...boomerangs]){b.x*=sx;b.y*=sy;}W=w;H=h;CX=w/2;cvs.width=Math.round(w);cvs.height=Math.round(h);combatView={x:0,y:0,w:W,h:H};},
-  spawn(point){
-   const type=pick(regularTypes),target={x:point.x,y:point.y};let opt={x:point.x,y:point.y};
+  spawn(point,forceType){
+   const type=regularTypes.includes(forceType)?forceType:pick(regularTypes),target={x:point.x,y:point.y};let opt={x:point.x,y:point.y};
    if(type==='drone')Object.assign(opt,{mode:'hover',anchor:target,canShoot:true});
    if(type==='laser')Object.assign(opt,{targetX:point.x,targetY:point.y});
    if(type==='mine'||type==='linker')Object.assign(opt,{target});
