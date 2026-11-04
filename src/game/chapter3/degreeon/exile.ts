@@ -5,7 +5,11 @@ import type { Engine } from './engine';
 import { clamp, smooth, distance, segmentDistance, Vec } from './core';
 export const EXILE_MAX_ENEMIES=192;
 const EXILE_INITIAL_ENEMIES=168;
-export const EXILE_COLLAPSE_SECONDS=4;
+// The timed-out outside space finishes tearing apart in three seconds.
+export const EXILE_COLLAPSE_SECONDS=3;
+export const EXILE_COLLAPSE_RETURN_SECONDS=1.65;
+// A fully black frame separates the catastrophe and the returning arena.
+export const exileReturnBlackOpacity=(age:number)=>1-smooth((age-.17)/1.25);
 export const exileDeadline=(stage:number)=>stage>=2?15:20;
 export type ExileEnemy=Vec&{hp:number;age:number;vx:number;vy:number;kind?:'swarm'|'corrupt-spitter'|'corrupt-rupture';fireTimer?:number};
 export type ExileEnemyShot=Vec&{vx:number;vy:number;age:number;color:string};
@@ -135,7 +139,7 @@ export function updateExile(e:Engine,dt:number){
  }else if(x.state==='enter'){
   const k=smooth(x.age/.9);x.world={x:x.entryFrom.x+(x.portal.x-x.entryFrom.x)*k,y:x.entryFrom.y+(x.portal.y-x.entryFrom.y)*k};
   if(x.age>.95){setState(e,'return');x.detached=false;e.player=e.point(.5,.76);x.enemies=[];x.enemyShots=[];x.shots=[];}
- }else if(x.state==='return'&&x.age>1.25){x.returned=true;setState(e,'done');e.finish();}
+ }else if(x.state==='return'&&x.age>(x.timeoutTriggered?EXILE_COLLAPSE_RETURN_SECONDS:1.25)){x.returned=true;setState(e,'done');e.finish();}
  if(x.detached){
   const size=e.gridSize();x.viewW=size.w;x.viewH=size.h;const target={x:clamp(x.world.x+x.viewW*.18,-x.w/2+x.viewW/2,x.w/2-x.viewW/2),y:clamp(x.world.y,-x.h/2+x.viewH/2,x.h/2-x.viewH/2)},k=1-Math.exp(-5*dt);
   x.camera.x+=(target.x-x.camera.x)*k;x.camera.y+=(target.y-x.camera.y)*k;e.player=e.screen(x.world);
@@ -199,77 +203,91 @@ export function exileOverlay(e:Engine,c:CanvasRenderingContext2D):boolean{
  if(x.state==='throw'){const p=e.player;c.save();for(let i=0;i<18;i++){c.strokeStyle=i%3?'#b98be6':'#f0d3ff';c.globalAlpha=.2+i*.01;c.lineWidth=2+i%3;c.beginPath();c.moveTo(p.x+35+i*12,p.y-95+i*10);c.lineTo(p.x+220+i*12,p.y-125+i*10);c.stroke();}c.restore();}
  return false;
 }
-/** Four-second, fullscreen pollution catastrophe. Every fracture edge has
- * a corresponding moving panel; no label/text overlays the destruction. */
+/** Matching, angular fracture boundaries for fourteen actual moving panels.
+ * Each neighboring panel reuses the SAME zigzag points, so the rupture
+ * is a geometric cut in the old space, not an unrelated graphic overlay. */
+export function exileFracturePaths(w:number,h:number):Vec[][]{
+ const count=14,steps=11,cx=w*.5,cy=h*.5,reach=Math.hypot(w,h)*.73;
+ return Array.from({length:count},(_,i)=>{
+  const angle=-Math.PI/2+i*Math.PI*2/count;
+  const dx=Math.cos(angle),dy=Math.sin(angle),nx=-dy,ny=dx;
+  const result:Vec[]=[];
+  for(let j=0;j<=steps;j++){
+   const radius=reach*j/steps;
+   const alternating=j%2?1:-1;
+   const vibration=.77+.23*Math.sin((i+1)*13.17+j*7.39)**2;
+   // Bounded sideways jogs make distinct sharp zigzags without intersections.
+   const jog=j===0||j===steps?0:alternating*Math.min(49,7+radius*.069)*vibration;
+   result.push({x:cx+dx*radius+nx*jog,y:cy+dy*radius+ny*jog});
+  }
+  return result;
+ });
+}
+let cachedFractures:{w:number;h:number;paths:Vec[][]}|null=null;
+function collapseFractures(w:number,h:number){
+ if(!cachedFractures||cachedFractures.w!==w||cachedFractures.h!==h)
+  cachedFractures={w,h,paths:exileFracturePaths(w,h)};
+ return cachedFractures.paths;
+}
+/** Three-second timed-out exile catastrophe: thin zigzag seams, real detached
+ * panels spinning/falling into darkness, and NO on-screen explanatory text. */
 export function drawCollapseCatastrophe(e:Engine,c:CanvasRenderingContext2D,x:Exile,w:number,h:number){
  const t=clamp(x.age,0,EXILE_COLLAPSE_SECONDS),progress=t/EXILE_COLLAPSE_SECONDS;
- const cx=w*.5,cy=h*.5,diag=Math.hypot(w,h),shake=Math.sin(t*93)*21+Math.sin(t*137)*13;
- c.save();c.fillStyle='#030008';c.fillRect(0,0,w,h);
- // Violent global camera motion, followed by separated fragments of the old world.
- c.translate(shake*(1-progress*.4),Math.cos(t*101)*22+Math.sin(t*59)*10);
- // Pulsing contamination clouds race between simultaneous breaches in the sky.
+ const cx=w*.5,cy=h*.5,shortSide=Math.min(w,h),paths=collapseFractures(w,h);
+ const quaking=1-smooth((t-1.27)/1.42),shakeX=(Math.sin(t*99)*15+Math.sin(t*151)*9)*quaking,shakeY=(Math.cos(t*113)*14+Math.sin(t*73)*8)*quaking;
+ c.save();c.fillStyle='#020006';c.fillRect(0,0,w,h);
+ c.translate(shakeX,shakeY);
+ // Several contamination ruptures flicker underneath the moving pieces.
  for(let j=0;j<7;j++){
-  const px=w*(.11+((j*7)%13)/15)+Math.sin(t*1.9+j*3.2)*w*.07;
-  const py=h*(.12+((j*5)%11)/13)+Math.cos(t*2.3+j)*h*.08;
-  const rad=Math.min(w,h)*(.23+(j%3)*.095)*(1+.16*Math.sin(t*4+j));
+  const px=w*(.12+((j*7)%13)/15)+Math.sin(t*2+j*3.2)*w*.045;
+  const py=h*(.11+((j*5)%11)/13)+Math.cos(t*2.2+j)*h*.055;
+  const rad=shortSide*(.22+(j%3)*.08),fade=(.19+.12*Math.sin(t*4.5+j)**2)*(1-smooth((t-2.22)/.53));
   const haze=c.createRadialGradient(px,py,0,px,py,rad);
-  const strength=(.24+.17*Math.sin(t*3.9+j*2.1)**2)*(1-smooth((t-3.2)/.8));
-  haze.addColorStop(0,`rgba(181,55,235,${strength})`);
-  haze.addColorStop(.45,`rgba(98,17,176,${strength*.6})`);
-  haze.addColorStop(1,'rgba(35,0,65,0)');
+  haze.addColorStop(0,`rgba(161,48,232,${fade})`);haze.addColorStop(.55,`rgba(82,15,161,${fade*.5})`);haze.addColorStop(1,'rgba(35,0,65,0)');
   c.fillStyle=haze;c.fillRect(px-rad,py-rad,rad*2,rad*2);
  }
- const fracture=smooth((t-.36)/2.25),explode=smooth((t-.6)/2.5);
- const border=(index:number)=>{
-  const a=-Math.PI/2+index*Math.PI*2/15,seed=index%15;
-  return Array.from({length:7},(_,j)=>{const r=diag*1.05*j/6,zig=j===0||j===6?0:Math.sin(seed*13.77+j*6.1)*(.08+.018*j);
-   return{x:cx+Math.cos(a+zig)*r,y:cy+Math.sin(a+zig)*r};});
- };
- for(let i=0;i<15;i++){
-  const a=-Math.PI/2+(i+.5)*Math.PI*2/15,r=explode*(65+(i%5)*53),dx=Math.cos(a)*r,dy=Math.sin(a)*r+explode*explode*(130+(i%4)*22),rot=Math.sin(i*4.81)*explode*.26;
-  const p=border(i),q=border(i+1);
-  c.save();c.translate(cx+dx,cy+dy);c.rotate(rot);c.translate(-cx,-cy);
-  c.beginPath();p.forEach((v,j)=>j?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));q.slice().reverse().forEach(v=>c.lineTo(v.x,v.y));c.closePath();c.clip();
+ const split=smooth((t-.27)/.98),fall=Math.max(0,t-.64),visibleRadius=shortSide*.40;
+ for(let i=0;i<paths.length;i++){
+  const a=-Math.PI/2+(i+.5)*Math.PI*2/paths.length;
+  const pivot={x:cx+Math.cos(a)*visibleRadius,y:cy+Math.sin(a)*visibleRadius};
+  const dx=Math.cos(a)*(68+(i%5)*22)*split+Math.sin(i*4.21)*fall*17;
+  const dy=Math.sin(a)*(58+(i%4)*24)*split+fall*fall*(120+(i%4)*38);
+  const rot=(i%2?1:-1)*(.28+(i%5)*.085)*split+Math.sin(i*2.73)*fall*.13;
+  const left=paths[i],right=paths[(i+1)%paths.length];
+  c.save();c.translate(pivot.x+dx,pivot.y+dy);c.rotate(rot);c.translate(-pivot.x,-pivot.y);
+  c.beginPath();left.forEach((p,j)=>j?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));
+  right.slice().reverse().forEach(p=>c.lineTo(p.x,p.y));c.closePath();c.clip();
   if(x.collapseSnapshot)c.drawImage(x.collapseSnapshot,0,0,w,h);
-  else{const grad=c.createRadialGradient(cx,cy,4,cx,cy,diag);grad.addColorStop(0,'#361049');grad.addColorStop(1,'#080016');c.fillStyle=grad;c.fillRect(0,0,w,h);}
-  c.fillStyle=`rgba(35,0,54,${fracture*.27})`;c.fillRect(0,0,w,h);c.restore();
-  // Each MOVING fragment owns its own luminous, jagged edge. The artwork
-  // itself separates from its neighbouring fragments as the tear opens.
-  if(fracture>.02){
-   c.save();c.translate(cx+dx,cy+dy);c.rotate(rot);c.translate(-cx,-cy);
-   c.beginPath();p.forEach((v,j)=>j?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));q.slice().reverse().forEach(v=>c.lineTo(v.x,v.y));c.closePath();
-   c.strokeStyle=`rgba(3,0,13,${.94*fracture})`;c.lineWidth=17;c.stroke();
-   c.strokeStyle=`rgba(177,58,255,${.95*fracture})`;c.shadowColor='#d63cff';c.shadowBlur=29;c.lineWidth=5.2;c.stroke();
-   c.shadowBlur=0;c.strokeStyle=`rgba(255,218,255,${.96*fracture})`;c.lineWidth=1.65;c.stroke();c.restore();
-  }
-  // Dark void and charged bevels trace the same screen-tearing boundaries.
-  if(fracture>.01){
-   c.save();c.globalAlpha=fracture*(1-smooth((t-3.1)/.95)*.85);
-   for(let j=0;j<15;j++){
-    const pts=border(j);c.beginPath();pts.forEach((v,k)=>k?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));
-    c.lineJoin='miter';c.strokeStyle='#09000d';c.lineWidth=11;c.stroke();
-    c.shadowColor='#dc5dff';c.shadowBlur=23;c.strokeStyle=j%3===0?'#ffe9ff':'#bc59f4';c.lineWidth=j%3===0?3.5:2.2;c.stroke();
-   }c.restore();
-  }
+  else{const g=c.createRadialGradient(cx,cy,0,cx,cy,Math.hypot(w,h));
+   g.addColorStop(0,'#351044');g.addColorStop(1,'#090018');c.fillStyle=g;c.fillRect(0,0,w,h);}
+  c.fillStyle=`rgba(54,8,85,${.13+.14*split})`;c.fillRect(0,0,w,h);c.restore();
+  // Draw only ONE shared cut edge per shard: no doubled heavy outlines.
+  // The shallow luminous bevel follows the EXACT zigzag geometry of the clip.
+  c.save();c.translate(pivot.x+dx,pivot.y+dy);c.rotate(rot);c.translate(-pivot.x,-pivot.y);
+  c.beginPath();left.forEach((p,j)=>j?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));
+  c.globalAlpha=.22+.68*smooth((t-.16)/.5)*(1-smooth((t-2.38)/.52));
+  c.lineCap='butt';c.lineJoin='bevel';c.shadowColor='#cc63ee';c.shadowBlur=5;
+  c.strokeStyle='#10051b';c.lineWidth=2.8;c.stroke();
+  c.shadowBlur=0;c.strokeStyle='#bd76ee';c.lineWidth=1.15;c.stroke();
+  c.restore();
  }
- // Repeated explosions throughout the viewport, not a single centred radial flash.
- for(let i=0;i<19;i++){
-  const start=.2+i*.167+(i%3)*.034,age=t-start;if(age<0||age>1.03)continue;
-  const life=age/1.03,sx=w*(.10+(.81*((i*37)%19)/18)),sy=h*(.10+.79*((i*13)%23)/22);
-  const radius=(30+Math.min(w,h)*(.04+(i%5)*.018))*(.5+life*3),fade=(1-smooth(life))*(.72+.28*Math.sin(age*27)**2);
+ // Dozens of small breaches, each with a different start time and location.
+ for(let i=0;i<17;i++){
+  const at=.08+i*.113+(i%4)*.024,age=t-at;if(age<0||age>.88)continue;
+  const life=age/.88,sx=w*(.09+(.82*((i*37)%19)/18)),sy=h*(.09+.8*((i*13)%23)/22);
+  const radius=shortSide*(.045+(i%5)*.017)*(.6+life*2.25),fade=(1-smooth(life))*.72;
   const g=c.createRadialGradient(sx,sy,0,sx,sy,radius);
-  g.addColorStop(0,`rgba(255,252,249,${fade*.9})`);g.addColorStop(.12,`rgba(255,177,244,${fade*.9})`);
-  g.addColorStop(.4,`rgba(167,48,231,${fade*.74})`);g.addColorStop(1,'rgba(42,0,73,0)');
+  g.addColorStop(0,`rgba(255,245,255,${fade*.9})`);
+  g.addColorStop(.20,`rgba(255,158,246,${fade*.86})`);
+  g.addColorStop(.55,`rgba(142,30,202,${fade*.6})`);g.addColorStop(1,'rgba(36,0,69,0)');
   c.fillStyle=g;c.fillRect(sx-radius,sy-radius,radius*2,radius*2);
-  c.save();c.translate(sx,sy);c.strokeStyle=`rgba(248,175,255,${fade*.75})`;
-  c.lineWidth=1.5+(i%4);for(let ray=0;ray<9;ray++){const ang=ray*Math.PI*2/9+i*.88,len=radius*(.45+(ray%3)*.22);
-   c.beginPath();c.moveTo(Math.cos(ang)*radius*.08,Math.sin(ang)*radius*.08);c.lineTo(Math.cos(ang+.04)*len,Math.sin(ang+.04)*len);c.stroke();}c.restore();
  }
- // Aggressive strobing impacts and a final void as the shattered space falls away.
- const pulse=Math.max(0,Math.sin(t*17))**14*(1-progress),impact=[.36,1.14,2.05,2.88].reduce((m,at)=>Math.max(m,Math.exp(-Math.pow((t-at)/.105,2))),0);
- c.fillStyle=`rgba(255,207,255,${.08+pulse*.13+impact*.27})`;c.fillRect(0,0,w,h);
- if(t>3.18){c.fillStyle=`rgba(2,0,8,${smooth((t-3.18)/.82)})`;c.fillRect(0,0,w,h);}
+ const flash=[.26,.83,1.47,2.06].reduce((peak,at)=>Math.max(peak,Math.exp(-Math.pow((t-at)/.085,2))),0);
+ c.fillStyle=`rgba(244,200,255,${flash*.19+.05*(1-progress)})`;c.fillRect(-40,-40,w+80,h+80);
  c.restore();
+ // Finish at ABSOLUTE black so the following arena can emerge from that frame.
+ const blackout=smooth((t-2.13)/.78);
+ if(blackout>0){c.save();c.fillStyle=`rgba(0,0,0,${blackout})`;c.fillRect(0,0,w,h);c.restore();}
 }
 
 export function drawExile(e:Engine,c:CanvasRenderingContext2D,drawPlayer:(p:Vec)=>void,drawArena:()=>void){

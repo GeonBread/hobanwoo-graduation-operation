@@ -3,7 +3,7 @@ import {drawFlightPresence} from './flightPresence';
 import {drawNativeShot} from './nativeWeapon';
 import {isMenuDeception,drawMenuScene} from './menuDeception';
 import { drawAdvanced, drawSeed, exileOverlay, activeLaserSegments } from './advanced';
-import { drawExile, exileOutside } from './exile';
+import { drawExile, exileOutside, exileReturnBlackOpacity } from './exile';
 import { drawBombEffects } from './bomb';
 import { drawHpBar, HP_BAR_WIDTH } from './hpBar';
 import { drawBulletVisual } from './bulletVisuals';
@@ -277,6 +277,12 @@ export function drawScene(e:Engine){
   if(e.rotation&&e.phase==='active'){c.fillStyle='#141324df';c.fillRect(211,91,500,38);c.fillStyle='#d7b7ff';c.font=`13px ${font}`;c.textAlign='center';c.fillText(e.rotationLive?'전장 회전 · 공격 유지 · 화면 기준 이동':'전장 회전 · 공격 일시 정지',CANVAS_CX,116);}
   if(e.damageFlash>0){c.fillStyle=`rgba(210,0,24,${.24*clamp(e.damageFlash/.85,0,1)})`;c.fillRect(0,0,CANVAS_W,CANVAS_H);}
   drawBossHud(c,e);drawFinalStandHud(c,e);drawPauseStormOverlay(e,c);drawPause(e,c);drawGameOver(e,c);c.restore();
+  // The catastrophe ended on black. Reveal the original arena smoothly,
+  // including HUD and player, instead of cutting to an already-lit frame.
+  if(e.pattern.id==='exile'&&e.advanced.exile.state==='return'&&e.advanced.exile.timeoutTriggered){
+    const alpha=exileReturnBlackOpacity(e.advanced.exile.age);
+    if(alpha>.001){c.save();c.fillStyle=`rgba(0,0,0,${alpha})`;c.fillRect(0,0,e.canvas.width,e.canvas.height);c.restore();}
+  }
 }
 
 function drawPetal(c:CanvasRenderingContext2D,h:Engine['hazards'][number]){
