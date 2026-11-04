@@ -145,10 +145,14 @@ export const patterns:Pattern[]=[
     const grad=c.createLinearGradient(floor-fireWidth,0,floor+8,0);
     grad.addColorStop(0,'rgba(136,35,193,0)');grad.addColorStop(.45,'rgba(203,58,255,.43)');grad.addColorStop(1,'rgba(252,129,74,.82)');
     c.fillStyle=grad;c.fillRect(floor-fireWidth,-e.fieldH/2,fireWidth+9,e.fieldH);
-    for(let j=0;j<Math.ceil(e.fieldH/27);j++){
-      const y=-e.fieldH/2+j*27,flame=12+9*Math.sin(e.clock*10+j*1.73),outer=floor-fireWidth+6;
-      c.fillStyle=j%3?'rgba(207,75,250,.66)':'rgba(255,177,97,.74)';c.shadowColor='#ce48fb';c.shadowBlur=10;
-      c.beginPath();c.moveTo(floor+3,y-14);c.quadraticCurveTo(outer-flame,y-9+Math.sin(e.clock*7+j)*7,floor-7,y+8);c.lineTo(floor+3,y+14);c.closePath();c.fill();
+    for(let j=0;j<Math.ceil(e.fieldH/24);j++){
+      const y=-e.fieldH/2+j*24,sway=Math.sin(e.clock*8.2+j*1.41),outer=floor-fireWidth+7,tip=outer-(14+11*(.5+.5*Math.sin(e.clock*10.4+j*1.73)));
+      c.fillStyle=j%3?'rgba(209,77,252,.68)':'rgba(255,183,104,.78)';c.shadowColor='#ce48fb';c.shadowBlur=12;
+      c.beginPath();c.moveTo(floor+3,y-13);
+      c.bezierCurveTo(floor-2,y-18,outer-4,y-12+sway*2,tip,y-4-sway*6);
+      c.bezierCurveTo(outer-10,y+2+sway*3,outer-5,y+10,floor-6,y+10);
+      c.lineTo(floor+3,y+13);c.closePath();c.fill();
+      c.fillStyle='rgba(255,232,173,.46)';c.beginPath();c.moveTo(floor-1,y-7);c.quadraticCurveTo(outer-9,y-4+sway*1.5,tip+7,y-1-sway*3);c.quadraticCurveTo(outer-7,y+4+sway*2,floor-2,y+7);c.closePath();c.fill();
     }c.restore();
     // Local +X becomes visible downward gravity after the quarter turn.
     c.save();c.translate(-e.fieldW/2+86,e.fieldH/2-80);c.strokeStyle='#ffe7a8';c.lineWidth=4;c.shadowColor='#b58ce3';c.shadowBlur=12;
@@ -206,16 +210,20 @@ export const patterns:Pattern[]=[
     }
   },drawTilePattern,e=>{const size=e.gridSize();e.fieldW=size.w;e.fieldH=size.h;e.tileCols=Math.max(3,Math.round(e.fieldW/280));e.tileRows=Math.max(3,Math.round(e.fieldH/280));if(!e.encounter.enabled)e.boss={x:0,y:-e.fieldH/2+140};e.tileRound=0;e.tileState='recover';e.tileTimer=.85;e.tileDanger=[];e.tileSafe=[];}),
   make('fluid','오염 액체 범람','CORRUPTION FLUID','차오르는 오염 액체로 떨어집니다. 입수 후 방향키로 몸을 돌려 헤엄치세요.',0,['액체 상승 / 저항 학습','기울기와 흐름 변화','360° 회전 유체','양방향 회전 / 정지 / 사방 탄막'],34,(e,dt)=>{
-    const target=e.emitting?clamp(.08+e.t*.105,.08,.9+e.stage*.015):0;e.fluidFill+=(target-e.fluidFill)*Math.min(1,dt*3.4);
+    const full=Math.min(1,.9+e.stage*.015),target=e.emitting?clamp(.08+e.t*.135,.08,full):0;e.fluidFill+=(target-e.fluidFill)*Math.min(1,dt*3.9);
     const rotationAnchor=e.localPlayer();
     if(e.emitting)e.angle=fluidRotationAt(e.t,e.stage);
     e.player=e.screen(rotationAnchor);
     e.orientation=(Math.round(e.angle/(Math.PI/2))%4+4)%4;const g=e.gravityLocal(),t={x:-g.y,y:g.x},fall=42+e.stage*18+Math.abs(Math.sin(e.angle))*20,side=Math.sin(e.t*.72)*22;
     e.fluidFlow={x:g.x*fall+t.x*side,y:g.y*fall+t.y*side};
+    if(e.emitting&&fluidReadyToFire(e)){
+      if(!e.fluidAttackStarted){e.fluidAttackStarted=true;e.fluidAttackAge=0;e.fluidAttackGoal=e.stage>=3?12+e.random()*5:10;e.log(e.stage>=3?`오염 액체 완전 범람 · ${e.fluidAttackGoal.toFixed(1)}초 난전`:'오염 액체 완전 범람 · 10초 난전');}
+      e.fluidAttackAge+=dt;
+    }
     if(e.emitting&&fluidReadyToFire(e)&&e.beat<=0){
       // Flood FIRST, then dense waves from alternating edges. No shots while filling.
-      e.beat=[1.16,1.04,.79,.66][e.stage]??.66;
-      const count=[3,4,6,8][e.stage]??8;
+      e.beat=[1.02,.92,.72,.58][e.stage]??.58;
+      const count=[4,5,7,9][e.stage]??9;
       const spawn=(sideIndex:number,spread:number)=>{
         const along=clamp((e.random()-.5)*.8+spread,-.48,.48),
         p=sideIndex===0?{x:along*e.fieldW,y:-e.fieldH/2-16}:sideIndex===1?{x:e.fieldW/2+16,y:along*e.fieldH}:sideIndex===2?{x:along*e.fieldW,y:e.fieldH/2+16}:{x:-e.fieldW/2-16,y:along*e.fieldH},
@@ -226,6 +234,7 @@ export const patterns:Pattern[]=[
       for(let i=0;i<count;i++){const side=(e.counter+i%4)%4;spawn(side,(i-(count-1)/2)*.075);}
       e.counter++;
     }
-  },drawFluid,e=>{e.fieldW=CANVAS_W;e.fieldH=CANVAS_H;e.fluidFill=.05;e.fluidPlayerV={x:0,y:0};e.fluidHeading=0;e.fluidThrottle=0;e.fluidFlow={x:0,y:25};e.boss={x:0,y:-230};})
+    if(e.fluidAttackStarted&&e.fluidAttackAge>=e.fluidAttackGoal)e.finish();
+  },drawFluid,e=>{e.fieldW=CANVAS_W;e.fieldH=CANVAS_H;e.fluidFill=.05;e.fluidPlayerV={x:0,y:0};e.fluidHeading=0;e.fluidThrottle=0;e.fluidFlow={x:0,y:25};e.fluidAttackStarted=false;e.fluidAttackAge=0;e.fluidAttackGoal=10;e.boss={x:0,y:-230};})
   ,...advancedPatterns,...menuDeceptionPatterns,...normalBulletPatterns,...corridorPatterns,finalStandPattern,pauseStormPattern,graduationStampPattern,pathFoldPattern,recyclePattern,...unseenPatterns,...fieldTrickPatterns,...extraNormalPatterns,tileStreamPattern
 ];

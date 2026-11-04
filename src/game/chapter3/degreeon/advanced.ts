@@ -2,6 +2,7 @@ import {supportFade} from './continuity';
 import {updateFieldTricks,drawFieldTricks} from './fieldTricks';
 import {updateRecycle,drawRecycle} from './bulletRecycle';
 import {updateSpaceCut,drawSpaceCut} from './spaceCut';
+import {pathFoldActive,updatePathFold,renderPathFold,enterPathFold} from './pathFold';
 import type { Engine, Entity, Pattern, Vec, Laser } from './engine';
 import { clamp, smooth, distance, segmentDistance, circleRect, CANVAS_CX, CANVAS_CY, CANVAS_W, CANVAS_H, PLAYER_HIT_RADIUS } from './core';
 import { freshSword, updateSword, drawSword } from './sword';
@@ -10,7 +11,7 @@ import { makeTimeZones, scaleAt, splitTimePath, pathDistanceForTime, TimeZone } 
 export { moveExile, exileOverlay } from './exile';
 export type Category='normal'|'special'|'support';
 export const categoryNames:Record<Category,string>={normal:'일반 공격',special:'특수 공격',support:'보조 공격'};
-export const supportOptions=[{id:'portals',name:'한 쌍의 오염 포탈'},{id:'magnet',name:'오염 자력띠'},{id:'recycle',name:'회피한 탄 재활용'},{id:'cut',name:'공간 절단'},{id:'wall',name:'세로 → 가로 전환'},{id:'rotation',name:'전장 다중 회전'},{id:'shape',name:'전장 크기 변형'},{id:'miss',name:'미스탄 누적 폭격'},{id:'erosion',name:'파괴 가능한 오염벽'},{id:'time',name:'공간별 시간 흐름'},{id:'clones',name:'3분신 공동 생존'}];
+export const supportOptions=[{id:'portals',name:'한 쌍의 오염 포탈'},{id:'magnet',name:'오염 자력띠'},{id:'recycle',name:'회피한 탄 재활용'},{id:'cut',name:'공간 절단'},{id:'wall',name:'세로 → 가로 전환'},{id:'rotation',name:'전장 다중 회전'},{id:'shape',name:'전장 크기 변형'},{id:'miss',name:'미스탄 누적 폭격'},{id:'erosion',name:'파괴 가능한 오염벽'},{id:'time',name:'공간별 시간 흐름'},{id:'clones',name:'3분신 공동 생존'},{id:'path-fold',name:'지나온 길이 접힌다'}];
 export type Zone=TimeZone;
 export type ErosionWall={y:number;vy:number;cols:number;rows:number;cellW:number;cellH:number;cells:number[];age:number};
 export type Bolt={a:Vec;b:Vec;target:Vec;points:Vec[];branches:Vec[][];age:number;warn:number;life:number;fired:boolean;parts?:{a:Vec;b:Vec;age:number}[]};
@@ -26,6 +27,8 @@ export function configureZones(e:Engine){
 export function timeScale(e:Engine,p:Vec){return e.phase==='active'?scaleAt(e.advanced.zones,p):1;}
 export function updateSupports(e:Engine,dt:number){
  updateFieldTricks(e,dt);updateRecycle(e,dt);updateSpaceCut(e,dt);const ids=supports(e);
+ if(e.phase==='active'&&e.pattern.id!=='path-fold'&&ids.has('path-fold')){if(!e.pathFold.points.length)enterPathFold(e),e.pathFold.points=[{...e.localPlayer(),at:0}];updatePathFold(e,dt);}
+
  if(e.emitting&&ids.has('rotation')){const n=Math.floor(e.t/5);if(n>e.advanced.rotationCount){e.advanced.rotationCount=n;e.rotateTo((e.orientation+1)%4,true);}}
  if(e.emitting&&ids.has('erosion')){e.advanced.wallTimer-=dt*timeScale(e,e.boss);if(e.advanced.wallTimer<=0){e.advanced.wallTimer=7.8-e.stage*.45;const cols=Math.ceil(e.fieldW/28),rows=4;e.advanced.walls.push({y:-e.fieldH/2-65,vy:48+e.stage*6,cols,rows,cellW:e.fieldW/cols,cellH:28,cells:Array(cols*rows).fill(1),age:0});e.log('오염벽 진입 · 사격으로 통로를 파세요');}}
  for(const wall of e.advanced.walls){const p={x:0,y:wall.y};wall.age+=e.motionTime(p,dt,0,wall.vy);wall.y=p.y;}
@@ -105,7 +108,7 @@ export const advancedPatterns:Pattern[]=[
  simple('shape','전장 크기 변형','MORPHING ARENA','예고된 테두리를 보고 길쭉·납작·전체화면·가로 확장·초소형 전장에 대응하세요.','support',()=>{},()=>{},()=>{},34)
 ];
 export function drawAdvanced(e:Engine,c:CanvasRenderingContext2D){
- c.save();c.globalAlpha*=supportFade(e);drawFieldTricks(e,c);c.restore();drawSpaceCut(e,c);drawRecycle(e,c);
+ c.save();c.globalAlpha*=supportFade(e);drawFieldTricks(e,c);c.restore();drawSpaceCut(e,c);drawRecycle(e,c);if(e.pattern.id!=='path-fold'&&pathFoldActive(e))renderPathFold(e,c);
  c.save();c.globalAlpha*=supportFade(e);
  for(const z of e.advanced.zones){c.save();c.fillStyle=z.color+'12';c.fillRect(z.x-z.w/2,z.y-z.h/2,z.w,z.h);c.strokeStyle=z.color+'88';c.lineWidth=2;c.strokeRect(z.x-z.w/2,z.y-z.h/2,z.w,z.h);c.fillStyle='#080b17c9';c.fillRect(z.x-z.w/2+14,z.y-z.h/2+126,82,36);c.fillStyle=z.color;c.font='bold 22px "Noto Sans KR"';c.textAlign='left';c.fillText(z.scale.toFixed(1)+'×',z.x-z.w/2+28,z.y-z.h/2+152);const a=z.clock;for(let i=0;i<5;i++){const y=z.y-z.h/2+150+((i*151+a*35)%(Math.max(1,z.h-180)));c.globalAlpha=.18;c.beginPath();c.arc(z.x-35,y,5,0,Math.PI*2);c.fill();}c.restore();}
  c.restore();

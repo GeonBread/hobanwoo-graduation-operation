@@ -69,7 +69,7 @@ export class Engine {
   cutPolygon:Vec[]=[];cutPieces:CutPiece[]=[];cutTelegraph:CutTelegraph|null=null;cutCount=0;cutLimit=0;cutTimer=0;
   tileDanger:number[]=[];tileSafe:number[]=[];tileRound=0;tileState:'idle'|'warning'|'blast'|'recover'='idle';tileTimer=0;
   bodyAnimClocks=[0,0,0];cloneShotTimers=[0,0];playerFacing=0;playerAnimClock=0;bossAnimClock=0;fluidWet=false;
-  fluidFill=0;fluidPlayerV:Vec={x:0,y:0};fluidHeading=0;fluidThrottle=0;fluidFlow:Vec={x:0,y:0};fluidTilt=0;
+  fluidFill=0;fluidPlayerV:Vec={x:0,y:0};fluidHeading=0;fluidThrottle=0;fluidFlow:Vec={x:0,y:0};fluidTilt=0;fluidAttackStarted=false;fluidAttackAge=0;fluidAttackGoal=10;
   miss=0; missCap=120; missTimer=0; pendingBombard=false; bombTotal=0; bombSpawned=0; bombTimer=0; bombardAge=0;
   queuedIndex:number|null=null; queuedStage=0; visited=new Set<string>();
   fps=60; seed=314159; serial=0; running=false; raf=0; acc=0; last=0; notify=()=>{};
@@ -126,7 +126,7 @@ export class Engine {
     this.bodyAnimClocks=[0,0,0];this.cloneShotTimers=[0,0];this.dead=0;this.split=0;this.flightV=0;this.lane=2;this.cooldown=1;this.player=this.screen({x:0,y:404});
     this.cutPolygon=[];this.cutPieces=[];this.cutTelegraph=null;this.cutCount=0;this.cutLimit=0;this.cutTimer=0;
     this.tileDanger=[];this.tileSafe=[];this.tileRound=0;this.tileState='idle';this.tileTimer=0;
-    this.fluidWet=false;this.fluidFill=0;this.fluidPlayerV={x:0,y:0};this.fluidHeading=0;this.fluidThrottle=0;this.fluidFlow={x:0,y:0};this.fluidTilt=0;
+    this.fluidWet=false;this.fluidFill=0;this.fluidPlayerV={x:0,y:0};this.fluidHeading=0;this.fluidThrottle=0;this.fluidFlow={x:0,y:0};this.fluidTilt=0;this.fluidAttackStarted=false;this.fluidAttackAge=0;this.fluidAttackGoal=10;
     this.boss={x:0,y:-300};
     if(carry){this.boss={...carry.boss};this.player=this.screen(carry.player);}
     this.visited.add(this.pattern.id);this.linkFinishing=false;this.pattern.enter(this);if(this.pattern.category==='support')this.combatPattern.enter(this);configureZones(this);
