@@ -2,6 +2,8 @@ import type { Engine } from './engine';
 import { clamp, smooth, distance, Vec, PLAYER_HIT_RADIUS } from './core';
 import { drawHpBar, HP_BAR_WIDTH, HP_BAR_HEIGHT } from './hpBar';
 export type SwordPose=Vec&{angle:number};
+/** Maximum completed swings during one HP sword pattern. */
+export const swordStrikeLimit=(stage:number)=>stage>=3?6:stage>=2?5:4;
 export type Sword={a:Vec;b:Vec;angle:number;age:number;cycle:number;anchor:Vec;pose:SwordPose;from:SwordPose;state:'spawn'|'travel'|'warn'|'attack'|'recover'|'home';time:number;kind:number;preview:SwordPose[];trail:(SwordPose&{age:number})[]};
 export function freshSword():Sword{
  const pose={x:0,y:-418,angle:0};return {a:{x:-283,y:-418},b:{x:283,y:-418},angle:0,age:0,cycle:-1,anchor:{x:0,y:0},pose,from:{...pose},state:'spawn',time:0,kind:0,preview:[],trail:[]};
@@ -55,7 +57,13 @@ export function updateSword(e:Engine,dt:number){
  }else if(s.state==='home'){
   const k=smooth(s.time/.9);let da=-s.from.angle;while(da>Math.PI)da-=Math.PI*2;while(da< -Math.PI)da+=Math.PI*2;
   s.pose={x:s.from.x*(1-k),y:s.from.y+(-418-s.from.y)*k,angle:s.from.angle+da*k};
- }else if(s.time>=.28){if(e.emitting)prepare(e);else{s.state='home';s.from={...s.pose};s.time=0;}}
+  // Do not restart after the requested 4-6 attacks; hand the boss cue off
+  // only after the visible HP bar has returned to its original position.
+  if(s.time>=.9&&s.cycle+1>=swordStrikeLimit(e.stage)&&e.phase==='active'&&!e.continuity.closing)e.finish();
+ }else if(s.time>=.28){
+  if(e.emitting&&s.cycle+1<swordStrikeLimit(e.stage))prepare(e);
+  else{s.state='home';s.from={...s.pose};s.time=0;}
+ }
 
  s.angle=s.pose.angle;s.a={x:s.pose.x-Math.cos(s.angle)*283,y:s.pose.y-Math.sin(s.angle)*283};s.b={x:s.pose.x+Math.cos(s.angle)*283,y:s.pose.y+Math.sin(s.angle)*283};
 }

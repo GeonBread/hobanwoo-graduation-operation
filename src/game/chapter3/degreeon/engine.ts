@@ -535,6 +535,10 @@ export class Engine {
       if(this.pattern.id!=='exile'){this.updateShots(dt);this.updateEntities(dt);this.updateWorldActors(dt);}
       if(this.t>=this.pattern.duration||encounterCueExpired(this))this.finish();
       tickHandoff(this,dt);
+    }else if(this.phase==='active'&&this.rotation>0&&!this.rotationLive){
+      // Boss attack clock may pause for orientation changes, but player Space
+      // must keep firing during the visible live arena (unless explicitly locked).
+      if(this.pattern.id!=='exile')this.updateShots(dt);
     }else if(this.phase==='outro'&&this.phaseTime>(this.encounter.enabled&&this.pattern.id!=='pause-storm'&&!isMenuDeception(this)?.65:2.2)&&!this.rotation){if(this.pendingBombard)this.startBombard();else this.advance();}
     else if(this.phase==='bombard')this.updateBombard(dt);
     else if(this.phase==='restore'){

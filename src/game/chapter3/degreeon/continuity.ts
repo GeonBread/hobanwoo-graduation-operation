@@ -9,7 +9,9 @@ export const freshContinuity=():Continuity=>({closing:false,age:0,settledAge:0,b
 export const supportFade=(e:Engine)=>e.encounter.enabled&&e.continuity.closing?1-smooth(e.continuity.age/.7):1;
 export function nextEncounterId(e:Engine){const score=e.encounter.phase===1?phaseOneScore:phaseTwoScore;return score[e.encounter.trainingOnly||e.encounter.learning.step<e.encounter.learning.stages.length-1?e.encounter.cue:(e.encounter.cue+1)%score.length].id;}
 const exclusive=new Set(['exile','pause-storm','menu-deception','menu-deception-mobs','flight','rhythm']);
-export const playerFireAllowed=(e:Engine)=>!e.encounter.enabled||!(e.continuity.closing&&exclusive.has(nextEncounterId(e))||e.continuity.bridge&&exclusive.has(e.pattern.id));
+// A future exclusive encounter must not silence firing during the current
+// playable cue. Attack locks inside the actual special pattern remain intact.
+export const playerFireAllowed=(e:Engine)=>e.pattern.id!=='exile'; // Explore uses its own directional firing engine.
 export function requestHandoff(e:Engine){if(!e.continuity.closing){
   // A special full-screen arena cannot inherit regular support mobs. Clear
   // only those helpers before the exclusive-scene settle gate to avoid stalling
@@ -61,7 +63,7 @@ export function tickHandoff(e:Engine,dt:number){
  if(['portals','magnet','time'].some(id=>e.selectedSupports.has(id))&&f.age<.7)return;
  // These modes take control of the avatar/canvas. Let all previous physical
  // objects leave first, so none can disappear behind an exclusive scene.
- if((exclusive.has(nextEncounterId(e))||e.pendingBombard)&&(e.hazards.length||e.advanced.walls.length||e.enemies.length||exclusive.has(nextEncounterId(e))&&e.shots.length))return;
+ if((exclusive.has(nextEncounterId(e))||e.pendingBombard)&&(e.hazards.length||e.advanced.walls.length||e.enemies.length))return;
  if(e.pattern.id==='pause-storm'||e.pattern.id.startsWith('menu-deception')){e.completeNativeReturn();return;}
  if(e.pendingBombard)e.startBombard();else e.advance();
 }

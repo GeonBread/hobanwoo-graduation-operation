@@ -67,6 +67,10 @@ export function enterEncounterCue(e:Engine,continuous=false,continueLearning=fal
  const singleRun=s.phase===2&&!s.trainingOnly&&!continueLearning;
  if(singleRun){s.learning.stages=[c.stage];s.learning.step=0;s.learning.first=false;}
  e.begin(index,singleRun?c.stage:initialStage,continuous);
+ // Projectiles cannot travel into independent full-screen dimensions. Hostile
+ // bullets finish first in tickHandoff; erase only player shots at the exact
+ // exclusive-scene boundary, never while the previous cue is playable.
+ if(continuous&&['exile','pause-storm','menu-deception','menu-deception-mobs','flight','rhythm'].includes(c.id))e.shots=[];
  // Special patterns remain dedicated to the boss mechanic, not support-enemy harvesting.
  if(e.pattern.category!=='normal')e.enemies=e.enemies.filter(a=>!a.supportKind);
  e.hp=hp;e.bombs=bombs;e.bossHp=boss;e.bossForm=s.phase;e.bossHpMax=PHASE_HP[s.phase];Object.assign(e,stats);if(!continuous){e.cooldown=Math.max(e.cooldown,.8);e.shotTimer=.15;e.bombCooldown=.15;}

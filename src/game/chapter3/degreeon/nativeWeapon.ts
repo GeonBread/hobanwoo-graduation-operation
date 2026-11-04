@@ -29,7 +29,14 @@ function runtime(e:Engine,p:Vec,bullets:Bullet[]=[],needsTargets=false){
  return r;
 }
 export function nativeFireInterval(e:Engine){return getHobanuPlayerFireInterval(runtime(e,e.localPlayer()));}
-export function nativeCanFire(e:Engine){return canHobanuPlayerShootNow(runtime(e,e.localPlayer()));}
+export function nativeCanFire(e:Engine){
+ // The shared science-weapon rhythm pauses for 0.2s every 1.2s. During the
+ // phase-2 boss fight that silent gap reads as dropped Space input, so allow
+ // continuous firing at the normal cooldown. Explicit no-fire patterns are
+ // still enforced by Engine.updateShots / attackLocked.
+ if(e.encounter.enabled&&e.encounter.phase===2&&e.encounter.mode==='combat')return true;
+ return canHobanuPlayerShootNow(runtime(e,e.localPlayer()));
+}
 export function emitNativeShots(e:Engine,p:Vec,heading=0):Shot[]{
  const r=runtime(e,p);firePlayerWeaponBulletPatternSystem(r);e.nativeWeapon.shotIndex=r.playerWeaponShotIndex;
  const c=Math.cos(heading),s=Math.sin(heading);

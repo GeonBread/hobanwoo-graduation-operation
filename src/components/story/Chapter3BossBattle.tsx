@@ -37,7 +37,7 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit}:Props){
    // A clicked boss-control button may retain focus; Shift must still reach the
    // active arena while text-entry controls remain protected from hotkeys.
    if((v.target as HTMLElement)?.matches('input,select')&&k!=='Escape')return;
-   if((v.target as HTMLElement)?.matches('button')&&k!=='Escape'&&!bombKey)return;
+   if((v.target as HTMLElement)?.matches('button')&&k!=='Escape'&&!bombKey&&k!==' ')return;
    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Shift'].includes(k))v.preventDefault();
    a.unlock();sfx.resumeAll();
    if(k==='Escape'&&!v.repeat){e.paused=!e.paused;e.keys.clear();e.notify();return;}
