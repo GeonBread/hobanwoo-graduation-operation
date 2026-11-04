@@ -30,8 +30,17 @@ export const normalBulletComponents:BulletComponent[]=[
  attack('diagonal-cross','대각선 교차탄','DIAGONAL CROSS','두 모서리에서 탄 줄이 시간차로 대각선을 가로지릅니다.',6,2.4,e=>{for(const side of [-1,1])queue(e,side===-1?0:.55,x=>{const p={x:side*(x.fieldW/2-35),y:-x.fieldH/2+55},a=angleTo(p,{x:-p.x,y:x.fieldH/2-55});for(let i=0;i<6;i++)queue(x,i*.1,y=>bullet(y,p,a,300,'대각선 교차탄'));});}),
  attack('jump-bullet','점프 탄','ONE BOUNCE','직선으로 내려오던 탄이 중앙 높이에서 한 번만 위로 튕깁니다.',6,1.8,e=>{for(let i=-2;i<=2;i++)bullet(e,{x:e.boss.x+i*65,y:e.boss.y+30},Math.PI/2,180,'점프 탄',{motion:{kind:'jump',trigger:-35}});}),
  attack('stop-restart','정지 후 재출발','STOP AND DASH','플레이어 앞에서 0.7초 정지한 뒤 같은 방향으로 급가속합니다.',6,2.4,e=>{const p={...e.boss},a=angleTo(p,e.localPlayer()),d={x:Math.cos(a),y:Math.sin(a)};for(let i=-1;i<=1;i++){const from={x:p.x+i*40,y:p.y};bullet(e,from,a,235,'정지 후 재출발',{motion:{kind:'stop',anchor:from,direction:d,trigger:Math.max(100,distance(p,e.localPlayer())-145),speed:570}});}}),
- attack('wall-gap','느린 벽 + 빠른 틈 탄','WALL AND GAP','느린 탄벽의 넓은 틈으로 빠른 소형탄이 엇갈려 들어옵니다.',7,2.8,e=>{const gap=clamp(e.localPlayer().x,-e.fieldW/2+145,e.fieldW/2-145),y=e.boss.y+45;for(let x=-e.fieldW/2+30;x<e.fieldW/2;x+=36)if(Math.abs(x-gap)>95)bullet(e,{x,y},Math.PI/2,105,'느린 탄벽',{r:14});for(let i=0;i<3;i++)queue(e,.65+i*.18,x=>bullet(x,{x:gap+(i%2?70:-70),y:y+65},Math.atan2(470,i%2?-180:180),500,'빠른 틈 탄',{r:6,color:pink}));}),
- attack('edge-pressure','양끝 압박탄','EDGE PRESSURE','양쪽 탄 줄이 중앙을 압박합니다. 위·아래의 넓은 탈출 틈을 찾으세요.',6,2.4,e=>{const top=e.volley.sequence%2===0;for(let y=-e.fieldH/2+65;y<e.fieldH/2-35;y+=65){if(top?y<-e.fieldH/2+230:y>e.fieldH/2-230)continue;for(const side of [-1,1])bullet(e,{x:side*(e.fieldW/2-20),y},side===-1?0:Math.PI,170,'양끝 압박탄');}}),
+ attack('wall-gap','느린 벽 + 빠른 틈 탄','WALL AND GAP','느린 탄벽의 넓은 틈으로 빠른 소형탄이 엇갈려 들어옵니다.',7,2.8,e=>{const gap=clamp(e.localPlayer().x,-e.fieldW/2+165,e.fieldW/2-165),y=e.boss.y+45;for(let x=-e.fieldW/2+30;x<e.fieldW/2;x+=50)if(Math.abs(x-gap)>135)bullet(e,{x,y},Math.PI/2,105,'느린 탄벽',{r:14});for(let i=0;i<3;i++)queue(e,.65+i*.18,x=>bullet(x,{x:gap+(i%2?70:-70),y:y+65},Math.atan2(470,i%2?-180:180),500,'빠른 틈 탄',{r:6,color:pink}));}),
+ attack('edge-pressure','양끝 압박탄','EDGE PRESSURE','양쪽 탄 줄을 줄이고 위·아래의 넓은 안전 공간을 확보합니다.',6,2.4,e=>{
+  const top=e.volley.sequence%2===0;
+  // About half as many projectiles as before (65px -> 118px row spacing).
+  // Reserve 320px of open vertical space for an accessible escape route.
+  const safeHeight=Math.min(320,e.fieldH*.36);
+  for(let y=-e.fieldH/2+65;y<e.fieldH/2-35;y+=118){
+    if(top?y<-e.fieldH/2+safeHeight:y>e.fieldH/2-safeHeight)continue;
+    for(const side of [-1,1])bullet(e,{x:side*(e.fieldW/2-20),y},side===-1?0:Math.PI,160,'양끝 압박탄');
+  }
+ }),
  attack('center-fork','중앙 분기탄','THREE WAY FORK','대형탄이 중앙에서 ↙ ↓ ↘ 세 갈래로 한 번만 나뉩니다.',6,2.3,e=>bullet(e,{...e.boss},Math.PI/2,180,'중앙 분기 대형탄',{r:26,motion:{kind:'fork',trigger:0}})),
  attack('asymmetric-ring','비대칭 방사탄','ASYMMETRIC RING','촘촘한 원형 탄막의 넓은 빈 방향이 발사마다 바뀝니다.',5,1.9,e=>{const open=(e.volley.sequence*.95+Math.PI/2)%(Math.PI*2);for(let i=0;i<24;i++){const a=i*Math.PI*2/24;let d=a-open;while(d>Math.PI)d-=Math.PI*2;while(d< -Math.PI)d+=Math.PI*2;if(Math.abs(d)<.62)continue;bullet(e,{...e.boss},a,190,'비대칭 방사탄');}e.fx(e.boss,'ring',45,violet,.4);}),
  attack('curving-triple','휘는 3연탄','LATE CURVE','3발이 먼저 직진하고 마지막 구간에서만 작게 휘어집니다.',6,1.9,e=>{const p={...e.boss},a=angleTo(p,e.localPlayer());for(let i=0;i<3;i++)queue(e,i*.24,x=>bullet(x,p,a,250,'휘는 3연탄',{motion:{kind:'curve',trigger:95,side:i%2?1:-1}}));}),
@@ -59,7 +68,11 @@ function combo(id:string,name:string,english:string,subtitle:string,cycle:number
     for(const cue of components)e.volley.events.push({at:start+cue.at,fire:x=>{
      const nextSequence=x.volley.sequence;x.volley.sequence=sequence;cue.fire(x);x.volley.sequence=nextSequence;
     }});
-    e.volley.nextMotif+=cycle;e.counter++;
+    // The phase-2 main encounter plays each four-part combo just once.
+    // In laboratory/practice and phase 1, keep the repeatable motif system.
+    const singlePhaseTwo=e.encounter.enabled&&e.encounter.phase===2&&!e.encounter.trainingOnly;
+    e.volley.nextMotif=singlePhaseTwo?Infinity:e.volley.nextMotif+cycle;
+    e.counter++;
    }
    flushVolley(e);
   }
@@ -70,7 +83,7 @@ export const normalBulletCombos:BulletCombo[]=[
  combo('volley-rhythm','엇박 연쇄 탄막','OFFBEAT CASCADE','엇박 부채 → 속도차 3연탄 → 회전 부채 → 코어 펄스가 이어집니다.',6.4,[{at:0,id:'offbeat-fan'},{at:.65,id:'speed-triple'},{at:2.1,id:'rotating-fan'},{at:4.2,id:'core-pulse'}]),
  combo('volley-cross','대각 교차 쓸기','CROSSING CRESCENT','반달 쓸기와 대각선 탄 줄에 교차 가속탄·오염창을 섞습니다.',6.2,[{at:0,id:'crescent'},{at:.6,id:'diagonal-cross'},{at:2.4,id:'cross-accelerate'},{at:3.8,id:'corruption-spears'}]),
  combo('volley-curve','궤도 변칙 탄막','WARPED TRAJECTORY','점프·수평 미끄러짐·정지 후 가속·휘는 탄이 차례로 들어옵니다.',6.2,[{at:0,id:'jump-bullet'},{at:.4,id:'sliding-bullet'},{at:1.8,id:'stop-restart'},{at:3.1,id:'curving-triple'}]),
- combo('volley-gap','틈새 압박 탄막','NARROWING GAPS','느린 탄벽과 대소형 탄 사이로 피한 뒤 양끝 압박·쌍둥이 탄을 넘습니다.',6.6,[{at:0,id:'wall-gap'},{at:.7,id:'large-small'},{at:2.6,id:'edge-pressure'},{at:3.2,id:'twin-bullets'}]),
+ combo('volley-gap','틈새 압박 탄막','NARROWING GAPS','더 넓어진 탄벽 틈으로 피하고 줄어든 측면 탄환을 회피합니다.',6.6,[{at:0,id:'wall-gap'},{at:.7,id:'large-small'},{at:2.6,id:'edge-pressure'},{at:3.2,id:'twin-bullets'}]),
  combo('volley-core','코어 분열 탄막','FRACTURED CORE','비대칭 방사와 짧은 수축 뒤 중앙 분기·지연 폭발탄이 이어집니다.',6.4,[{at:0,id:'asymmetric-ring'},{at:.9,id:'core-contract'},{at:1.9,id:'center-fork'},{at:2.4,id:'delayed-burst'}])
 ];
 export const normalBulletPatterns:Pattern[]=normalBulletCombos;

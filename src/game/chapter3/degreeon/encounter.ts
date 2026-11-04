@@ -32,7 +32,7 @@ export const phaseTwoScore:EncounterCue[]=[
 export const storyLines:Partial<Record<StoryMode,DialogueLine[]>>={
  opening:[{text:'마지막까지 왔군.'},{text:'하지만 여기서는……'},{text:'네가 배운 규칙이\n통하지 않을 수도 있다.',emphasis:'규칙'}],
  taunt:[{text:'……끝났다고 생각했나?',emphasis:'끝났다고'}],
- threat:[{text:'아니.'},{text:'내가 부르는 건\n네가 아니다.'},{text:'그 뒤에서 방향키를\n누르고 있는 너.',emphasis:'너',still:true},{text:'화면 안에만 있으면\n안전할 줄 알았나?',emphasis:'화면'},{text:'이제 네가 믿는 규칙부터\n무너뜨리겠다.',emphasis:'무너뜨리겠다'}],
+ threat:[{text:'아니.'},{text:'내가 부르는 건\n네가 아니다.'},{text:'그 뒤에서 방향키를\n누르고 있는 너.',emphasis:'너',still:true},{text:'너가 아는 것이 이 세상의\n전부라고 생각하나?',emphasis:'세상의 전부'},{text:'이제 네가 믿는 규칙부터\n무너뜨리겠다.',emphasis:'무너뜨리겠다'}],
  'last-warning':[{text:'아직 끝나지 않았다.'},{text:'마지막까지……\n버틸 수 있겠나?',emphasis:'마지막'}],
 };
 export function revealDialogue(line:DialogueLine,age:number,all=false){
@@ -60,7 +60,13 @@ export function leaveEncounter(e:Engine,restore=true){const lab=e.encounter.lab;
 export function enterEncounterCue(e:Engine,continuous=false,continueLearning=false){
  const s=e.encounter,c=currentStoryCue(e);if(!c)throw new Error('Missing encounter cue');const index=e.patterns.findIndex(p=>p.id===c.id);if(index<0)throw new Error('Missing pattern '+c.id);
  const hp=e.hp,bombs=e.bombs,boss=e.bossHp,stats={hits:e.hits,deaths:e.deaths,bossHits:e.bossHits};
- if(!continuous)e.keys.clear();e.selectedSupports=new Set(c.supports);e.fullField=!!c.full;if(!continuous){e.angle=e.fromAngle=e.targetAngle=0;e.orientation=0;e.rotation=0;}e.pendingBombard=false;e.miss=0;e.missTimer=0;e.missCap=c.supports.includes('miss')?50:120;if(!continuous)e.effects=[];e.queuedIndex=null;e.begin(index,continueLearning?s.learning.stages[s.learning.step]:startLearning(s.learning,c.id,s.learningOverride),continuous);
+ if(!continuous)e.keys.clear();e.selectedSupports=new Set(c.supports);e.fullField=!!c.full;if(!continuous){e.angle=e.fromAngle=e.targetAngle=0;e.orientation=0;e.rotation=0;}e.pendingBombard=false;e.miss=0;e.missTimer=0;e.missCap=c.supports.includes('miss')?50:120;if(!continuous)e.effects=[];e.queuedIndex=null;// In the phase-2 STORY fight, each curated cue runs exactly once at its
+ // intended difficulty. The four-step teaching loop remains in phase 1 and
+ // in the explicit pattern-practice mode.
+ const initialStage=continueLearning?s.learning.stages[s.learning.step]:startLearning(s.learning,c.id,s.learningOverride);
+ const singleRun=s.phase===2&&!s.trainingOnly&&!continueLearning;
+ if(singleRun){s.learning.stages=[c.stage];s.learning.step=0;s.learning.first=false;}
+ e.begin(index,singleRun?c.stage:initialStage,continuous);
  // Special patterns remain dedicated to the boss mechanic, not support-enemy harvesting.
  if(e.pattern.category!=='normal')e.enemies=e.enemies.filter(a=>!a.supportKind);
  e.hp=hp;e.bombs=bombs;e.bossHp=boss;e.bossForm=s.phase;e.bossHpMax=PHASE_HP[s.phase];Object.assign(e,stats);if(!continuous){e.cooldown=Math.max(e.cooldown,.8);e.shotTimer=.15;e.bombCooldown=.15;}
@@ -102,7 +108,16 @@ export function updateEncounter(e:Engine,dt:number){const s=e.encounter;if(!s.en
  }else if(!(s.mode==='opening'&&s.age<ARRIVAL_SECONDS||s.mode==='victory'&&s.age<DEFEAT_SECONDS)){const lines=storyLines[s.mode],line=lines?.[s.line];if(line){const r=revealDialogue(line,s.lineAge,s.revealed);if(r.count>s.glyphs){s.glyphs=r.count;e.playStorySound('glyph');}if(r.finished&&!s.weighted){s.weighted=true;e.playStorySound('weight');}if(s.lineAge>=r.duration+2.3)advanceStoryDialogue(e);}}
  return true;
 }
-export function encounterCueExpired(e:Engine){return e.encounter.enabled&&e.encounter.mode==='combat'&&!e.finalStand.started&&e.t>=currentStoryCue(e).seconds/e.encounter.learning.stages.length;}
+export function encounterCueExpired(e:Engine){
+ if(!e.encounter.enabled||e.encounter.mode!=='combat'||e.finalStand.started)return false;
+ const c=currentStoryCue(e),s=e.encounter;
+ if(!c)return false;
+ // Long cinematic/special moves need their own complete return sequence.
+ // Ordinary phase-2 patterns should not dwell for 10+ seconds or replay a motif.
+ const singlePhaseTwoNormal=s.phase===2&&!s.trainingOnly&&e.pattern.category==='normal';
+ const duration=singlePhaseTwoNormal?Math.min(c.seconds,7.8):c.seconds/s.learning.stages.length;
+ return e.t>=duration;
+}
 
 export function startCuePractice(e:Engine,phase:1|2,index:number,mode:'first'|'expert'='first'){
  const list=phase===1?phaseOneScore:phaseTwoScore;if(!list[index])return;
