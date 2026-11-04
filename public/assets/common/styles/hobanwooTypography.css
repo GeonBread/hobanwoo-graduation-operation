@@ -1,7 +1,7 @@
 /* 호반우의 졸업 대작전 - 통합 글꼴 v1 (2026-11-03)
    Main document + Chapter 2/3 story iframes + Chapter 3 wave iframe.
    All standard game/story text: Noto Sans KR. Dialogue 800, headings 900.
-   Keep cinematic CoreTitleSerif / Black Han Sans for their special identities.
+   Location names and Degreeon dialogue use the story font; cinematic boss titles remain special.
    The Google Fonts link is installed in each document head. The OS stack is
    intentionally usable without a network connection. No font binary is copied.
 */
@@ -55,17 +55,20 @@ body :is(.chapter1-story-player, .chapter2-story-experience, .chapter3StoryExper
   font-weight: var(--hobanwoo-font-heading-weight) !important;
 }
 
-/* Protect the special serif title of Cheomseongdae Core / Admission ceremony;
-   apply synthetic bold as the original local file offers only weight 500. */
-body .prologue-v2-layer :is(.core-v5-kicker, .core-v5-main, .core-v5-caption) {
-  font-family: "CoreTitleSerif", "Noto Sans KR", "Malgun Gothic", serif !important;
+/* Chapter 1 prologue place names must match the Black-weight Korean story headings.
+   Keep the fullscreen position, gradient backdrop and original title timing. */
+body .prologue-v2-title.prologue-v8-location .core-v5-main {
+  font-family: var(--hobanwoo-font) !important;
   font-weight: 900 !important;
 }
 
-/* Black Han Sans has only an intrinsic black face registered as weight 400.
-   Keep it black, not a second synthetic black layer. */
-body .encounter-dialogue .encounter-voice p,
-body .encounter-complete h1 {
+/* Degreeon battle dialogue now uses exactly the same family/weight as story
+   dialogue. Boss cinematic title art and the victory headline stay distinct. */
+body .encounter-dialogue .encounter-voice p {
+  font-family: var(--hobanwoo-font) !important;
+  font-weight: 800 !important;
+}
+body .c3boss-root .encounter-complete h1 {
   font-family: "Degreeon Black Han", "Noto Sans KR", sans-serif !important;
   font-weight: 400 !important;
 }
