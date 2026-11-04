@@ -6,11 +6,12 @@ import {clamp,smooth,distance,circleRect,segmentDistance,PLAYER_HIT_RADIUS} from
 import {bombReaches} from './bomb';
 export type Hand={side:number;u:number;mode:'slam'|'sweep'|'cage'|'deep'|'stir'|'flurry';age:number;warn:number;life:number;impacted:boolean;impacts?:number};
 export type HandState={age:number;round:number;timer:number;hands:Hand[]};
-export type InspectionState={age:number;angle:number;lastPlayer:Vec;motion:number;detection:number;cooldown:number;detections:number};
+export type InspectionEye={x:number;angle:number;direction:-1|1;detection:number};
+export type InspectionState={age:number;angle:number;lastPlayer:Vec;motion:number;detection:number;cooldown:number;detections:number;eyes:InspectionEye[]};
 export type GraduationLock=Vec&{hp:number;broken:boolean};
 export type GateState={age:number;phase:'locks'|'open'|'expose';phaseAge:number;locks:GraduationLock[];order:number[];opened:number;timer:number};
 export type UnseenState={hands:HandState;inspection:InspectionState;gate:GateState};
-export const freshUnseen=():UnseenState=>({hands:{age:0,round:0,timer:.3,hands:[]},inspection:{age:0,angle:Math.PI/2,lastPlayer:{x:0,y:0},motion:0,detection:0,cooldown:0,detections:0},gate:{age:0,phase:'locks',phaseAge:0,locks:[],order:[1,0,2],opened:0,timer:1}});
+export const freshUnseen=():UnseenState=>({hands:{age:0,round:0,timer:.3,hands:[]},inspection:{age:0,angle:Math.PI/2,lastPlayer:{x:0,y:0},motion:0,detection:0,cooldown:0,detections:0,eyes:[]},gate:{age:0,phase:'locks',phaseAge:0,locks:[],order:[1,0,2],opened:0,timer:1}});
 function spawnHand(e:Engine,side:number,mode:Hand['mode'],u:number){const life=mode==='flurry'?2.5:mode==='stir'?2.6:mode==='deep'?2:mode==='cage'?2:1.7;e.unseen.hands.hands.push({side,u,mode,age:0,warn:1.1-e.stage*.06,life,impacted:false,impacts:0});}
 function updateHands(e:Engine,dt:number){const s=e.unseen.hands;s.age+=dt;s.timer-=dt;
  if(e.emitting&&s.timer<=0&&s.age<24){const n=s.round++,mode:Hand['mode']=['slam','deep','sweep','flurry','stir','cage'][n%6] as Hand['mode'];
@@ -21,14 +22,46 @@ function updateHands(e:Engine,dt:number){const s=e.unseen.hands;s.age+=dt;s.time
   for(const b of e.bodies())if(handHits(e,h,e.local(b)))e.hit('전장 밖 거대한 손',b);}
  s.hands=s.hands.filter(h=>h.age<h.warn+h.life);if(s.age>24&&!s.hands.length)e.finish();
 }
-export function inspectionSees(e:Engine,p:Vec){const origin={x:0,y:-e.fieldH/2+130},a=Math.atan2(p.y-origin.y,p.x-origin.x);let delta=a-e.unseen.inspection.angle;while(delta>Math.PI)delta-=Math.PI*2;while(delta< -Math.PI)delta+=Math.PI*2;return Math.abs(delta)<.20;}
-function updateInspection(e:Engine,dt:number){const s=e.unseen.inspection;s.age+=dt;s.angle=Math.PI/2+Math.sin(s.age*.48);s.cooldown=Math.max(0,s.cooldown-dt);const p=e.localPlayer();s.motion=distance(p,s.lastPlayer)/Math.max(dt,.0001);s.lastPlayer={...p};
- const seen=e.bodies().some(b=>inspectionSees(e,e.local(b))),moving=s.motion>24;s.detection=seen&&moving?Math.min(1,s.detection+dt*5):Math.max(0,s.detection-dt*3);
- if(e.emitting&&s.detection>=1&&s.cooldown===0){s.detections++;s.cooldown=1.3;s.detection=0;const origin={x:p.x,y:-e.fieldH/2-40};e.add({...origin,vx:0,vy:900,r:8,visual:'spear',warn:.75,life:(e.fieldH+150)/900+.2,color:'#ffcc9d',tag:'졸업 검수 오염창',motion:{kind:'spear',anchor:origin,target:{x:p.x,y:e.fieldH/2+50},direction:{x:0,y:1},trigger:e.fieldH+120}});e.log('움직임 감지 · 고정 위치 오염창 예고');}
- if(e.emitting&&e.beat<=0){e.beat=2-e.stage*.16;const gap=(Math.floor(s.age/3)%3-1)*e.fieldW*.25;for(let x=-e.fieldW/2+28;x<e.fieldW/2;x+=55){if(Math.abs(x-gap)<100)continue;e.add({x,y:-e.fieldH/2-16,vx:0,vy:90+e.stage*10,r:7,visual:'drop',warn:0,life:e.fieldH/90+2,color:'#bda2f2',tag:'검수 중 느린 오염탄'});}}
+function inspectionOrigin(e:Engine,eye:InspectionEye):Vec{return{x:eye.x,y:-e.fieldH/2+130};}
+function inspectionEyeSees(e:Engine,eye:InspectionEye,p:Vec){
+ const origin=inspectionOrigin(e,eye),a=Math.atan2(p.y-origin.y,p.x-origin.x);
+ let delta=a-eye.angle;while(delta>Math.PI)delta-=Math.PI*2;while(delta< -Math.PI)delta+=Math.PI*2;
+ return Math.abs(delta)<.20;
 }
-function drawInspection(e:Engine,c:CanvasRenderingContext2D){const s=e.unseen.inspection,o={x:0,y:-e.fieldH/2+130},len=Math.hypot(e.fieldW,e.fieldH),danger=s.detection>.15;c.save();c.translate(o.x,o.y);c.rotate(s.angle);const g=c.createRadialGradient(0,0,12,0,0,len);g.addColorStop(0,danger?'#ffb76d55':'#fff2c044');g.addColorStop(1,'#f5cf7300');c.fillStyle=g;c.beginPath();c.moveTo(0,0);c.arc(0,0,len,-.2,.2);c.closePath();c.fill();c.strokeStyle=danger?'#ffbd84aa':'#fff0bf66';c.lineWidth=2;for(const a of [-.2,.2]){c.beginPath();c.moveTo(0,0);c.lineTo(Math.cos(a)*len,Math.sin(a)*len);c.stroke();}c.rotate(-s.angle);c.fillStyle='#201628';c.strokeStyle='#ffe4a4';c.lineWidth=3;c.shadowColor='#ffd58a';c.shadowBlur=18;c.beginPath();c.ellipse(0,0,46,23,0,0,Math.PI*2);c.fill();c.stroke();c.fillStyle='#fff4d0';c.beginPath();c.arc(Math.cos(s.angle)*7,Math.sin(s.angle)*7,12,0,Math.PI*2);c.fill();c.restore();
- const p=e.localPlayer();if(inspectionSees(e,p)){c.save();c.strokeStyle=danger?'#ffba77':'#9fffe1';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,28,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.max(.05,s.detection));c.stroke();c.restore();}}
+function ensureInspectionEyes(e:Engine){const s=e.unseen.inspection,count=e.stage>=2?2:1;
+ if(s.eyes.length===count)return;
+ const saved=e.inspectionMemory?.eyes;
+ s.eyes=Array.from({length:count},(_,i)=>({
+  x:count===1?0:(i===0?-1:1)*e.fieldW*.27,
+  angle:saved?.length===count?saved[i].angle:Math.PI/2+(count===1?0:i===0?-.31:.31),
+  direction:(saved?.length===count?saved[i].direction:count===1?1:i===0?1:-1) as -1|1,
+  detection:0
+ }));s.angle=s.eyes[0].angle;
+}
+export function inspectionSees(e:Engine,p:Vec){ensureInspectionEyes(e);return e.unseen.inspection.eyes.some(eye=>inspectionEyeSees(e,eye,p));}
+function updateInspection(e:Engine,dt:number){const s=e.unseen.inspection;ensureInspectionEyes(e);s.age+=dt;
+ const min=Math.PI/2-.98,max=Math.PI/2+.98,rate=e.stage>=2?.78:.52;
+ for(const [i,eye] of s.eyes.entries()){
+  eye.x=s.eyes.length===1?0:(i===0?-1:1)*e.fieldW*.27;
+  eye.angle+=eye.direction*rate*dt;
+  if(eye.angle>=max){eye.angle=max-(eye.angle-max);eye.direction=-1;}
+  else if(eye.angle<=min){eye.angle=min+(min-eye.angle);eye.direction=1;}
+ }
+ s.angle=s.eyes[0].angle;s.cooldown=Math.max(0,s.cooldown-dt);const p=e.localPlayer();s.motion=distance(p,s.lastPlayer)/Math.max(dt,.0001);s.lastPlayer={...p};
+ const moving=s.motion>24;
+ for(const eye of s.eyes){const seen=e.bodies().some(b=>inspectionEyeSees(e,eye,e.local(b)));eye.detection=seen&&moving?Math.min(1,eye.detection+dt*5):Math.max(0,eye.detection-dt*3);}
+ s.detection=Math.max(0,...s.eyes.map(eye=>eye.detection));
+ if(e.emitting&&s.detection>=1&&s.cooldown===0){s.detections++;s.cooldown=1.3;s.detection=0;s.eyes.forEach(eye=>eye.detection=0);const origin={x:p.x,y:-e.fieldH/2-40};e.add({...origin,vx:0,vy:900,r:8,visual:'spear',warn:.75,life:(e.fieldH+150)/900+.2,color:'#ffcc9d',tag:'졸업 검수 오염창',motion:{kind:'spear',anchor:origin,target:{x:p.x,y:e.fieldH/2+50},direction:{x:0,y:1},trigger:e.fieldH+120}});e.log('움직임 감지 · 고정 위치 오염창 예고');}
+ if(e.emitting&&e.beat<=0){e.beat=2-e.stage*.16;const gap=(Math.floor(s.age/3)%3-1)*e.fieldW*.25;for(let x=-e.fieldW/2+28;x<e.fieldW/2;x+=55){if(Math.abs(x-gap)<100)continue;e.add({x,y:-e.fieldH/2-16,vx:0,vy:90+e.stage*10,r:13,visual:'drop',warn:0,life:e.fieldH/90+2,color:'#ffe0a1',tag:'검수 중 느린 오염탄'});}}
+}
+function drawInspection(e:Engine,c:CanvasRenderingContext2D){const s=e.unseen.inspection;ensureInspectionEyes(e);const len=Math.hypot(e.fieldW,e.fieldH);
+ for(const eye of s.eyes){const o=inspectionOrigin(e,eye),danger=eye.detection>.15;c.save();c.translate(o.x,o.y);c.rotate(eye.angle);
+  const g=c.createRadialGradient(0,0,12,0,0,len);g.addColorStop(0,danger?'#ffb76d55':'#fff2c044');g.addColorStop(1,'#f5cf7300');c.fillStyle=g;c.beginPath();c.moveTo(0,0);c.arc(0,0,len,-.2,.2);c.closePath();c.fill();
+  c.strokeStyle=danger?'#ffbd84aa':'#fff0bfaa';c.lineWidth=2.7;for(const a of [-.2,.2]){c.beginPath();c.moveTo(0,0);c.lineTo(Math.cos(a)*len,Math.sin(a)*len);c.stroke();}
+  c.rotate(-eye.angle);c.fillStyle='#201628';c.strokeStyle='#ffe4a4';c.lineWidth=3;c.shadowColor='#ffd58a';c.shadowBlur=18;c.beginPath();c.ellipse(0,0,46,23,0,0,Math.PI*2);c.fill();c.stroke();c.fillStyle='#fff4d0';c.beginPath();c.arc(Math.cos(eye.angle)*7,Math.sin(eye.angle)*7,12,0,Math.PI*2);c.fill();c.restore();
+ }
+ const p=e.localPlayer();if(inspectionSees(e,p)){c.save();c.strokeStyle=s.detection>.15?'#ffba77':'#9fffe1';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,28,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.max(.05,s.detection));c.stroke();c.restore();}
+}
 export function syncGateLocks(e:Engine){const g=e.unseen.gate;for(let i=0;i<g.locks.length;i++){g.locks[i].x=(i-1)*Math.min(220,e.fieldW*.26);g.locks[i].y=-e.fieldH*.10;}}
 export function shootGraduationLock(e:Engine,p:Vec,prev:Vec):boolean{if(e.pattern.id!=='graduation-gate'||e.phase!=='active'||e.unseen.gate.phase!=='locks')return false;const g=e.unseen.gate;
  for(const [i,lock]of g.locks.entries()){if(lock.broken||segmentDistance(lock,prev,p)>32)continue;if(g.order[g.opened]===i){lock.hp--;e.fx(lock,'ring',24,'#ffe5a5',.2);if(lock.hp<=0){lock.broken=true;g.opened++;e.shake=Math.max(e.shake,.1);e.fx(lock,'burst',70,'#ffe7b4',.7);e.log(`졸업문 잠금 해제 · ${g.opened}/3`);releaseGateVolley(e,g.opened);if(g.opened===3){g.phase='open';g.phaseAge=0;}}}else e.fx(lock,'ring',20,'#9588aa',.2);return true;}return false;
@@ -46,5 +79,5 @@ function drawGate(e:Engine,c:CanvasRenderingContext2D){const g=e.unseen.gate,y=-
  if(g.phase==='open'){c.strokeStyle='#e5b5ff88';c.lineWidth=2;for(let i=0;i<10;i++){const a=i*Math.PI*2/10,d=45+((1-g.phaseAge/1.65)*150+i*17)%150;c.beginPath();c.moveTo(Math.cos(a)*d,Math.sin(a)*d*.5);c.lineTo(Math.cos(a)*(d+26),Math.sin(a)*(d+26)*.5);c.stroke();}}c.restore();
  for(const [i,lock]of g.locks.entries()){if(lock.broken)continue;const lit=g.order[g.opened]===i;c.save();c.translate(lock.x,lock.y);c.strokeStyle=lit?'#ffe6a5':'#83768d';c.fillStyle=lit?'#6b4633':'#272130';c.shadowColor='#ffcf7d';c.shadowBlur=lit?22:0;c.lineWidth=5;c.beginPath();c.arc(0,-22,17,Math.PI,Math.PI*2);c.stroke();c.beginPath();c.roundRect(-27,-22,54,51,7);c.fill();c.stroke();c.fillStyle=lit?'#fff4d2':'#554b63';c.beginPath();c.arc(0,0,6,0,Math.PI*2);c.fill();c.fillRect(-2,1,4,12);c.fillStyle='#fff2bd';for(let j=0;j<lock.hp;j++)c.fillRect(-23+j*46/(4+e.stage),37,Math.max(2,40/(4+e.stage)),4);c.restore();}}
 export function clearUnseenByBomb(e:Engine){if(e.pattern.id!=='graduation-gate'||e.unseen.gate.phase!=='locks')return;const g=e.unseen.gate,lock=g.locks[g.order[g.opened]];if(lock&&bombReaches(e,lock,30)&&!e.gateBombSpent){e.gateBombSpent=true;lock.hp=1;shootGraduationLock(e,lock,lock);}}
-const make=(id:string,name:string,english:string,subtitle:string,duration:number,update:Pattern['update'],render:Pattern['render']):Pattern=>({id,name,english,subtitle,category:'special',orientation:0,stages:['규칙 학습','연속 대응','복합 회피','숙련 시험'],duration,enter:e=>{e.unseen=freshUnseen();e.unseen.inspection.lastPlayer=e.localPlayer();e.beat=1;},update,render,exit:()=>{}});
-export const unseenPatterns=[make('outside-hands','전장 밖의 손','HANDS BEYOND THE FRAME','깊은 찌르기·휘젓기·3연속 내려찍기·쓸기·양손 조이기의 전체 그림자 예고를 피하세요.',Infinity,updateHands,drawHands),make('inspection','졸업 검수 시선','GRADUATION INSPECTION','빛 안에서는 멈추세요. 움직임을 감지하면 고정 위치에 오염창이 떨어집니다.',27,updateInspection,drawInspection),make('graduation-gate','잠겨버린 졸업문','LOCKED GRADUATION GATE','빛나는 자물쇠부터 사격하세요. 세 잠금을 풀면 탄을 빨아들이고 보스가 노출됩니다.',Infinity,updateGate,drawGate)];
+const make=(id:string,name:string,english:string,subtitle:string,duration:number,update:Pattern['update'],render:Pattern['render']):Pattern=>({id,name,english,subtitle,category:'special',orientation:0,stages:['규칙 학습','연속 대응','복합 회피','숙련 시험'],duration,enter:e=>{e.unseen=freshUnseen();e.unseen.inspection.lastPlayer=e.localPlayer();if(id==='inspection')ensureInspectionEyes(e);e.beat=1;},update,render,exit:()=>{}});
+export const unseenPatterns=[make('outside-hands','전장 밖의 손','HANDS BEYOND THE FRAME','깊은 찌르기·휘젓기·3연속 내려찍기·쓸기·양손 조이기의 전체 그림자 예고를 피하세요.',Infinity,updateHands,drawHands),make('inspection','졸업 검수 시선','GRADUATION INSPECTION','움직이면 검수 시선이 감지합니다. 일반은 중앙 1개, 숙련은 좌우 2개의 시선이 계속 순찰합니다.',27,updateInspection,drawInspection),make('graduation-gate','잠겨버린 졸업문','LOCKED GRADUATION GATE','빛나는 자물쇠부터 사격하세요. 세 잠금을 풀면 탄을 빨아들이고 보스가 노출됩니다.',Infinity,updateGate,drawGate)];

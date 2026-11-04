@@ -31,6 +31,8 @@ function tileCenter(e:Engine,index:number):Vec{
  return {x:-e.fieldW/2+(index%e.tileCols+.5)*e.fieldW/e.tileCols,
  y:-e.fieldH/2+(Math.floor(index/e.tileCols)+.5)*e.fieldH/e.tileRows};
 }
+export const splitWarningDuration=(stage:number)=>stage>=2?(stage>=3?1.04:1.31):2.3-stage*.18;
+export const splitBlastDuration=(stage:number)=>stage>=2?(stage>=3?.62:.72):.9;
 function startTileWave(e:Engine){
  const total=e.tileCols*e.tileRows,ratio=[.2,.35,.5,.65,.78][e.tileRound%5];
  const count=Math.min(total-1,Math.max(1,Math.round(total*ratio))),current=Math.max(0,e.tileIndex(e.localPlayer()));
@@ -40,12 +42,12 @@ function startTileWave(e:Engine){
  const candidates=Array.from({length:total},(_,i)=>i).filter(i=>i!==refuge);
  for(let i=candidates.length-1;i>0;i--){const j=Math.floor(e.random()*(i+1));[candidates[i],candidates[j]]=[candidates[j],candidates[i]];}
  e.tileDanger=candidates.slice(0,count);e.tileSafe=Array.from({length:total},(_,i)=>i).filter(i=>!e.tileDanger.includes(i));
- e.tileState='warning';e.tileTimer=2.3-e.stage*.18;
+ e.tileState='warning';e.tileTimer=splitWarningDuration(e.stage);
  e.log(`전장 분할 경고 · 위험 ${count} / 안전 ${total-count}`);
 }
 function drawTilePattern(e:Engine,c:CanvasRenderingContext2D){
  const cw=e.fieldW/e.tileCols,ch=e.fieldH/e.tileRows,gap=5;
- const urgent=e.tileTimer<.65,pulse=.17+.19*clamp(1-e.tileTimer/2.3,0,1);
+ const urgent=e.tileTimer<.65,pulse=.17+.19*clamp(1-e.tileTimer/splitWarningDuration(e.stage),0,1);
  c.save();
  for(let i=0;i<e.tileCols*e.tileRows;i++){
   const p=tileCenter(e,i),x=p.x-cw/2+gap/2,y=p.y-ch/2+gap/2,w=cw-gap,h=ch-gap,danger=e.tileDanger.includes(i),safe=e.tileSafe.includes(i);
@@ -56,13 +58,13 @@ function drawTilePattern(e:Engine,c:CanvasRenderingContext2D){
    c.strokeStyle=urgent?'#fff0ff':'#df93ff';c.lineWidth=urgent?7:3;c.strokeRect(x+3,y+3,w-6,h-6);
    c.globalAlpha=.45;c.lineWidth=2;
    for(let z=-h;z<w;z+=30){c.beginPath();c.moveTo(x+z,y);c.lineTo(x+z+h,y+h);c.stroke();}
-   c.globalAlpha=.8;c.strokeStyle='#edbcff';c.lineWidth=4;const q=clamp(e.tileTimer/(2.3-e.stage*.18),0,1);c.strokeRect(p.x-w*q/2,p.y-h*q/2,w*q,h*q);c.globalAlpha=1;
+   c.globalAlpha=.8;c.strokeStyle='#edbcff';c.lineWidth=4;const q=clamp(e.tileTimer/splitWarningDuration(e.stage),0,1);c.strokeRect(p.x-w*q/2,p.y-h*q/2,w*q,h*q);c.globalAlpha=1;
   }
   if((e.tileState==='warning'||e.tileState==='blast')&&safe){
    c.fillStyle='#69ffce22';c.fillRect(x,y,w,h);c.strokeStyle='#81ffe0';c.lineWidth=3;c.strokeRect(x+4,y+4,w-8,h-8);
   }
   if(e.tileState==='blast'&&danger){
-   const k=clamp(1-e.tileTimer/.9,0,1),fade=1-k;
+   const k=clamp(1-e.tileTimer/splitBlastDuration(e.stage),0,1),fade=1-k;
    c.fillStyle=`rgba(130,35,215,${.65*fade})`;c.fillRect(x,y,w,h);
    const glow=c.createRadialGradient(p.x,p.y,0,p.x,p.y,Math.max(cw,ch)*.8);
    glow.addColorStop(0,`rgba(255,245,255,${fade})`);glow.addColorStop(.25,`rgba(229,123,255,${fade})`);glow.addColorStop(1,'#7312b900');c.fillStyle=glow;c.fillRect(x,y,w,h);
@@ -158,10 +160,10 @@ export const patterns:Pattern[]=[
   make('split8','전장 분할 안전 피신','FRACTURED SANCTUARY','전체 전장의 보라색 위험 칸을 피해 민트색 안전 칸으로 이동하세요. 수축하는 테두리가 사라지면 폭발합니다.',0,['위험 구역 점진 확대','짧아지는 피신 시간','두 칸 앞 안전 구역','최종 고속 피신'],29,(e,dt)=>{
     e.tileTimer-=dt;
     if(e.tileState==='recover'||e.tileState==='idle'){if(e.emitting&&e.tileTimer<=0)startTileWave(e);}
-    else if(e.tileState==='warning'&&e.tileTimer<=0){e.tileState='blast';e.tileTimer=.9;e.shake=.24;for(const i of e.tileDanger){e.fx(tileCenter(e,i),'burst',130,'#edb4ff',.9);e.fx(tileCenter(e,i),'ring',165,'#ac63ff',.9);}const tile=e.tileIndex(e.localPlayer());if(e.tileDanger.includes(tile))e.hit('폭발 맵 전역 공격');e.log(`맵 폭발 · 위험 ${e.tileDanger.length}개`);}
+    else if(e.tileState==='warning'&&e.tileTimer<=0){e.tileState='blast';e.tileTimer=splitBlastDuration(e.stage);e.shake=.24;for(const i of e.tileDanger){e.fx(tileCenter(e,i),'burst',130,'#edb4ff',.9);e.fx(tileCenter(e,i),'ring',165,'#ac63ff',.9);}const tile=e.tileIndex(e.localPlayer());if(e.tileDanger.includes(tile))e.hit('폭발 맵 전역 공격');e.log(`맵 폭발 · 위험 ${e.tileDanger.length}개`);}
     else if(e.tileState==='blast'){
       const tile=e.tileIndex(e.localPlayer());if(tile<0||e.tileDanger.includes(tile))e.hit('폭발 맵 전역 공격');
-      if(e.tileTimer<=0){e.tileState='recover';e.tileTimer=Math.max(.42,.72-e.stage*.07);e.tileDanger=[];e.tileSafe=[];e.tileRound++;}
+      if(e.tileTimer<=0){e.tileState='recover';e.tileTimer=e.stage>=2?(e.stage===3?.36:.43):Math.max(.42,.72-e.stage*.07);e.tileDanger=[];e.tileSafe=[];e.tileRound++;}
     }
   },drawTilePattern,e=>{const size=e.gridSize();e.fieldW=size.w;e.fieldH=size.h;e.tileCols=Math.max(3,Math.round(e.fieldW/280));e.tileRows=Math.max(3,Math.round(e.fieldH/280));if(!e.encounter.enabled)e.boss={x:0,y:-e.fieldH/2+140};e.tileRound=0;e.tileState='recover';e.tileTimer=.85;e.tileDanger=[];e.tileSafe=[];}),
   make('fluid','오염 액체 범람','CORRUPTION FLUID','차오르는 오염 액체로 떨어집니다. 입수 후 방향키로 몸을 돌려 헤엄치세요.',0,['액체 상승 / 저항 학습','기울기와 흐름 변화','360° 회전 유체','연속 회전 + 사방 탄막'],29,(e,dt)=>{

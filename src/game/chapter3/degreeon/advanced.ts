@@ -68,7 +68,24 @@ export function updateSeed(e:Engine,h:Entity,dt:number){
 }
 function edgeLine(e:Engine,p:Vec,a:number):[Vec,Vec]{const d={x:Math.cos(a),y:Math.sin(a)},ts:number[]=[];for(const x of [-e.fieldW/2,e.fieldW/2])if(Math.abs(d.x)>1e-8){const t=(x-p.x)/d.x;if(Math.abs(p.y+t*d.y)<=e.fieldH/2+.01)ts.push(t);}for(const y of [-e.fieldH/2,e.fieldH/2])if(Math.abs(d.y)>1e-8){const t=(y-p.y)/d.y;if(Math.abs(p.x+t*d.x)<=e.fieldW/2+.01)ts.push(t);}return [{x:p.x+d.x*Math.min(...ts),y:p.y+d.y*Math.min(...ts)},{x:p.x+d.x*Math.max(...ts),y:p.y+d.y*Math.max(...ts)}];}
 function spawnBolt(e:Engine,p:Vec,a:number){const [start,end]=edgeLine(e,p,a),len=distance(start,end),n=Math.ceil(len/24),dx=(end.x-start.x)/len,dy=(end.y-start.y)/len,points:Vec[]=[];for(let i=0;i<=n;i++){const k=i/n,j=i===0||i===n?0:(e.random()-.5)*18;points.push({x:start.x+(end.x-start.x)*k-dy*j,y:start.y+(end.y-start.y)*k+dx*j});}const branches:Vec[][]=[];for(let i=3;i<points.length-3;i+=7){const root=points[i];for(const side of [-1,1]){const reach=42+e.random()*45;branches.push([root,{x:root.x-dy*side*reach*.55+dx*13,y:root.y+dx*side*reach*.55+dy*13},{x:root.x-dy*side*reach+dx*26,y:root.y+dx*side*reach+dy*26}]);}}e.advanced.bolts.push({a:start,b:end,target:{...p},points,branches,parts:splitTimePath(points,e.advanced.zones).map(p=>({a:p.a,b:p.b,age:0})),age:0,warn:.58,life:.18,fired:false});}
-export function updateLightning(e:Engine,dt:number){const s=e.advanced;s.lightTimer-=dt*timeScale(e,e.boss);if(s.lightTimer<=0&&(e.emitting||s.lightSecond)){if(!s.lightSecond){if(s.lightCount>=s.lightTotal){s.lightCount=0;s.lightTotal=5+e.stage;}if(s.lightCount===0)e.log(`오염 낙뢰 · ${s.lightTotal}쌍 연속 공격`);s.lightTarget=e.localPlayer();s.lightAngle=[0,Math.PI/2,Math.PI/4,-Math.PI/4][s.lightCount%4]+(e.random()-.5)*.18;spawnBolt(e,s.lightTarget,s.lightAngle-.09);s.lightSecond=true;s.lightTimer=.16;}else{spawnBolt(e,s.lightTarget,s.lightAngle+.09);s.lightSecond=false;s.lightCount++;s.lightTimer=.68-e.stage*.045;}}
+export function updateLightning(e:Engine,dt:number){const s=e.advanced;s.lightTimer-=dt*timeScale(e,e.boss);
+ if(e.stage>=2){
+  if(s.lightTimer<=0&&e.emitting){
+   if(s.lightCount>=s.lightTotal){s.lightCount=0;s.lightTotal=5+e.stage;}
+   const n=2+s.lightCount%2,p=e.localPlayer();
+   const angle=[Math.PI/2,0,Math.PI/4,-Math.PI/4][s.lightCount%4],side={x:-Math.sin(angle),y:Math.cos(angle)};
+   const gap=Math.min(108,Math.min(e.fieldW,e.fieldH)*.16);
+   for(let i=0;i<n;i++){
+    const delta=(i-(n-1)/2)*gap;
+    spawnBolt(e,{x:clamp(p.x+side.x*delta,-e.fieldW/2+20,e.fieldW/2-20),y:clamp(p.y+side.y*delta,-e.fieldH/2+20,e.fieldH/2-20)},angle);
+   }
+   s.lightCount++;s.lightSecond=false;s.lightTimer=e.stage>=3?.43:.51;
+   e.log(`숙련 오염 낙뢰 · ${n}개 동시 / ${s.lightCount}/${s.lightTotal}`);
+  }
+ }else if(s.lightTimer<=0&&(e.emitting||s.lightSecond)){
+  if(!s.lightSecond){if(s.lightCount>=s.lightTotal){s.lightCount=0;s.lightTotal=5+e.stage;}if(s.lightCount===0)e.log(`오염 낙뢰 · ${s.lightTotal}쌍 연속 공격`);s.lightTarget=e.localPlayer();s.lightAngle=[0,Math.PI/2,Math.PI/4,-Math.PI/4][s.lightCount%4]+(e.random()-.5)*.18;spawnBolt(e,s.lightTarget,s.lightAngle-.09);s.lightSecond=true;s.lightTimer=.16;}
+  else{spawnBolt(e,s.lightTarget,s.lightAngle+.09);s.lightSecond=false;s.lightCount++;s.lightTimer=.68-e.stage*.045;}
+ }
  for(const b of s.bolts){b.age+=dt*timeScale(e,b.target);const parts=b.parts??b.points.slice(1).map((v,i)=>({a:b.points[i],b:v,age:b.age}));
   for(const part of parts){if(b.parts)part.age+=dt*timeScale(e,{x:(part.a.x+part.b.x)/2,y:(part.a.y+part.b.y)/2});if(part.age>=b.warn&&part.age<b.warn+b.life){if(!b.fired){b.fired=true;e.shake=Math.max(e.shake,.06);}for(const p of e.bodies())if(segmentDistance(e.local(p),part.a,part.b)<10)e.hit('오염 낙뢰',p);}}
  }
@@ -80,7 +97,7 @@ export function activeLaserSegments(e:Engine,l:Laser,path:Vec[]){return laserSeg
 const simple=(id:string,name:string,english:string,subtitle:string,category:Category,update:Pattern['update'],render:Pattern['render']=()=>{},enter:Pattern['enter']=()=>{},duration=30):Pattern=>({id,name,english,subtitle,category,orientation:0,stages:['패턴 학습','연속 공격','복합 공격','숙련 공격'],duration,update,render,enter,exit:()=>{}});
 export const advancedPatterns:Pattern[]=[
  simple('flowers','오염 꽃 개화','CORRUPTION BLOOM','씨앗을 사격으로 제거하세요. 3초 뒤 6~8개 꽃잎이 순서대로 발사됩니다.','normal',e=>{if(!e.emitting||e.beat>0)return;e.beat=.55-e.stage*.07;const p={x:(e.random()-.5)*(e.fieldW-130),y:-e.fieldH/2+110+e.random()*(e.fieldH-220)};e.add({...e.boss,seedFrom:{...e.boss},seedTarget:p,kind:'seed',r:9,warn:.25,life:4,hp:2,petals:6+Math.floor(e.random()*3),rotation:e.random()*Math.PI*2,petalIndex:0,petalTimer:0,color:'#b77eff',tag:'오염 꽃 씨앗'});e.fx(p,'ring',23,'#d1a4ff',.35);}),
- simple('lightning','오염 낙뢰','CORRUPTION THUNDER','현재 위치를 관통하는 두 낙뢰의 예고선을 피하세요. 5~8쌍이 연속됩니다.','normal',updateLightning,()=>{},e=>{e.advanced.lightTotal=5+e.stage;}),
+ simple('lightning','오염 낙뢰','CORRUPTION THUNDER','예비선을 피하세요. 일반은 2연속, 숙련은 2~3개의 낙뢰가 짧은 간격으로 동시에 떨어집니다.','normal',updateLightning,()=>{},e=>{e.advanced.lightTotal=5+e.stage;}),
  simple('hp-sword','보스 HP 검술','HEALTH BAR BLADE','HP바 자체가 움직입니다. 전체 타격 영역 예고를 보고 여섯 종류의 검술을 피하세요.','special',updateSword),
  simple('exile','게임 화면 밖 추방','BEYOND THE SCREEN','화면을 뚫고 날아간 뒤 방향키로 유영하며 포탈을 찾으세요. SPACE로 사격합니다.','special',updateExile,()=>{},enterExile,Infinity),
  simple('erosion','파괴 가능한 오염벽','EROSION WALL','사격 위치가 점점 파입니다. 통과할 통로를 직접 만드세요.','support',()=>{}),
@@ -95,7 +112,13 @@ export function drawAdvanced(e:Engine,c:CanvasRenderingContext2D){
  for(const wall of e.advanced.walls)drawCachedWall(e,c,wall);
 
  for(const b of e.advanced.bolts){const parts=b.parts??b.points.slice(1).map((p,i)=>({a:b.points[i],b:p,age:b.age}));
-  const draw=(points:Vec[],age:number,branch=false)=>{if(age>=b.warn+b.life)return;const active=age>=b.warn,k=clamp(age/b.warn,0,1);if(branch&&!active)return;c.save();c.strokeStyle=active?'#c77bff':'#cb8fff';c.globalAlpha=active?clamp(1-(age-b.warn)/b.life,.15,1):.2+k*.5;c.lineWidth=branch?2:active?18:3;if(!active)c.setLineDash([12,10]);c.shadowColor='#b355ff';c.shadowBlur=active?25:0;c.beginPath();points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke();if(active&&!branch){c.lineWidth=4;c.strokeStyle='#fff0ff';c.stroke();}c.restore();};
+  const draw=(points:Vec[],age:number,branch=false)=>{if(age>=b.warn+b.life)return;const active=age>=b.warn,k=clamp(age/b.warn,0,1);if(branch&&!active)return;c.save();
+    if(active){c.globalAlpha=clamp(1-(age-b.warn)/b.life,.15,1);c.strokeStyle='#c77bff';c.lineWidth=branch?2:18;c.shadowColor='#b355ff';c.shadowBlur=25;}
+    else{c.globalAlpha=.80+.2*k;c.strokeStyle='#10091d';c.lineWidth=9;c.setLineDash([16,9]);c.shadowBlur=0;}
+    c.beginPath();points.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke();
+    if(active&&!branch){c.lineWidth=4;c.strokeStyle='#fff0ff';c.stroke();}
+    else if(!active){c.strokeStyle='#fff2a5';c.lineWidth=4.4;c.shadowColor='#ffdc7c';c.shadowBlur=11;c.stroke();}
+    c.restore();};
   for(const part of parts)draw([part.a,part.b],part.age);
   for(const branch of b.branches){const part=parts.reduce((near,p)=>segmentDistance(branch[0],p.a,p.b)<segmentDistance(branch[0],near.a,near.b)?p:near,parts[0]);if(part)draw(branch,part.age,true);}
  }

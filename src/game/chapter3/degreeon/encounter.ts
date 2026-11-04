@@ -49,7 +49,7 @@ export function startEncounter(e:Engine,practice=false){
  e.bossMapScroll=0;getCombatParallax(e,"boss3").reset(e.clock);
  const old=e.encounter,lab=old.enabled?old.lab:{index:e.index,stage:e.stage,supports:[...e.selectedSupports],full:e.fullField,expert:e.expert,autoplay:e.autoplay,missCap:e.missCap};
  e.encounter={...freshEncounter(),enabled:true,practice,lab,phase:practice?2:1};resetBossSupport(e);e.paused=false;e.keys.clear();e.seed=314159;e.speed=1;e.angle=e.targetAngle=e.fromAngle=0;e.orientation=0;e.rotation=0;e.fullField=false;e.selectedSupports.clear();e.autoplay=false;e.expert=false;e.missCap=120;e.begin(e.patterns.findIndex(p=>p.id==='flowers'),0);
- e.hp=MAX_HP;e.bombs=MAX_BOMBS;e.bossHpMax=PHASE_HP[practice?2:1];e.bossHp=e.bossHpMax;e.bossForm=practice?2:1;e.hits=0;e.deaths=0;e.bossHits=0;e.gameOver=false;
+ e.inspectionMemory=null;e.hp=MAX_HP;e.bombs=MAX_BOMBS;e.bossHpMax=PHASE_HP[practice?2:1];e.bossHp=e.bossHpMax;e.bossForm=practice?2:1;e.hits=0;e.deaths=0;e.bossHits=0;e.gameOver=false;
  scene(e,practice?'threat':'opening');
 }
 export function startStoryPreview(e:Engine,kind:StoryPreview){

@@ -7,7 +7,7 @@ export type WaveBeam={u:number;age:number;warn:number;life:number;lanes:number;a
 export type CorridorState={clock:number;fired:number;total:number;beams:WaveBeam[];rest:number;};
 export const freshCorridor=():CorridorState=>({clock:0,fired:0,total:5,beams:[],rest:0});
 export function waveBeamBounds(e:Engine,b:WaveBeam){
- return b.axis==='horizontal'?{x:0,y:(b.u-.5)*e.fieldH,w:e.fieldW,h:e.fieldH/b.lanes*.63}:{x:(b.u-.5)*e.fieldW,y:0,w:e.fieldW/b.lanes*.63,h:e.fieldH};
+ return b.axis==='horizontal'?{x:0,y:(b.u-.5)*e.fieldH,w:e.fieldW,h:e.fieldH/b.lanes*1.04}:{x:(b.u-.5)*e.fieldW,y:0,w:e.fieldW/b.lanes*1.04,h:e.fieldH};
 }
 export function waveBeamPath(e:Engine,b:WaveBeam):[Vec,Vec]{const r=waveBeamBounds(e,b);return b.axis==='horizontal'?[{x:-e.fieldW/2,y:r.y},{x:e.fieldW/2,y:r.y}]:[{x:r.x,y:-e.fieldH/2},{x:r.x,y:e.fieldH/2}];}
 function tickBeam(e:Engine,b:WaveBeam,dt:number){
@@ -33,12 +33,20 @@ export function drawWaveBeam(e:Engine,c:CanvasRenderingContext2D,b:WaveBeam){
   const age=part.age;if(age>=b.warn+b.life)continue;const lo=length*part.lo,hi=length*part.hi;
   c.save();c.beginPath();c.rect(-half-32,lo,half*2+64,hi-lo+.5);c.clip();
   if(age<b.warn){
-   const k=clamp(age/b.warn,0,1);c.globalAlpha=.11+k*.15;c.fillStyle='#b076ff';c.fillRect(-half,lo,half*2,hi-lo);
-   c.globalAlpha=.35+k*.4;c.strokeStyle='#cfb7ff';c.lineWidth=1.8;c.setLineDash([16,9]);
-   for(const side of [-1,1]){c.beginPath();c.moveTo(side*half,lo);c.lineTo(side*half,hi);c.stroke();}c.setLineDash([]);
-   c.fillStyle='#edd7ff';for(let y=lo+((age*65)%46);y<hi;y+=46)for(const side of [-1,1]){c.beginPath();c.moveTo(side*half,y);c.lineTo(side*(half-8),y+6);c.lineTo(side*half,y+12);c.fill();}
+   const k=clamp(age/b.warn,0,1),pulse=.85+.15*Math.sin(age*14);
+   // Amber fill covers EXACTLY the collider; no invisible micro-lanes between beams.
+   c.globalAlpha=.20+k*.20;c.fillStyle='#ffb647';c.fillRect(-half,lo,half*2,hi-lo);
+   c.globalAlpha=.90*pulse;c.strokeStyle='#100c19';c.lineWidth=9;c.setLineDash([18,9]);
+   for(const side of [-1,1]){c.beginPath();c.moveTo(side*half,lo);c.lineTo(side*half,hi);c.stroke();}
+   c.strokeStyle='#fff6c2';c.lineWidth=5;c.shadowColor='#ffde79';c.shadowBlur=12;
+   for(const side of [-1,1]){c.beginPath();c.moveTo(side*half,lo);c.lineTo(side*half,hi);c.stroke();}
+   c.setLineDash([]);c.shadowBlur=0;
+   c.globalAlpha=.85;c.fillStyle='#ffefbf';for(let y=lo+((age*70)%48);y<hi;y+=48)for(const side of [-1,1]){c.beginPath();c.moveTo(side*half,y);c.lineTo(side*(half-12),y+7);c.lineTo(side*half,y+14);c.fill();}
   }else{
    const t=age-b.warn,fade=Math.min(1,t/.055,(b.life-t)/.11),steps=Math.max(12,Math.ceil(length/16));c.globalAlpha=Math.max(.05,fade);
+   // Solid hazard bed is as wide as waveBeamHits; the flowing ribbon is decorative.
+   c.fillStyle='rgba(181,67,246,.82)';c.fillRect(-half,lo,half*2,hi-lo);
+   c.strokeStyle='#ffe7ff';c.lineWidth=3;for(const side of [-1,1]){c.beginPath();c.moveTo(side*half,lo);c.lineTo(side*half,hi);c.stroke();}
    const ribbon=(scale:number)=>{c.beginPath();for(let i=0;i<=steps;i++){const y=length*i/steps,w=laserEdgeWidth(half,y,age)*scale;i?c.lineTo(w,y):c.moveTo(w,y);}for(let i=steps;i>=0;i--){const y=length*i/steps;c.lineTo(-laserEdgeWidth(half,y,age)*scale,y);}c.closePath();};
    const aura=c.createLinearGradient(-half*1.45,0,half*1.45,0);aura.addColorStop(0,'#823fff00');aura.addColorStop(.3,'#983cff44');aura.addColorStop(.5,'#f08dff88');aura.addColorStop(.7,'#983cff44');aura.addColorStop(1,'#823fff00');
    c.fillStyle=aura;c.shadowColor='#c965ff';c.shadowBlur=26;ribbon(1.42);c.fill();c.shadowBlur=0;
@@ -62,7 +70,7 @@ function makeCorridor(axis:'vertical'|'horizontal'):Pattern{return{
  update:(e,dt)=>{
   const s=e.corridor;s.clock+=dt*e.localTime(e.boss);
   for(const b of s.beams)tickBeam(e,b,dt);s.beams=s.beams.filter(b=>(b.parts??[{age:b.age}]).some(p=>p.age<b.warn+b.life));
-  const period=e.stage===3?1.22:1.35;
+  const period=axis==='horizontal'?(e.stage===3?1.62:1.80):(e.stage===3?1.22:1.35);
   if(s.fired<s.total&&s.clock>=.2+s.fired*period){
    const gap=gaps[s.fired%gaps.length];
    for(let i=0;i<7;i++)if(i!==gap)s.beams.push({u:(i+.5)/7,lanes:7,axis,age:0,warn:e.stage===3?.74:.88,life:.42});
@@ -70,6 +78,20 @@ function makeCorridor(axis:'vertical'|'horizontal'):Pattern{return{
   }
   for(const body of e.bodies())if(s.beams.some(b=>waveBeamHits(e,b,e.local(body))))e.hit('파동 레이저 회랑',body);
   if(s.fired===s.total&&!s.beams.length){s.rest+=dt;if(s.rest>=.8){if(e.pattern.category==='normal')e.finish();else e.corridor={...freshCorridor(),total:5+e.stage};}}
- },render:(e,c)=>{for(const b of e.corridor.beams)drawWaveBeam(e,c,b);}
+ },render:(e,c)=>{
+  const s=e.corridor;
+  if(s.fired>0&&s.beams.some(b=>(b.parts??[{age:b.age}]).some(p=>p.age<b.warn))){
+   const gap=gaps[(s.fired-1)%gaps.length],u=(gap+.5)/7,center=axis==='horizontal'?{x:0,y:(u-.5)*e.fieldH}:{x:(u-.5)*e.fieldW,y:0};
+   // Mark the remaining safe lane only if another still-active volley does not hit it.
+   if(!s.beams.some(b=>waveBeamHits(e,b,center))){
+    const lane=axis==='horizontal'?e.fieldH/7:e.fieldW/7;
+    c.save();c.fillStyle='rgba(78,255,187,.16)';c.strokeStyle='#8bffda';c.lineWidth=2.5;c.setLineDash([11,9]);
+    if(axis==='horizontal'){const y=center.y-lane*.47;c.fillRect(-e.fieldW/2,y,e.fieldW,lane*.94);c.strokeRect(-e.fieldW/2+2,y+2,e.fieldW-4,lane*.94-4);}
+    else{const x=center.x-lane*.47;c.fillRect(x,-e.fieldH/2,lane*.94,e.fieldH);c.strokeRect(x+2,-e.fieldH/2+2,lane*.94-4,e.fieldH-4);}
+    c.restore();
+   }
+  }
+  for(const b of s.beams)drawWaveBeam(e,c,b);
+ }
 };}
 export const corridorPatterns:Pattern[]=[makeCorridor('vertical'),makeCorridor('horizontal')];

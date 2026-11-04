@@ -32,7 +32,7 @@ export function stampStrokeHits(f:StampStroke,p:Vec){
 }
 export function stampRapidAllowed(e:Engine){
  const v=e.gridSize(),full=e.fieldWarpEnabled?e.fieldWarp.mode==='hold'&&e.fieldWarp.current==='full':e.fullField;
- return full&&e.fieldW*e.fieldH>=v.w*v.h*.94&&e.graduationStamp.lingering.length+e.graduationStamp.imprints.reduce((n,m)=>n+m.strokes.length,0)<240;
+ return (e.stage>=2||full&&e.fieldW*e.fieldH>=v.w*v.h*.94)&&e.graduationStamp.lingering.length+e.graduationStamp.imprints.reduce((n,m)=>n+m.strokes.length,0)<240;
 }
 function prepare(e:Engine){
  const s=e.graduationStamp;s.ready=true;s.age=0;s.phase='warn';s.quick=stampRapidAllowed(e);s.warnDuration=s.quick?.48-e.stage*.03:1.1-e.stage*.08;s.impacted=false;s.impactShake=0;s.released=0;s.w=390+e.stage*12;s.angle=[-.10,.12,0,-.16][s.round%4];
@@ -50,8 +50,18 @@ function update(e:Engine,dt:number){
  else if(s.phase==='press'){
   if(s.age>=.18&&!s.impacted){s.impacted=true;s.impactShake=.22;e.fx(s.target,'ring',s.w*.7,'#ff9b7e',.65);e.fx(s.target,'burst',115,'#ffbba0',.6);e.log('졸업 불가 · 날인');}
   if(s.age>=.18&&s.age<.32)for(const body of e.bodies())if(stampFootprintHits(e,e.local(body)))e.hit('졸업 불가 도장 내려찍기',body);
-  if(s.age>=.32){if(e.emitting&&s.quick&&stampRapidAllowed(e)){s.imprints.push({age:0,target:{...s.target},angle:s.angle,w:s.w,h:s.h,strokes:s.strokes});s.round++;prepare(e);}else{s.phase='ink';s.age=0;}}
- }else if(s.phase==='ink'){if(s.age>=.65){s.phase='scatter';s.age=0;e.log('도장 글자 분리 · 획 탄막 방출');}}
+  if(s.age>=.32){if(e.emitting&&s.quick&&stampRapidAllowed(e)){
+    s.imprints.push({age:0,target:{...s.target},angle:s.angle,w:s.w,h:s.h,strokes:s.strokes});
+    if(e.stage>=2){s.strokes=[];s.phase='ink';s.age=0;} // show an actual upward lift before the next expert strike
+    else{s.round++;prepare(e);} // preserve the existing fullscreen beginner cadence
+   }else{s.phase='ink';s.age=0;}}
+ }else if(s.phase==='ink'){
+  if(s.quick&&e.stage>=2&&e.emitting&&stampRapidAllowed(e)){
+   // Lift for .45 s. Include the next warning/press approach in the 1 s strike gap.
+   const lift=.45,untilNext=lift+Math.max(.12,1-s.warnDuration-.18);
+   if(s.age>=untilNext){s.round++;prepare(e);}
+  }else if(s.age>=.65){s.phase='scatter';s.age=0;e.log('도장 글자 분리 · 획 탄막 방출');}
+ }
  else if(s.phase==='scatter'){
   for(const f of s.strokes){const old=f.age;f.age+=dt*e.localTime(f);const move=Math.max(0,f.age)-Math.max(0,old);if(old<=0&&f.age>0)s.released++;if(f.cleared)continue;f.x+=f.vx*move;f.y+=f.vy*move;f.angle+=f.spin*move;
    if(f.age>=0)for(const body of e.bodies())if(stampStrokeHits(f,e.local(body)))e.hit('졸업 불가 글자 획',body);
@@ -90,7 +100,7 @@ function render(e:Engine,c:CanvasRenderingContext2D){
  }
  if(s.impacted){
   if(s.phase!=='scatter'){
-   c.save();c.translate(s.target.x,s.target.y);c.rotate(s.angle);c.globalAlpha=s.phase==='rest'?1-smooth(s.age/.55):.75;c.strokeStyle='#b9485c';c.lineWidth=4;plate(c,s.w-18,s.h-18);c.stroke();c.restore();
+   c.save();c.translate(s.target.x,s.target.y);c.rotate(s.angle);c.globalAlpha=s.phase==='rest'?1-smooth(s.age/.55):s.phase==='ink'&&s.quick&&e.stage>=2?1-smooth(s.age/.45):.75;c.strokeStyle='#b9485c';c.lineWidth=4;plate(c,s.w-18,s.h-18);c.stroke();c.restore();
   }
   for(const f of s.strokes){if(f.cleared||f.age>3.2)continue;c.save();c.globalAlpha=s.phase==='rest'?1-smooth(s.age/.55):s.phase==='scatter'?1-smooth((f.age-2.7)/.5):.95;inkStroke(c,f,s.phase==='scatter'?'#ffd4b0':'#ec6675',s.phase==='scatter'?13:3);
    if(s.phase==='ink'&&s.age>.45){const k=smooth((s.age-.45)/.55);c.globalAlpha=k*.7;c.strokeStyle='#ffe6be';c.lineWidth=2;const d=Math.hypot(f.vx,f.vy)||1;c.beginPath();c.moveTo(f.x+f.vx/d*12,f.y+f.vy/d*12);c.lineTo(f.x+f.vx/d*27,f.y+f.vy/d*27);c.stroke();}
@@ -101,4 +111,4 @@ function render(e:Engine,c:CanvasRenderingContext2D){
  for(const m of s.imprints){c.save();for(const f of m.strokes)if(!f.cleared)inkStroke(c,f,'#ec6675',3);c.restore();drawStampBody(e,c,{...s,...m,phase:'ink'});}
  drawStampBody(e,c);
 }
-export const graduationStampPattern:Pattern={id:'graduation-stamp',name:'졸업 도장',english:'GRADUATION DENIED',subtitle:'착지 범위를 피하세요. 기본 전장은 단발, 전체화면 전장은 날인 직후 다음 도장을 연속으로 찍습니다.',category:'normal',orientation:0,stages:['일반 날인','기울어진 도장','전체화면 연속 날인','전체화면 고속 날인'],duration:30,enter,update,render,exit:e=>{e.graduationStamp=freshGraduationStamp();}};
+export const graduationStampPattern:Pattern={id:'graduation-stamp',name:'졸업 도장',english:'GRADUATION DENIED',subtitle:'착지 범위를 피하세요. 숙련 단계에서는 도장을 들어 올린 후 1초 정도 지나 다음 날인이 이어집니다.',category:'normal',orientation:0,stages:['일반 날인','기울어진 도장','전체화면 연속 날인','전체화면 고속 날인'],duration:30,enter,update,render,exit:e=>{e.graduationStamp=freshGraduationStamp();}};

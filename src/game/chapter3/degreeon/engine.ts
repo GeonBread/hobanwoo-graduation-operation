@@ -41,7 +41,7 @@ export class Engine {
   fullViewport:{w:number;h:number}|null=null;fullField=false;selectedSupports=new Set<string>(['miss']);supportPreviewId='flowers';advanced=freshAdvanced();
   get combatPattern(){return this.pattern.category==='support'?this.patterns.find(p=>p.id===this.supportPreviewId&&p.category==='normal')??this.patterns.find(p=>p.category==='normal')!:this.pattern;}
   tileStream=freshTileStream();
-  fieldTricks=freshFieldTricks();extraNormal=freshExtraNormal();unseen=freshUnseen();gateBombSpent=false;
+  fieldTricks=freshFieldTricks();extraNormal=freshExtraNormal();unseen=freshUnseen();inspectionMemory:{eyes:{angle:number;direction:-1|1}[]}|null=null;gateBombSpent=false;
   graduationStamp=freshGraduationStamp();pathFold=freshPathFold();recycle=freshRecycle();
   get recycleEnabled(){return supports(this).has('recycle');}
   volley=freshVolley();
@@ -104,7 +104,7 @@ export class Engine {
   point(u:number,v:number){return this.screen({x:(u-.5)*this.fieldW,y:(v-.5)*this.fieldH});}
   random(){this.seed=(this.seed*1664525+1013904223)>>>0;return this.seed/4294967296;}
   log(s:string){this.logs.unshift(`${this.clock.toFixed(1).padStart(5,'0')}  ${s}`);this.logs=this.logs.slice(0,80);}
-  clearAttack(){this.tileStream=freshTileStream();this.fieldTricks=freshFieldTricks();this.extraNormal=freshExtraNormal();this.unseen=freshUnseen();this.gateBombSpent=false;this.graduationStamp=freshGraduationStamp();this.graduationStamp.limit=this.stage>=2?4:3;this.pathFold=freshPathFold();this.pathFold.limit=this.stage>=2?4:3;this.pathFold.zipDuration=2.6-this.stage*.2;this.recycle=freshRecycle();this.hazards=[];this.links=[];this.lasers=[];this.shots=[];if(this.corridor)this.corridor.beams=[];if(this.pauseStorm)this.pauseStorm.windows=[];if(this.advanced){this.advanced.bolts=[];this.advanced.walls=[];}}
+  clearAttack(){if(this.pattern?.id==='inspection'&&this.unseen.inspection.eyes.length)this.inspectionMemory={eyes:this.unseen.inspection.eyes.map(eye=>({angle:eye.angle,direction:eye.direction}))};this.tileStream=freshTileStream();this.fieldTricks=freshFieldTricks();this.extraNormal=freshExtraNormal();this.unseen=freshUnseen();this.gateBombSpent=false;this.graduationStamp=freshGraduationStamp();this.graduationStamp.limit=this.stage>=2?4:3;this.pathFold=freshPathFold();this.pathFold.limit=this.stage>=2?4:3;this.pathFold.zipDuration=2.6-this.stage*.2;this.recycle=freshRecycle();this.hazards=[];this.links=[];this.lasers=[];this.shots=[];if(this.corridor)this.corridor.beams=[];if(this.pauseStorm)this.pauseStorm.windows=[];if(this.advanced){this.advanced.bolts=[];this.advanced.walls=[];}}
   begin(i:number,stage:number,continuous=false){
     const carry=continuous?{player:this.localPlayer(),boss:{...this.boss},geometry:{w:this.fieldW,h:this.fieldH,angle:this.angle},
       hazards:this.hazards,shots:this.shots,effects:this.effects,enemies:this.enemies,items:this.items,walls:this.advanced.walls,
@@ -113,6 +113,7 @@ export class Engine {
       hp:this.hp,bombs:this.bombs,bossHp:this.bossHp,damageFlash:this.damageFlash,keys:new Set(this.keys),
       bomb:{smartBombActive:this.smartBombActive,smartBombRadius:this.smartBombRadius,smartBombLimit:this.smartBombLimit,smartBombWorldOrigin:this.smartBombWorldOrigin,smartBombHitBoss:this.smartBombHitBoss,smartBombOrigin:this.smartBombOrigin,bombParticles:this.bombParticles}}:null;
     this.continuity=freshContinuity();
+    if(this.pattern?.id==='inspection'&&this.unseen.inspection.eyes.length)this.inspectionMemory={eyes:this.unseen.inspection.eyes.map(eye=>({angle:eye.angle,direction:eye.direction}))};
     this.pattern?.exit(this);this.index=i;this.pattern=this.patterns[i];this.stage=stage;
     this.flightPresence=freshFlightPresence(this.pattern.id==='flight');
     this.finalStand=freshFinalStand();
