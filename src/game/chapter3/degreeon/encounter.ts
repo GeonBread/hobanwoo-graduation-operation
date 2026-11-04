@@ -25,7 +25,7 @@ export const phaseTwoScore:EncounterCue[]=[
  cue('hp-sword',19,2),cue('corridor-vertical',11,2,['rotation']),cue('exile',Infinity,2),cue('tail-shed',11,2,['magnet']),
  cue('pause-storm',34,2),cue('volley-core',11,2,['recycle']),cue('menu-deception',34,2),cue('graduation-stamp',13,2,['shape'],true),
  cue('outside-hands',32,2),cue('flowers',11,2,['clones']),cue('path-fold',34,2),cue('volley-cross',11,2,['portals']),
- cue('tile-stream',23,3),cue('volley-curve',11,3,['cut']),cue('fluid',22,3),cue('volley-gap',11,3,['time']),
+ cue('tile-stream',23,3),cue('volley-curve',11,3,['cut']),cue('fluid',27,3),cue('volley-gap',11,3,['time']),
  cue('menu-deception-mobs',30,3),cue('link',12,3,['recycle','time']),cue('flight',21,3),cue('corridor-horizontal',13,3,['miss']),
  cue('rhythm',26,3),cue('tail-shed',11,3,['magnet'])
 ];

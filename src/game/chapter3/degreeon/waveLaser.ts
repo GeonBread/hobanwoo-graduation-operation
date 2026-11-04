@@ -70,7 +70,7 @@ function makeCorridor(axis:'vertical'|'horizontal'):Pattern{return{
  update:(e,dt)=>{
   const s=e.corridor;s.clock+=dt*e.localTime(e.boss);
   for(const b of s.beams)tickBeam(e,b,dt);s.beams=s.beams.filter(b=>(b.parts??[{age:b.age}]).some(p=>p.age<b.warn+b.life));
-  const period=axis==='horizontal'?(e.stage===3?1.62:1.80):(e.stage===3?1.22:1.35);
+  const period=axis==='horizontal'?(e.stage===3?1.92:2.10):(e.stage===3?1.22:1.35);
   if(s.fired<s.total&&s.clock>=.2+s.fired*period){
    const gap=gaps[s.fired%gaps.length];
    for(let i=0;i<7;i++)if(i!==gap)s.beams.push({u:(i+.5)/7,lanes:7,axis,age:0,warn:e.stage===3?.74:.88,life:.42});

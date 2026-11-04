@@ -1,12 +1,16 @@
 import {emitNativeShots,nativeFireInterval,nativeCanFire,moveNativeShot,drawNativeShot,shotDamage,isNativeBeam} from './nativeWeapon';
 import type {Shot} from './core';
 import { drawBombEffects } from './bomb';
+import { sprite } from './resources';
 import type { Engine } from './engine';
 import { clamp, smooth, distance, segmentDistance, Vec } from './core';
-export const EXILE_MAX_ENEMIES=128;
-const EXILE_INITIAL_ENEMIES=112;
-export type Exile={state:'grab'|'throw'|'drift'|'explore'|'enter'|'return'|'done';age:number;detached:boolean;viewW:number;viewH:number;camera:Vec;world:Vec;velocity:Vec;initialVelocity:Vec;flightStart:Vec;breakAt:Vec;travel:number;portal:Vec;w:number;h:number;spawn:number;from:Vec;entryFrom:Vec;enemies:(Vec&{hp:number;age:number;vx:number;vy:number})[];shots:Shot[];fire:number;heading:number;returned:boolean;bombOrigin:Vec|null};
-export function freshExile():Exile{return {state:'grab',age:0,detached:false,viewW:1600,viewH:960,camera:{x:0,y:0},world:{x:0,y:0},velocity:{x:0,y:0},initialVelocity:{x:0,y:0},flightStart:{x:0,y:0},breakAt:{x:0,y:0},travel:0,portal:{x:0,y:0},w:0,h:0,spawn:0,from:{x:0,y:0},entryFrom:{x:0,y:0},enemies:[],shots:[],fire:0,heading:0,returned:false,bombOrigin:null};}
+export const EXILE_MAX_ENEMIES=192;
+const EXILE_INITIAL_ENEMIES=168;
+export const exileDeadline=(stage:number)=>stage>=2?15:20;
+export type ExileEnemy=Vec&{hp:number;age:number;vx:number;vy:number;kind?:'swarm'|'shooter-eye'|'shooter-carrier';fireTimer?:number};
+export type ExileEnemyShot=Vec&{vx:number;vy:number;age:number;color:string};
+export type Exile={state:'grab'|'throw'|'drift'|'explore'|'collapse'|'enter'|'return'|'done';age:number;detached:boolean;viewW:number;viewH:number;camera:Vec;world:Vec;velocity:Vec;initialVelocity:Vec;flightStart:Vec;breakAt:Vec;travel:number;portal:Vec;w:number;h:number;spawn:number;from:Vec;entryFrom:Vec;enemies:ExileEnemy[];enemyShots:ExileEnemyShot[];shots:Shot[];fire:number;heading:number;returned:boolean;timeoutTriggered:boolean;bombOrigin:Vec|null};
+export function freshExile():Exile{return {state:'grab',age:0,detached:false,viewW:1600,viewH:960,camera:{x:0,y:0},world:{x:0,y:0},velocity:{x:0,y:0},initialVelocity:{x:0,y:0},flightStart:{x:0,y:0},breakAt:{x:0,y:0},travel:0,portal:{x:0,y:0},w:0,h:0,spawn:0,from:{x:0,y:0},entryFrom:{x:0,y:0},enemies:[],enemyShots:[],shots:[],fire:0,heading:0,returned:false,timeoutTriggered:false,bombOrigin:null};}
 export function exileOutside(e:Engine){return e.pattern.id==='exile'&&e.phase==='active'&&e.advanced.exile.detached;}
 export function enterExile(e:Engine){const size=e.gridSize(),x=e.advanced.exile;x.viewW=size.w;x.viewH=size.h;x.w=size.w*1.75;x.h=size.h*1.6;x.from=e.localPlayer();x.portal={x:x.w*.29,y:-x.h*.28};e.cooldown=5;}
 export function seedExileEnemies(e:Engine){
@@ -15,13 +19,44 @@ export function seedExileEnemies(e:Engine){
  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
   const p={x:-x.w/2+(col+.5+(e.random()-.5)*.45)*x.w/cols,y:-x.h/2+(row+.5+(e.random()-.5)*.45)*x.h/rows};
   if(distance(p,landing)<175||distance(p,x.portal)<100)continue;
-  x.enemies.push({...p,hp:2,age:1,vx:0,vy:0});
+  const shooter=e.stage>=2&&(row*cols+col)%4===0;
+  x.enemies.push({...p,hp:shooter?3:2,age:1,vx:0,vy:0,
+    kind:shooter?(row%2?'shooter-carrier':'shooter-eye'):'swarm',
+    fireTimer:shooter?.7+e.random()*1.1:undefined});
  }
- x.spawn=.65;
+ x.spawn=.43;
 }
 function setState(e:Engine,state:Exile['state']){
  const x=e.advanced.exile;x.state=state;x.age=0;
  if(state==='explore'&&!x.enemies.length)seedExileEnemies(e);
+}
+/** A timed-out exile destroys the ENTIRE outside space and costs precisely one LIFE.
+ * Deliberately bypasses hit() cooldown: a last-second bomb or ordinary hit cannot
+ * neutralise the deadline, and the blast is applied only once. */
+export function collapseExile(e:Engine){
+ const x=e.advanced.exile;
+ if(x.state!=='explore'||x.timeoutTriggered)return;
+ x.timeoutTriggered=true;
+ x.velocity={x:0,y:0};x.enemies=[];x.enemyShots=[];x.shots=[];
+ e.hits++;e.hp=Math.max(0,e.hp-1);e.cooldown=2.8;e.damageFlash=1.25;
+ e.shake=Math.max(e.shake,.85);e.smartBombActive=false;e.bombParticles=[];
+ e.log(`추방 공간 대폭발 · 제한시간 초과 · LIFE -1 (${e.hp})`);
+ if(e.hp<=0){e.deaths++;e.dead=1.1;e.log('LIFE 0 · 추방 공간 붕괴 → GAME OVER');}
+ setState(e,'collapse');e.notify();
+}
+function spawnExileEnemy(e:Engine,p:Vec):ExileEnemy{
+ const shooter=e.stage>=2&&e.random()<.27;
+ return {...p,vx:0,vy:0,hp:shooter?3:2,age:0,
+  kind:shooter?(e.random()<.5?'shooter-eye':'shooter-carrier'):'swarm',
+  fireTimer:shooter?.8+e.random()*.7:undefined};
+}
+function updateExileEnemyShots(e:Engine,dt:number){
+ const x=e.advanced.exile;
+ for(const bullet of x.enemyShots){
+  bullet.x+=bullet.vx*dt;bullet.y+=bullet.vy*dt;bullet.age+=dt;
+  if(distance(bullet,x.world)<21){e.hit('추방 공간 특수 몬스터 조준탄');bullet.age=99;}
+ }
+ x.enemyShots=x.enemyShots.filter(b=>b.age<5&&Math.abs(b.x)<x.w/2+50&&Math.abs(b.y)<x.h/2+50);
 }
 export function updateExile(e:Engine,dt:number){
  const x=e.advanced.exile;x.age+=dt;e.cooldown=Math.max(e.cooldown,x.state==='explore'?0:.3);
@@ -43,16 +78,63 @@ export function updateExile(e:Engine,dt:number){
   x.travel=distance(x.world,x.flightStart);e.playerFacing=x.heading+Math.sin(k*Math.PI)*-.65;
   if(k>=1){x.velocity={x:0,y:0};setState(e,'explore');e.log('전체 화면 바깥 공간 · 방향키 유영 · SPACE 사격 · 포탈 탐색');}
  }else if(x.state==='explore'){
-  x.spawn-=dt;if(x.spawn<=0){x.spawn=.65-e.stage*.08;if(x.enemies.length<EXILE_MAX_ENEMIES){const side=Math.floor(e.random()*4),pos=e.random()-.5;
-   const rx=x.viewW*.58,ry=x.viewH*.58,p=side===0?{x:x.world.x+pos*x.viewW,y:x.world.y-ry}:side===1?{x:x.world.x+rx,y:x.world.y+pos*x.viewH}:side===2?{x:x.world.x+pos*x.viewW,y:x.world.y+ry}:{x:x.world.x-rx,y:x.world.y+pos*x.viewH};p.x=clamp(p.x,-x.w/2+30,x.w/2-30);p.y=clamp(p.y,-x.h/2+30,x.h/2-30);x.enemies.push({...p,vx:0,vy:0,hp:2,age:0});}}
-  for(const m of x.enemies){m.age+=dt;const d=distance(m,x.world)||1,sp=19+e.stage*4;m.vx=(x.world.x-m.x)/d*sp;m.vy=(x.world.y-m.y)/d*sp;m.x+=m.vx*dt;m.y+=m.vy*dt;if(d<28)e.hit('화면 밖 오염 군집');}
-  x.fire-=dt;if((e.keys.has(' ')||e.autoFire)&&x.fire<=0&&nativeCanFire(e)){x.fire=nativeFireInterval(e);x.shots.push(...emitNativeShots(e,x.world,x.heading));}
-  for(const s of x.shots){moveNativeShot(e,s,dt);if(s.age>=3)continue;const prev={x:s.x,y:s.y};s.age+=dt;s.x+=(s.vx??0)*dt;s.y+=s.vy*dt;const beam=isNativeBeam(s);const m=beam?nearestExileEnemy(x):x.enemies.find(m=>m.hp>0&&segmentDistance(m,prev,s)<24);if(m&&(!beam||e.clock>=(s.beamNextHit??0))){m.hp-=shotDamage(s);if(beam)s.beamNextHit=e.clock+.12;else s.age=10;}}
-  x.shots=x.shots.filter(s=>s.age<3);x.enemies=x.enemies.filter(m=>m.hp>0&&m.age<150);
-  if(distance(x.world,x.portal)<58){x.entryFrom={...x.world};setState(e,'enter');e.log('복귀 포탈 진입');}
+  // The countdown starts only when steering/exploration begins, not on the throw.
+  if(x.age>=exileDeadline(e.stage)){collapseExile(e);}
+  else{
+   x.spawn-=dt;
+   if(x.spawn<=0){
+    x.spawn=.43-e.stage*.05; // ~1.5x the former reinforcement rate.
+    if(x.enemies.length<EXILE_MAX_ENEMIES){
+     const side=Math.floor(e.random()*4),pos=e.random()-.5,rx=x.viewW*.58,ry=x.viewH*.58;
+     const p=side===0?{x:x.world.x+pos*x.viewW,y:x.world.y-ry}:side===1?{x:x.world.x+rx,y:x.world.y+pos*x.viewH}:side===2?{x:x.world.x+pos*x.viewW,y:x.world.y+ry}:{x:x.world.x-rx,y:x.world.y+pos*x.viewH};
+     p.x=clamp(p.x,-x.w/2+30,x.w/2-30);p.y=clamp(p.y,-x.h/2+30,x.h/2-30);
+     x.enemies.push(spawnExileEnemy(e,p));
+    }
+   }
+   for(const m of x.enemies){
+    m.age+=dt;
+    const d=distance(m,x.world)||1,shooter=m.kind==='shooter-eye'||m.kind==='shooter-carrier';
+    const sp=shooter?(d<190?0:24+e.stage*4):19+e.stage*4;
+    m.vx=(x.world.x-m.x)/d*sp;m.vy=(x.world.y-m.y)/d*sp;
+    m.x+=m.vx*dt;m.y+=m.vy*dt;
+    if(d<28)e.hit('화면 밖 오염 군집');
+    if(shooter){
+     m.fireTimer=(m.fireTimer??1)-dt;
+     // Only visible shooters may fire, with a cap to prevent projectile overload.
+     if(m.fireTimer<=0){
+      m.fireTimer=(e.stage>=3?1.45:1.75)+e.random()*.42;
+      if(exileEnemyVisible(x,m)&&d<690&&d>42&&x.enemyShots.length<96){
+       const speed=180+e.stage*15;
+       x.enemyShots.push({x:m.x,y:m.y,vx:(x.world.x-m.x)/d*speed,vy:(x.world.y-m.y)/d*speed,
+        age:0,color:m.kind==='shooter-carrier'?'#ffd79d':'#97eaff'});
+      }
+     }
+    }
+   }
+   updateExileEnemyShots(e,dt);
+   x.fire-=dt;
+   if((e.keys.has(' ')||e.autoFire)&&x.fire<=0&&nativeCanFire(e)){
+    x.fire=nativeFireInterval(e);x.shots.push(...emitNativeShots(e,x.world,x.heading));
+   }
+   for(const s of x.shots){
+    moveNativeShot(e,s,dt);if(s.age>=3)continue;
+    const prev={x:s.x,y:s.y};s.age+=dt;s.x+=(s.vx??0)*dt;s.y+=s.vy*dt;
+    const beam=isNativeBeam(s),m=beam?nearestExileEnemy(x):x.enemies.find(m=>m.hp>0&&segmentDistance(m,prev,s)<24);
+    if(m&&(!beam||e.clock>=(s.beamNextHit??0))){m.hp-=shotDamage(s);if(beam)s.beamNextHit=e.clock+.12;else s.age=10;}
+   }
+   x.shots=x.shots.filter(s=>s.age<3);
+   x.enemies=x.enemies.filter(m=>m.hp>0&&m.age<150);
+   if(distance(x.world,x.portal)<58){x.entryFrom={...x.world};x.enemyShots=[];setState(e,'enter');e.log('복귀 포탈 진입');}
+  }
+ }else if(x.state==='collapse'){
+  // Let the world finish its explosion before sending surviving players home.
+  if(x.age>=1.65&&e.hp>0){
+   x.detached=false;e.player=e.point(.5,.76);x.enemies=[];x.enemyShots=[];x.shots=[];
+   setState(e,'return');e.log('추방 공간 붕괴 후 강제 복귀');
+  }
  }else if(x.state==='enter'){
   const k=smooth(x.age/.9);x.world={x:x.entryFrom.x+(x.portal.x-x.entryFrom.x)*k,y:x.entryFrom.y+(x.portal.y-x.entryFrom.y)*k};
-  if(x.age>.95){setState(e,'return');x.detached=false;e.player=e.point(.5,.76);x.enemies=[];x.shots=[];}
+  if(x.age>.95){setState(e,'return');x.detached=false;e.player=e.point(.5,.76);x.enemies=[];x.enemyShots=[];x.shots=[];}
  }else if(x.state==='return'&&x.age>1.25){x.returned=true;setState(e,'done');e.finish();}
  if(x.detached){
   const size=e.gridSize();x.viewW=size.w;x.viewH=size.h;const target={x:clamp(x.world.x+x.viewW*.18,-x.w/2+x.viewW/2,x.w/2-x.viewW/2),y:clamp(x.world.y,-x.h/2+x.viewH/2,x.h/2-x.viewH/2)},k=1-Math.exp(-5*dt);
@@ -99,7 +181,26 @@ export function drawExile(e:Engine,c:CanvasRenderingContext2D,drawPlayer:(p:Vec)
  // The intact arena keeps its original artwork and HUD while moving off to the right.
  c.save();c.translate(panel.x,panel.y);c.scale(panel.scale,panel.scale);drawArena();c.restore();
  c.save();c.translate(w/2-x.camera.x,h/2-x.camera.y);
-  for(const m of x.enemies){if(!exileEnemyVisible(x,m))continue;c.save();c.translate(m.x,m.y);c.rotate(m.age*.3);c.globalAlpha=smooth(m.age/.7);c.drawImage(enemySprite(m.hp<2),-48,-48);c.restore();}
+  for(const m of x.enemies){
+   if(!exileEnemyVisible(x,m))continue;
+   c.save();c.translate(m.x,m.y);c.globalAlpha=smooth(m.age/.7);
+   if(m.kind==='shooter-eye'||m.kind==='shooter-carrier'){
+    const asset=m.kind==='shooter-eye'?'bossSupportEye':'bossSupportCarrier';
+    const size=72+Math.sin(m.age*3)*4;
+    if(!sprite(c,asset,0,0,size,size)){
+     c.fillStyle=m.kind==='shooter-eye'?'#77d5ff':'#e7bc7e';c.strokeStyle='#fff';c.lineWidth=2;
+     c.beginPath();c.arc(0,0,22,0,Math.PI*2);c.fill();c.stroke();
+     c.fillStyle='#191132';c.fillRect(-9,-5,18,10);
+    }
+   }else{c.rotate(m.age*.3);c.drawImage(enemySprite(m.hp<2),-48,-48);}
+   c.restore();
+  }
+  for(const bullet of x.enemyShots){
+   c.save();c.translate(bullet.x,bullet.y);
+   c.shadowColor=bullet.color;c.shadowBlur=16;c.fillStyle=bullet.color;
+   c.beginPath();c.arc(0,0,8,0,Math.PI*2);c.fill();
+   c.fillStyle='#fff';c.beginPath();c.arc(0,0,3,0,Math.PI*2);c.fill();c.restore();
+  }
  if(x.state==='drift'){
   const k=clamp(x.age/1.85,0,1);c.save();c.translate(x.breakAt.x,x.breakAt.y);
   for(let i=0;i<30;i++){const a=i*2.399,r=25+k*(70+i*5);c.save();c.translate(Math.cos(a)*r,Math.sin(a)*r);c.rotate(a+k*3);c.globalAlpha=(1-k)*.85;c.fillStyle=i%3?'#603c9e':'#d6b9ff';c.beginPath();c.moveTo(-9,-18);c.lineTo(14,-4);c.lineTo(4,20);c.closePath();c.fill();c.restore();}c.restore();
@@ -119,5 +220,40 @@ export function drawExile(e:Engine,c:CanvasRenderingContext2D,drawPlayer:(p:Vec)
   const dest={x:w/2+x.portal.x-x.camera.x,y:h/2+x.portal.y-x.camera.y},avatar={x:w/2+x.world.x-x.camera.x,y:h/2+x.world.y-x.camera.y},ang=Math.atan2(dest.y-avatar.y,dest.x-avatar.x),cl={x:clamp(dest.x,64,w-64),y:clamp(dest.y,170,h-80)};
   c.save();c.translate(cl.x,cl.y);c.rotate(ang);c.fillStyle='#a2ffe1';c.shadowColor='#6effd8';c.shadowBlur=15;c.beginPath();c.moveTo(23,0);c.lineTo(-10,-12);c.lineTo(-10,12);c.closePath();c.fill();c.restore();c.fillStyle='#c5ffec';c.textAlign='center';c.font='bold 18px "Noto Sans KR"';c.fillText('복귀 포탈',cl.x,cl.y+37);
   c.save();c.translate(30,115);c.fillStyle='#070b18cc';c.fillRect(0,0,170,110);c.strokeStyle='#8b64ac';c.strokeRect(0,0,170,110);c.fillStyle='#b78cef';for(const m of x.enemies)c.fillRect((m.x/x.w+.5)*170,(m.y/x.h+.5)*110,2,2);c.fillStyle='#7cffdc';c.beginPath();c.arc((x.portal.x/x.w+.5)*170,(x.portal.y/x.h+.5)*110,5,0,Math.PI*2);c.fill();c.fillStyle='#fff';c.beginPath();c.arc((x.world.x/x.w+.5)*170,(x.world.y/x.h+.5)*110,3,0,Math.PI*2);c.fill();c.restore();
- }c.restore();
+ }
+ // The timer belongs to the browser-wide exile view, not the retreating arena.
+ if(x.state==='explore'||x.state==='enter'){
+  const limit=exileDeadline(e.stage),remaining=Math.max(0,limit-x.age),critical=remaining<=5&&x.state==='explore';
+  c.save();c.translate(w/2,38);c.fillStyle='rgba(4,6,17,.9)';c.strokeStyle=critical?'#ff8d73':'#bea0e8';c.lineWidth=2;
+  c.fillRect(-184,-22,368,64);c.strokeRect(-184,-22,368,64);
+  c.font='900 18px "Noto Sans KR",sans-serif';c.textAlign='center';c.fillStyle=critical?'#ffd0ba':'#f1eaff';
+  c.fillText(x.state==='enter'?'복귀 포탈 진입 중':`공간 붕괴까지 ${remaining.toFixed(1)}초`,0,4);
+  c.fillStyle='#3b214a';c.fillRect(-162,19,324,7);
+  c.fillStyle=critical?'#ff765a':'#8fffe0';c.fillRect(-162,19,324*(x.state==='enter'?1:remaining/limit),7);
+  c.restore();
+ }
+ if(x.state==='collapse'){
+  const k=clamp(x.age/1.65,0,1),burst=smooth(k/.45),fade=1-smooth((k-.58)/.42);
+  c.save();c.fillStyle=`rgba(20,0,40,${.55+.35*burst})`;c.fillRect(0,0,w,h);
+  const cx=w/2,cy=h/2,radius=Math.hypot(w,h)*(.16+.96*burst);
+  const aura=c.createRadialGradient(cx,cy,0,cx,cy,radius);
+  aura.addColorStop(0,`rgba(255,248,244,${.88*fade})`);
+  aura.addColorStop(.2,`rgba(236,103,255,${.9*fade})`);
+  aura.addColorStop(.55,`rgba(146,43,215,${.63*fade})`);
+  aura.addColorStop(1,'rgba(23,0,36,0)');
+  c.fillStyle=aura;c.fillRect(0,0,w,h);
+  c.translate(cx,cy);
+  for(let i=0;i<36;i++){
+   const a=(i+.3*Math.sin(i*5.1))*Math.PI*2/36,inner=radius*(.09+i%3*.045);
+   c.strokeStyle=i%3===0?'#fff0fe':'#c777ef';c.globalAlpha=fade*(.36+.44*(i%3===0?1:.65));
+   c.lineWidth=i%4===0?7:3;c.beginPath();
+   c.moveTo(Math.cos(a)*inner,Math.sin(a)*inner);
+   c.lineTo(Math.cos(a)*radius,Math.sin(a)*radius);c.stroke();
+  }
+  c.globalAlpha=1;c.textAlign='center';c.fillStyle='#fff';c.shadowColor='#c051ff';c.shadowBlur=18;
+  c.font='900 38px "Noto Sans KR",sans-serif';c.fillText('추방 공간 대폭발',0,-20);
+  c.fillStyle='#ffe4ac';c.font='900 30px "Noto Sans KR",sans-serif';c.fillText('LIFE −1',0,36);
+  c.restore();
+ }
+ c.restore();
 }

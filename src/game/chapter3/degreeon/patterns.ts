@@ -86,6 +86,29 @@ function drawFluid(e:Engine,c:CanvasRenderingContext2D){
   c.restore();
   const center={x:g.x*surface,y:g.y*surface},span=Math.hypot(e.fieldW,e.fieldH);c.save();c.strokeStyle='#e3bdff';c.shadowColor='#b277ff';c.shadowBlur=14;c.lineWidth=3;c.beginPath();for(let i=0;i<=80;i++){const u=(i/80-.5)*span,p={x:center.x+t.x*u+g.x*Math.sin(i*.52+e.clock*5.3)*4,y:center.y+t.y*u+g.y*Math.sin(i*.52+e.clock*5.3)*4};i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y);}c.stroke();c.shadowBlur=0;c.restore();
 }
+/** Smooth, alternating fluid rotation with genuine motionless pauses. */
+export function fluidRotationAt(t:number,stage:number):number{
+ if(stage<2)return stage===0?Math.sin(t*.58)*.18:Math.sin(t*.46)*.44;
+ const speed=stage===3?1.68:1.28;
+ const pieces:[number,number][]=[[3.6,1],[1.8,0],[3.5,-1],[2.0,0],[3.8,-1],[1.8,0],[3.5,1],[1.9,0]];
+ const ramp=(age:number,duration:number)=>age/2-duration*Math.sin(2*Math.PI*age/duration)/(4*Math.PI);
+ const span=pieces.reduce((sum,p)=>sum+p[0],0);
+ const cycle=pieces.reduce((sum,[duration,dir])=>sum+dir*speed*duration/2,0);
+ const loops=Math.floor(Math.max(0,t)/span);
+ let remain=Math.max(0,t)-loops*span,angle=loops*cycle;
+ for(const [duration,dir] of pieces){
+  const used=Math.min(duration,remain);
+  angle+=dir*speed*ramp(used,duration);
+  remain-=used;
+  if(remain<=0)break;
+ }
+ return angle;
+}
+/** Actual flood ceiling; projectiles are locked out until the fluid has reached it. */
+export function fluidReadyToFire(e:Engine):boolean{
+ const full=Math.min(1,.9+e.stage*.015);
+ return e.fluidFill>=full-.012;
+}
 export const patterns:Pattern[]=[
   make('wall','세로 → 가로 전환','AXIS BREAK','일반 공격을 유지하며 전장을 가로 방향으로 전환합니다.',1,['전투 축의 전환','가로 전투','일반 공격과 조합','가로 복합 전투'],30,noop),
   make('rhythm','5레인 리듬게임','RHYTHM DETONATION','↑↓ 레인 이동 · 노트가 판정선에 닿으면 그 레인이 폭발합니다.',1,['단일 노트 학습','두 레인 동시','시간차 계단','동시 / 계단 / 왕복 / 홀드'],29,e=>{
@@ -166,17 +189,14 @@ export const patterns:Pattern[]=[
       if(e.tileTimer<=0){e.tileState='recover';e.tileTimer=e.stage>=2?(e.stage===3?.36:.43):Math.max(.42,.72-e.stage*.07);e.tileDanger=[];e.tileSafe=[];e.tileRound++;}
     }
   },drawTilePattern,e=>{const size=e.gridSize();e.fieldW=size.w;e.fieldH=size.h;e.tileCols=Math.max(3,Math.round(e.fieldW/280));e.tileRows=Math.max(3,Math.round(e.fieldH/280));if(!e.encounter.enabled)e.boss={x:0,y:-e.fieldH/2+140};e.tileRound=0;e.tileState='recover';e.tileTimer=.85;e.tileDanger=[];e.tileSafe=[];}),
-  make('fluid','오염 액체 범람','CORRUPTION FLUID','차오르는 오염 액체로 떨어집니다. 입수 후 방향키로 몸을 돌려 헤엄치세요.',0,['액체 상승 / 저항 학습','기울기와 흐름 변화','360° 회전 유체','연속 회전 + 사방 탄막'],29,(e,dt)=>{
+  make('fluid','오염 액체 범람','CORRUPTION FLUID','차오르는 오염 액체로 떨어집니다. 입수 후 방향키로 몸을 돌려 헤엄치세요.',0,['액체 상승 / 저항 학습','기울기와 흐름 변화','360° 회전 유체','양방향 회전 / 정지 / 사방 탄막'],34,(e,dt)=>{
     const target=e.emitting?clamp(.08+e.t*.105,.08,.9+e.stage*.015):0;e.fluidFill+=(target-e.fluidFill)*Math.min(1,dt*3.4);
     const rotationAnchor=e.localPlayer();
-    if(e.emitting){if(e.stage===0)e.angle=Math.sin(e.t*.58)*.18;
-    else if(e.stage===1)e.angle=Math.sin(e.t*.46)*.44;
-    else if(e.stage===2)e.angle=e.t/16*Math.PI*2;
-    else e.angle=e.t/9.5*Math.PI*2+Math.sin(e.t*.7)*.13;}
+    if(e.emitting)e.angle=fluidRotationAt(e.t,e.stage);
     e.player=e.screen(rotationAnchor);
     e.orientation=(Math.round(e.angle/(Math.PI/2))%4+4)%4;const g=e.gravityLocal(),t={x:-g.y,y:g.x},fall=42+e.stage*18+Math.abs(Math.sin(e.angle))*20,side=Math.sin(e.t*.72)*22;
     e.fluidFlow={x:g.x*fall+t.x*side,y:g.y*fall+t.y*side};
-    if(e.emitting&&e.beat<=0){e.beat=Math.max(.82,1.48-e.stage*.14);const spawn=(sideIndex:number)=>{const along=e.random()-.5,p=sideIndex===0?{x:along*e.fieldW,y:-e.fieldH/2-16}:sideIndex===1?{x:e.fieldW/2+16,y:along*e.fieldH}:sideIndex===2?{x:along*e.fieldW,y:e.fieldH/2+16}:{x:-e.fieldW/2-16,y:along*e.fieldH},target=e.localPlayer(),a=Math.atan2(target.y-p.y,target.x-p.x)+(e.random()-.5)*.22,sp=45+e.stage*7+e.random()*14;e.add({...p,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:9+e.random()*3,warn:.7,life:11,color:'#c477ff',tag:'유체 오염탄'});};const sideIndex=e.counter%4;spawn(sideIndex);if(e.stage>=2)spawn((sideIndex+2)%4);e.counter++;}
+    if(e.emitting&&fluidReadyToFire(e)&&e.beat<=0){e.beat=Math.max(.82,1.48-e.stage*.14);const spawn=(sideIndex:number)=>{const along=e.random()-.5,p=sideIndex===0?{x:along*e.fieldW,y:-e.fieldH/2-16}:sideIndex===1?{x:e.fieldW/2+16,y:along*e.fieldH}:sideIndex===2?{x:along*e.fieldW,y:e.fieldH/2+16}:{x:-e.fieldW/2-16,y:along*e.fieldH},target=e.localPlayer(),a=Math.atan2(target.y-p.y,target.x-p.x)+(e.random()-.5)*.22,sp=45+e.stage*7+e.random()*14;e.add({...p,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:9+e.random()*3,warn:.7,life:11,color:'#c477ff',tag:'유체 오염탄'});};const sideIndex=e.counter%4;spawn(sideIndex);if(e.stage>=2)spawn((sideIndex+2)%4);e.counter++;}
   },drawFluid,e=>{e.fieldW=CANVAS_W;e.fieldH=CANVAS_H;e.fluidFill=.05;e.fluidPlayerV={x:0,y:0};e.fluidHeading=0;e.fluidThrottle=0;e.fluidFlow={x:0,y:25};e.boss={x:0,y:-230};})
   ,...advancedPatterns,...menuDeceptionPatterns,...normalBulletPatterns,...corridorPatterns,finalStandPattern,pauseStormPattern,graduationStampPattern,pathFoldPattern,recyclePattern,...unseenPatterns,...fieldTrickPatterns,...extraNormalPatterns,tileStreamPattern
 ];

@@ -251,7 +251,7 @@ export class Engine {
     this.corridor.beams=this.corridor.beams.filter(b=>{const [a,z]=waveBeamPath(this,b),rect=waveBeamBounds(this,b);return !bombReaches(this,this.nearestPoint(p,a,z),Math.min(rect.w,rect.h)/2);});
     clearStormByBomb(this);clearMenuByBomb(this);clearStampByBomb(this);clearPathFoldByBomb(this);clearRecycleByBomb(this);clearUnseenByBomb(this);
     for(const w of this.advanced.walls)for(let i=0;i<w.cells.length;i++){if(w.cells[i]<=0)continue;const center={x:-this.fieldW/2+(i%w.cols+.5)*w.cellW,y:w.y+(Math.floor(i/w.cols)+.5-w.rows/2)*w.cellH};if(bombReaches(this,center,Math.hypot(w.cellW,w.cellH)/2))w.cells[i]=0;}
-    if(exileOutside(this)){const x=this.advanced.exile;x.enemies=x.enemies.filter(m=>!bombReaches(this,m,27));}
+    if(exileOutside(this)){const x=this.advanced.exile;x.enemies=x.enemies.filter(m=>!bombReaches(this,m,27));x.enemyShots=x.enemyShots.filter(b=>!bombReaches(this,b,9));}
     else if(!isMenuDeception(this)&&!this.smartBombHitBoss&&this.purification<0&&this.phase==='active'&&bombReaches(this,this.boss,52)){this.smartBombHitBoss=true;this.damageBoss(SMART_BOMB_BOSS_DAMAGE);this.fx(this.boss,'burst',82,'#ffe684',.7);}
   }
   nearestPoint(p:Vec,a:Vec,b:Vec):Vec{const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return {x:a.x+dx*t,y:a.y+dy*t};}
