@@ -10,7 +10,7 @@ import { drawBulletVisual } from './bulletVisuals';
 import { drawFieldWarpWarning } from './fieldWarp';
 import { drawPauseWindow } from './pauseWindow';
 import { drawPauseStormOverlay } from './pauseStorm';
-import {sprite,background} from './resources';
+import {sprite,spriteNatural,background} from './resources';
 import type { Engine, Vec } from './engine';
 import { clamp, smooth, distance, CANVAS_W, CANVAS_H, CANVAS_CX, CANVAS_CY, PLAYER_HIT_RADIUS, MAX_HP, MAX_BOMBS, linkEndpoints } from './core';
 const font='"Noto Sans KR", sans-serif';
@@ -131,13 +131,13 @@ function drawTransition(e:Engine,c:CanvasRenderingContext2D){
   if(e.phase==='outro'){title=e.pattern.id==='clones'?'세 기체가 하나로 합쳐집니다':'전장 복귀';desc=e.pendingBombard?'예약된 오염 폭격이 이어집니다.':'다음 단계로 이동합니다.';}
   if(e.phase==='bombard'){title=`오염 폭격 · ${e.bombTotal}발`;desc='전장 전체 확장 · 착탄 경고원을 피하세요.';}
   if(e.phase==='restore'){title='폭격 종료';desc='원래 전장 크기를 복구합니다.';}
-  c.fillStyle='#0b0d1ee8';c.fillRect(46,419,830,122);c.textAlign='center';c.fillStyle='#97f4df';c.font=`800 10px ${font}`;c.fillText('DEGREEON / RULE TRANSITION',CANVAS_CX,443);c.fillStyle='#efe7fa';c.font=`bold 24px ${font}`;c.fillText(title,CANVAS_CX,481);c.font=`800 12px ${font}`;c.fillStyle='#b4a7c5';c.fillText(desc,CANVAS_CX,513);
+  c.fillStyle='#0b0d1ee8';c.fillRect(46,419,830,122);c.textAlign='center';c.fillStyle='#97f4df';c.font=`10px ${font}`;c.fillText('DEGREEON / RULE TRANSITION',CANVAS_CX,443);c.fillStyle='#efe7fa';c.font=`bold 24px ${font}`;c.fillText(title,CANVAS_CX,481);c.font=`12px ${font}`;c.fillStyle='#b4a7c5';c.fillText(desc,CANVAS_CX,513);
 }
 function drawPause(e:Engine,c:CanvasRenderingContext2D){
   if(!e.paused||e.gameOver||e.hostPauseDialog)return;c.save();c.translate(CANVAS_CX,CANVAS_CY);c.fillStyle='rgba(0,0,0,.78)';c.fillRect(-e.canvas.width/2,-e.canvas.height/2,e.canvas.width,e.canvas.height);drawPauseWindow(c);c.restore();
 }
 function drawGameOver(e:Engine,c:CanvasRenderingContext2D){
-  if(!e.gameOver)return;c.fillStyle='rgba(0,0,0,.82)';c.fillRect(0,0,CANVAS_W,CANVAS_H);c.textAlign='center';c.fillStyle='#ff4858';c.font=`900 42px ${font}`;c.fillText('GAME OVER',CANVAS_CX,438);c.fillStyle='#fff';c.font=`800 20px ${font}`;c.fillText('호반우가 쓰러졌습니다',CANVAS_CX,481);c.fillStyle='#c2b7c5';c.font=`800 14px ${font}`;c.fillText('R 키로 다시 도전할 수 있습니다',CANVAS_CX,520);
+  if(!e.gameOver)return;c.fillStyle='rgba(0,0,0,.82)';c.fillRect(0,0,CANVAS_W,CANVAS_H);c.textAlign='center';c.fillStyle='#ff4858';c.font=`900 42px ${font}`;c.fillText('GAME OVER',CANVAS_CX,438);c.fillStyle='#fff';c.font=`800 20px ${font}`;c.fillText('호반우가 쓰러졌습니다',CANVAS_CX,481);c.fillStyle='#c2b7c5';c.font=`14px ${font}`;c.fillText('R 키로 다시 도전할 수 있습니다',CANVAS_CX,520);
 }
 function drawExiledArena(e:Engine,c:CanvasRenderingContext2D){
   c.save();c.fillStyle='#080b17';c.fillRect(-CANVAS_CX,-CANVAS_CY,CANVAS_W,CANVAS_H);background(e,c);drawBoss(e,c,1);
@@ -194,8 +194,16 @@ export function drawScene(e:Engine){
   }
   for(const laser of e.lasers){const active=laser.age>=2.4;c.save();c.strokeStyle=active?'#d2a1ff':'#c08eff';c.shadowColor='#aa65ff';c.shadowBlur=active?15:0;c.lineWidth=active?5:1.4;if(!active){c.setLineDash([7,7]);c.globalAlpha=.35+.45*clamp(laser.age/2.4,0,1);}for(const path of laser.paths){const segments=active?activeLaserSegments(e,laser,path):path.slice(1).map((b,i)=>[path[i],b] as [Vec,Vec]);for(const [a,b] of segments){line(c,a,b);if(active){c.save();c.strokeStyle='#f9d9ff';c.lineWidth=1.3;c.globalAlpha=.8;line(c,a,b);c.restore();}}}c.restore();}
   for(const shot of e.shots)drawNativeShot(e,c,shot);c.shadowBlur=0;
-  for(const a of e.enemies){c.save();c.translate(a.x,a.y);c.rotate(Math.sin(a.age*2)*.15);c.fillStyle=a.color;c.strokeStyle='#f0dcff';c.shadowColor=a.color;c.shadowBlur=12;poly(c,[{x:0,y:-a.r},{x:a.r,y:0},{x:0,y:a.r},{x:-a.r,y:0}]);c.fill();c.stroke();c.restore();}
-  for(const a of e.items){c.save();c.translate(a.x,a.y);c.rotate(a.age);c.strokeStyle=a.color;c.fillStyle=a.color+'44';c.lineWidth=2;poly(c,[{x:0,y:-a.r},{x:a.r,y:0},{x:0,y:a.r},{x:-a.r,y:0}]);c.fill();c.stroke();c.rotate(-a.age);c.fillStyle=a.color;c.font='bold 13px '+font;c.textAlign='center';c.fillText(a.item==='life'?'L':a.item==='bomb'?'B':'E',0,5);c.restore();}
+  for(const a of e.enemies){c.save();
+    if(a.supportKind){
+      c.shadowColor=a.color;c.shadowBlur=9;
+      c.save();c.translate(a.x,a.y);c.rotate(Math.sin(a.age*2)*.045);
+      const key=a.supportKind==='carrier'?'bossSupportCarrier':'bossSupportEye';
+      if(!spriteNatural(c,key,0,0,136)){c.fillStyle=a.color;c.strokeStyle='#f0dcff';poly(c,[{x:0,y:-a.r},{x:a.r,y:0},{x:0,y:a.r},{x:-a.r,y:0}]);c.fill();c.stroke();}
+      c.restore();
+    }else{c.translate(a.x,a.y);c.rotate(Math.sin(a.age*2)*.15);c.fillStyle=a.color;c.strokeStyle='#f0dcff';c.shadowColor=a.color;c.shadowBlur=12;poly(c,[{x:0,y:-a.r},{x:a.r,y:0},{x:0,y:a.r},{x:-a.r,y:0}]);c.fill();c.stroke();}
+    c.restore();}
+  for(const a of e.items){c.save();c.translate(a.x,a.y);c.rotate(a.age);c.strokeStyle=a.color;c.fillStyle=a.color+'44';c.lineWidth=2;poly(c,[{x:0,y:-a.r},{x:a.r,y:0},{x:0,y:a.r},{x:-a.r,y:0}]);c.fill();c.stroke();c.rotate(-a.age);c.fillStyle=a.color;c.font='bold 13px '+font;c.textAlign='center';c.fillText(a.item==='life'?'L':a.item==='bomb'?'B':'P',0,5);c.restore();}
   const bossScale=e.encounter.enabled||e.pattern.id==='flight'?1:e.phase==='intro'?smooth(e.phaseTime/.9):e.phase==='outro'?1-smooth(e.phaseTime/1.8):1;drawBoss(e,c,bossScale);drawFlightPresence(e,c);
   for(const f of e.effects){const k=f.age/f.life;c.save();c.strokeStyle=f.color;c.fillStyle=f.color;c.globalAlpha=1-k;c.shadowColor=f.color;c.shadowBlur=15;c.lineWidth=2;if(f.kind==='lane'){ring(c,f,10+k*f.radius);c.globalAlpha=(1-k)*.25;c.fillRect(f.x-e.fieldW/10+5,-e.fieldH/2,e.fieldW/5-10,e.fieldH);c.globalAlpha=1-k;c.lineWidth=4;line(c,{x:f.x,y:f.y-k*220},{x:f.x,y:f.y+k*220});c.lineWidth=1;line(c,{x:f.x-12,y:f.y-k*180},{x:f.x-12,y:f.y+k*180});line(c,{x:f.x+12,y:f.y-k*180},{x:f.x+12,y:f.y+k*180});}else if(f.kind==='burst'){ring(c,f,8+f.radius*k);for(let i=0;i<9;i++){const a=i*2.399+f.x*.1,d=f.radius*k;c.fillRect(f.x+Math.cos(a)*d-2,f.y+Math.sin(a)*d-2,4,4);}}else{ring(c,f,5+f.radius*k);ring(c,f,3+f.radius*k*.65);if(f.kind==='bomb'){c.globalAlpha=(1-k)*.16;c.beginPath();c.arc(f.x,f.y,f.radius*k,0,Math.PI*2);c.fill();}}c.restore();}
   c.restore();c.restore();
@@ -204,7 +212,7 @@ export function drawScene(e:Engine){
   if(!outside)drawSmartBomb(e,c);
   c.restore(); // HUD and title cards are part of the physical rotating screen.
   drawTransition(e,c);
-  if(e.rotation&&e.phase==='active'){c.fillStyle='#141324df';c.fillRect(211,91,500,38);c.fillStyle='#d7b7ff';c.font=`800 13px ${font}`;c.textAlign='center';c.fillText(e.rotationLive?'전장 회전 · 공격 유지 · 화면 기준 이동':'전장 회전 · 공격 일시 정지',CANVAS_CX,116);}
+  if(e.rotation&&e.phase==='active'){c.fillStyle='#141324df';c.fillRect(211,91,500,38);c.fillStyle='#d7b7ff';c.font=`13px ${font}`;c.textAlign='center';c.fillText(e.rotationLive?'전장 회전 · 공격 유지 · 화면 기준 이동':'전장 회전 · 공격 일시 정지',CANVAS_CX,116);}
   if(e.damageFlash>0){c.fillStyle=`rgba(210,0,24,${.24*clamp(e.damageFlash/.85,0,1)})`;c.fillRect(0,0,CANVAS_W,CANVAS_H);}
   drawBossHud(c,e);drawFinalStandHud(c,e);drawPauseStormOverlay(e,c);drawPause(e,c);drawGameOver(e,c);c.restore();
 }

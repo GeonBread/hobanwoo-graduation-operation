@@ -25,7 +25,8 @@ export type Entity = Vec & {
 };
 export type BulletMotion={kind:'jump'|'stop'|'fork'|'curve'|'edge-burst'|'cross'|'contract'|'slide'|'twins'|'spear';stage?:number;timer?:number;trigger?:number;speed?:number;direction?:Vec;anchor?:Vec;target?:Vec;side?:number;offset?:number;};
 export type Shot = Vec & { native?: import('../../entities').Bullet; beamNextHit?:number; heading?:number; vx?: number; vy: number; age: number; phase?: number;portalCooldown?:number };
-export type WorldActor=Vec&{id:number;vx:number;vy:number;age:number;life:number;r:number;hp:number;color:string;fireTimer:number;firePeriod:number;item:'life'|'bomb'|'energy';value:number;};
+export type WorldActor=Vec&{id:number;vx:number;vy:number;age:number;life:number;r:number;hp:number;color:string;fireTimer:number;firePeriod:number;item:'life'|'bomb'|'energy';value:number;
+  supportKind?:'inspection'|'carrier';supportState?:'enter'|'hover';supportIndex?:number;supportWaveSerial?:number;supportTargetY?:number;supportAnchorX?:number;supportPhase?:number;supportDropResolved?:boolean;pickupRadius?:number;};
 export type Effect = Vec & { age: number; life: number; radius: number; color: string; kind: 'ring'|'lane'|'burst'|'bomb'; lane: number };
 export type Link = { a: Entity; b: Entity; age: number; strength: number; active: boolean };
 export type Laser = { age: number; aim: number; paths: Vec[][]; count: number; fired: boolean; lastReflect: number; reflections: string[];headTime?:number;tailTime?:number; };

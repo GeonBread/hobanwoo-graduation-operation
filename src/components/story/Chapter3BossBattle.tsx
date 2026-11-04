@@ -24,7 +24,7 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit}:Props){
  useEffect(()=>{
   const e=new Engine(canvas.current!,patterns),a=new EncounterAudio();engine.current=e;audio.current=a;
   const state=useAppStore.getState();e.nativeWeapon={style:state.shipStyle,color:state.shipColor,power:initial.current.power,shotIndex:0};e.hostPauseDialog=true;
-  e.playStorySound=k=>{a.enabled=useAppStore.getState().settings.sfxVolume>0;a.play(k);};e.notify=()=>refresh(x=>x+1);
+  e.playStorySound=k=>{a.enabled=useAppStore.getState().settings.sfxVolume>0;a.play(k);};e.onItemPickup=()=>sfx.powerup();e.notify=()=>refresh(x=>x+1);
   e.startEncounter(initial.current.launch.phase===2);if(initial.current.launch.tests)e.paused=true;
   void document.fonts.load('400 52px "Degreeon Black Han"');
   const keyName=(v:KeyboardEvent)=>v.key.length===1?v.key.toLowerCase():v.key;
@@ -33,8 +33,12 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit}:Props){
    if(k==='F7'&&!v.repeat){openTests(!testsRef.current);return;}
    if(testsRef.current){if(k==='Escape')openTests(false);return;}
    if(exitRef.current)return;
-   if((v.target as HTMLElement)?.matches('button,input,select')&&k!=='Escape')return;
-   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(k))v.preventDefault();
+   const bombKey=k==='Shift'||v.code==='ShiftLeft'||v.code==='ShiftRight'||k==='x'||k==='b';
+   // A clicked boss-control button may retain focus; Shift must still reach the
+   // active arena while text-entry controls remain protected from hotkeys.
+   if((v.target as HTMLElement)?.matches('input,select')&&k!=='Escape')return;
+   if((v.target as HTMLElement)?.matches('button')&&k!=='Escape'&&!bombKey)return;
+   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Shift'].includes(k))v.preventDefault();
    a.unlock();sfx.resumeAll();
    if(k==='Escape'&&!v.repeat){e.paused=!e.paused;e.keys.clear();e.notify();return;}
    if(e.paused)return;
@@ -42,7 +46,10 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit}:Props){
    if(k==='F8'&&!v.repeat){skipEncounterPhase(e);return;}
    if(k==='r'&&!v.repeat){e.restart();return;}
    if((k==='Enter'||k===' ')&&e.storyInputLocked){if(!v.repeat)advanceStoryDialogue(e);return;}
-   e.keys.add(k);if((k==='x'||k==='b')&&!v.repeat){e.bomb();sfx.bossExplode();}
+   if(bombKey&&!v.repeat){
+    const before=e.bombs;e.bomb();if(e.bombs<before)sfx.bossExplode();return;
+   }
+   e.keys.add(k);
   };
   const up=(v:KeyboardEvent)=>e.keys.delete(keyName(v));
   const blur=()=>{e.keys.clear();e.paused=true;e.notify();};

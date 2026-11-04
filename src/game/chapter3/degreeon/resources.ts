@@ -10,10 +10,13 @@ export const assetPaths={
  boss2:'assets/chapter3/story/characters/digrion_phase2_final.png',
  bg:'assets/chapter3/combat/boss/backgrounds/chapter3_boss_map.png',
  pure:'assets/chapter3/story/backgrounds/graduation_core_purified.png',
+ bossSupportEye:'assets/chapter3/combat/waves/enemies/inspection_eye.png',
+ bossSupportCarrier:'assets/chapter3/combat/waves/enemies/file_carrier.png',
 };
 export const images:Partial<Record<keyof typeof assetPaths,HTMLImageElement>>={};
 if(typeof Image!=='undefined')for(const [id,path] of Object.entries(assetPaths)){const im=new Image();im.src=root+path;images[id as keyof typeof assetPaths]=im;}
 export function sprite(c:CanvasRenderingContext2D,id:keyof typeof assetPaths,x:number,y:number,w:number,h:number){const im=images[id];if(!im?.complete||!im.naturalWidth)return false;c.drawImage(im,x-w/2,y-h/2,w,h);return true;}
+export function spriteNatural(c:CanvasRenderingContext2D,id:keyof typeof assetPaths,x:number,y:number,w:number){const im=images[id];if(!im?.complete||!im.naturalWidth||!im.naturalHeight)return false;const h=w*im.naturalHeight/im.naturalWidth;c.drawImage(im,x-w/2,y-h/2,w,h);return true;}
 /** Match combat's player width and the source image's 2:3 proportions. */
 export function playerSprite(c:CanvasRenderingContext2D,x:number,y:number,w=48*2.85){const im=images.player;if(!im?.complete||!im.naturalWidth)return false;return sprite(c,'player',x,y,w,w*im.naturalHeight/im.naturalWidth);}
 export function cinematicPlayer(e:Engine,c:CanvasRenderingContext2D,x:number,y:number){const p=playerHoverPose(e.playerAnimClock);c.save();c.translate(x+p.x,y+p.y);c.rotate(p.angle);playerSprite(c,0,0);c.restore();}

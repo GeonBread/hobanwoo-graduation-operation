@@ -24,6 +24,7 @@ import { freshFinalStand } from './finalStand';
 import { freshCorridor,waveBeamPath,waveBeamBounds } from './waveLaser';
 import { freshFieldWarp,syncFieldWarp,updateFieldWarp,fieldWarpCanvasSize } from './fieldWarp';
 import { freshPauseStorm,syncPauseStormField,movePauseStorm,clearStormByBomb,stormScreenShake,beginStormReturn,updateStormReturn } from './pauseStorm';
+import {updateBossSupportActor,updateBossSupportSchedule,defeatBossSupport} from './bossSupport';
 export * from './core';
 import { Vec, BombParticle, Phase, CutPiece, CutTelegraph, Entity, Shot, WorldActor, Effect, Link, Laser, Pattern, polygonArea, polygonCentroid, pointInPolygon, clipPolygon, constrainToPolygon, segmentDistance, circleRect, reflectedPath, CANVAS_W, CANVAS_H, CANVAS_CX, CANVAS_CY, PLAYER_MOVE_SPEED, PLAYER_HIT_RADIUS, MAX_HP, MAX_BOMBS, BASE_FIELD_W, BASE_FIELD_H, BOMBARD_FIELD_W, BOMBARD_FIELD_H, SMART_BOMB_SPEED, SMART_BOMB_BOSS_DAMAGE, modes, clamp, smooth, distance, dot } from './core';
 export class Engine {
@@ -32,6 +33,7 @@ export class Engine {
   flightPresence=freshFlightPresence();
   get emitting(){return !this.encounter.enabled||!this.continuity.closing;}
   encounter=freshEncounter();playStorySound:(kind:StorySound)=>void=()=>{};
+  onItemPickup:()=>void=()=>{};bossSupportTimer=6.5;bossSupportWaveSerial=0;
   startEncounter(practice=false){startEncounter(this,practice);}
   leaveEncounter(){leaveEncounter(this);}
   get storyInputLocked(){return storyCinematic(this);}
@@ -238,7 +240,11 @@ export class Engine {
     if(this.attackLocked)return;
     if(!this.smartBombActive)return;const p=this.smartBombWorldOrigin,r=this.smartBombRadius;
     this.hazards=this.hazards.filter(h=>!bombReaches(this,h,Math.max(h.r,h.w/2,h.h/2)));
-    this.links=this.links.filter(l=>this.hazards.includes(l.a)&&this.hazards.includes(l.b));this.enemies=this.enemies.filter(a=>!bombReaches(this,a,a.r));
+    this.links=this.links.filter(l=>this.hazards.includes(l.a)&&this.hazards.includes(l.b));this.enemies=this.enemies.filter(a=>{
+      if(!bombReaches(this,a,a.r))return true;
+      if(a.supportKind)defeatBossSupport(this,a);
+      return false;
+    });
     this.advanced.bolts=this.advanced.bolts.filter(b=>!b.points.slice(1).some((v,i)=>bombReaches(this,this.nearestPoint(p,b.points[i],v),10)));
     this.lasers=this.lasers.filter(l=>!l.paths.some(path=>path.slice(1).some((v,i)=>bombReaches(this,this.nearestPoint(p,path[i],v),4))));
     this.corridor.beams=this.corridor.beams.filter(b=>{const [a,z]=waveBeamPath(this,b),rect=waveBeamBounds(this,b);return !bombReaches(this,this.nearestPoint(p,a,z),Math.min(rect.w,rect.h)/2);});
@@ -354,8 +360,22 @@ export class Engine {
   makeActor(p:Partial<WorldActor>):WorldActor{return {id:++this.serial,x:0,y:0,vx:0,vy:60,age:0,life:30,r:18,hp:3,color:'#bd89ee',fireTimer:0,firePeriod:0,item:'energy',value:1,...p};}
   updateWorldActors(dt:number){
     const elapsed=new Map<number,number>();for(const a of [...this.enemies,...this.items]){const ad=this.motionTime(a,dt,a.vx,a.vy);a.age+=ad;elapsed.set(a.id,ad);}
-    for(const a of this.enemies){const ad=elapsed.get(a.id)??0;a.fireTimer-=ad;if(a.firePeriod>0&&a.fireTimer<=0){a.fireTimer+=a.firePeriod;const p=this.localPlayer(),d=distance(a,p)||1;this.add({x:a.x,y:a.y,vx:(p.x-a.x)/d*155,vy:(p.y-a.y)/d*155,warn:0,life:10,color:a.color,tag:'일반 몬스터 탄'});}if(distance(a,this.localPlayer())<a.r+PLAYER_HIT_RADIUS)this.hit('일반 몬스터 접촉');}
-    this.enemies=this.enemies.filter(a=>a.hp>0&&a.age<a.life);this.items=this.items.filter(a=>{if(distance(a,this.localPlayer())<a.r+PLAYER_HIT_RADIUS){if(a.item==='life')this.hp=Math.min(MAX_HP,this.hp+a.value);if(a.item==='bomb')this.bombs=Math.min(MAX_BOMBS,this.bombs+a.value);this.fx(a,'ring',32,a.color,.4);return false;}return a.age<a.life;});
+    for(const a of this.enemies){
+      const ad=elapsed.get(a.id)??0;
+      if(a.supportKind)updateBossSupportActor(this,a,ad);
+      else{a.fireTimer-=ad;if(a.firePeriod>0&&a.fireTimer<=0){a.fireTimer+=a.firePeriod;const p=this.localPlayer(),d=distance(a,p)||1;this.add({x:a.x,y:a.y,vx:(p.x-a.x)/d*155,vy:(p.y-a.y)/d*155,warn:0,life:10,color:a.color,tag:'일반 몬스터 탄'});}}
+      if(distance(a,this.localPlayer())<a.r+PLAYER_HIT_RADIUS)this.hit('일반 몬스터 접촉');
+    }
+    this.enemies=this.enemies.filter(a=>a.hp>0&&a.age<a.life);
+    this.items=this.items.filter(a=>{
+      if(this.dead<=0&&!this.gameOver&&distance(a,this.localPlayer())<(a.pickupRadius??a.r+PLAYER_HIT_RADIUS)){
+        if(a.item==='life')this.hp=Math.min(MAX_HP,this.hp+a.value);
+        else if(a.item==='bomb')this.bombs=Math.min(MAX_BOMBS,this.bombs+a.value);
+        else if(a.item==='energy')this.nativeWeapon.power=Math.min(5,this.nativeWeapon.power+a.value);
+        this.fx(a,'ring',32,a.color,.4);this.onItemPickup();return false;
+      }
+      return a.age<a.life;
+    });
   }
   updateShots(dt:number){
     if(this.attackLocked)return;
@@ -383,7 +403,7 @@ export class Engine {
       if(teleportProjectile(this,s,prev,sd)){prev.x=s.x;prev.y=s.y;}
       if(shootGraduationLock(this,s,prev)){s.age=100;}
       else if(attackDestructibles(this,s,prev)){s.age=100;}
-      else if(this.enemies.some(a=>{if(segmentDistance(a,prev,s)>=a.r+4)return false;a.hp-=shotDamage(s);s.age=100;this.fx(a,'ring',20,a.color,.25);return true;})){}
+      else if(this.enemies.some(a=>{if(a.hp<=0||segmentDistance(a,prev,s)>=a.r+4)return false;a.hp-=shotDamage(s);s.age=100;this.fx(a,'ring',20,a.color,.25);if(a.hp<=0&&a.supportKind)defeatBossSupport(this,a);return true;})){}
       else if(!isMenuDeception(this)&&!gateBlocksBoss(this)&&!(this.pattern.id==='outside-hands'&&this.phase==='active')&&(isNativeBeam(s)||segmentDistance(this.boss,prev,s)<52)){if(isNativeBeam(s)){if(this.clock<(s.beamNextHit??0))continue;s.beamNextHit=this.clock+.12;}else s.age=100;if(this.damageBoss(shotDamage(s))){this.bossHits++;this.fx(s,'ring',12,'#97f8eb',.18);}}
       else if(Math.abs(s.x)>this.fieldW/2+18||s.y<-this.fieldH/2-18||s.y>this.fieldH/2+18){s.age=100;this.recordMiss();}
     }
@@ -475,7 +495,7 @@ export class Engine {
     if(this.bombSpawned>=this.bombTotal&&this.hazards.length===0){this.phase='restore';this.phaseTime=0;this.miss=0;this.missTimer=0;this.pendingBombard=false;this.log('폭격 종료 · 전장 복구');}
   }
   step(dt:number){
-    if(this.paused)return;this.bossMapScroll+=dt*bossMapSpeed(this.bossMapStage);if(updateEncounter(this,dt)){this.clock+=dt;this.playerAnimClock+=dt;for(let i=0;i<3;i++)this.bodyAnimClocks[i]+=dt;return;}tickBridge(this,dt);this.syncTimeZones();const playerDt=dt*this.localTime(this.localPlayer()),bossDt=dt*this.localTime(this.boss);this.playerAnimClock+=playerDt;for(const [i,b] of this.bodies().entries())this.bodyAnimClocks[this.bodies().length===3?i:1]+=dt*this.localTime(this.local(b));this.bossAnimClock+=bossDt;this.clock+=dt;this.phaseTime+=dt;this.cooldown=Math.max(0,this.cooldown-playerDt);this.bombCooldown=Math.max(0,this.bombCooldown-playerDt);this.damageFlash=Math.max(0,this.damageFlash-playerDt);this.laneCooldown-=playerDt;this.shake=Math.max(0,this.shake-dt);for(const z of this.advanced.zones)z.clock+=dt*z.scale;
+    if(this.paused)return;this.bossMapScroll+=dt*bossMapSpeed(this.bossMapStage);if(updateEncounter(this,dt)){this.clock+=dt;this.playerAnimClock+=dt;for(let i=0;i<3;i++)this.bodyAnimClocks[i]+=dt;return;}tickBridge(this,dt);if(this.encounter.enabled)updateBossSupportSchedule(this,dt);this.syncTimeZones();const playerDt=dt*this.localTime(this.localPlayer()),bossDt=dt*this.localTime(this.boss);this.playerAnimClock+=playerDt;for(const [i,b] of this.bodies().entries())this.bodyAnimClocks[this.bodies().length===3?i:1]+=dt*this.localTime(this.local(b));this.bossAnimClock+=bossDt;this.clock+=dt;this.phaseTime+=dt;this.cooldown=Math.max(0,this.cooldown-playerDt);this.bombCooldown=Math.max(0,this.bombCooldown-playerDt);this.damageFlash=Math.max(0,this.damageFlash-playerDt);this.laneCooldown-=playerDt;this.shake=Math.max(0,this.shake-dt);for(const z of this.advanced.zones)z.clock+=dt*z.scale;
     this.updateSmartBomb(dt);
     if(this.purification>=0){this.purification+=dt;this.resolveSmartBomb();return;}
     if(!this.encounter.enabled&&!this.finalStand.started&&this.bossForm===2&&this.phase==='active'&&(this.finalStand.pending||this.bossHp<=Math.max(1,this.bossHpMax*.01)))this.startFinalStand();
@@ -511,7 +531,7 @@ export class Engine {
       else if(!this.encounter.enabled&&!isMenuDeception(this)&&!(this.combatPattern.id==='mirror'&&this.lasers.some(l=>l.age>=1.6)))this.boss.x+=(Math.sin(this.bossAnimClock*.65)*(this.pattern.id==='miss'?165:65)-this.boss.x)*(1-Math.exp(-bossDt*5));
       if(this.pattern.category==='support')this.combatPattern.update(this,dt);else this.pattern.update(this,dt);
       updateSupports(this,dt);
-      if(this.pattern.id!=='exile'){this.updateShots(dt);this.updateEntities(dt);this.updateWorldActors(dt);} 
+      if(this.pattern.id!=='exile'){this.updateShots(dt);this.updateEntities(dt);this.updateWorldActors(dt);}
       if(this.t>=this.pattern.duration||encounterCueExpired(this))this.finish();
       tickHandoff(this,dt);
     }else if(this.phase==='outro'&&this.phaseTime>(this.encounter.enabled&&this.pattern.id!=='pause-storm'&&!isMenuDeception(this)?.65:2.2)&&!this.rotation){if(this.pendingBombard)this.startBombard();else this.advance();}

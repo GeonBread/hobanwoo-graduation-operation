@@ -10,7 +10,13 @@ export const supportFade=(e:Engine)=>e.encounter.enabled&&e.continuity.closing?1
 export function nextEncounterId(e:Engine){const score=e.encounter.phase===1?phaseOneScore:phaseTwoScore;return score[e.encounter.trainingOnly||e.encounter.learning.step<e.encounter.learning.stages.length-1?e.encounter.cue:(e.encounter.cue+1)%score.length].id;}
 const exclusive=new Set(['exile','pause-storm','menu-deception','menu-deception-mobs','flight','rhythm']);
 export const playerFireAllowed=(e:Engine)=>!e.encounter.enabled||!(e.continuity.closing&&exclusive.has(nextEncounterId(e))||e.continuity.bridge&&exclusive.has(e.pattern.id));
-export function requestHandoff(e:Engine){if(!e.continuity.closing){e.continuity.closing=true;e.continuity.age=0;e.log('마지막 공격 마무리 · 발사된 탄과 동작 유지');}}
+export function requestHandoff(e:Engine){if(!e.continuity.closing){
+  // A special full-screen arena cannot inherit regular support mobs. Clear
+  // only those helpers before the exclusive-scene settle gate to avoid stalling
+  // a boss pattern for their entire lifetime.
+  if(exclusive.has(nextEncounterId(e)))e.enemies=e.enemies.filter(a=>!a.supportKind);
+  e.continuity.closing=true;e.continuity.age=0;e.log('마지막 공격 마무리 · 발사된 탄과 동작 유지');
+}}
 /** A deadline closes the emitter. It never cancels an advertised attack. */
 export function attackSettled(e:Engine){
  switch(e.pattern.id){

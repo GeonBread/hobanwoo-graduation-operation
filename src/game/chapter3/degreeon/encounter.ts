@@ -3,6 +3,7 @@ import {freshLearning,startLearning,hasLearningStep,type Learning} from './learn
 import {AWAKEN_SECONDS,AWAKEN_REVEAL} from './awakeningCinema';
 import {ARRIVAL_SECONDS,CLEAR_SECONDS,DEFEAT_SECONDS} from './bossCinema';
 import {freshContinuity} from './continuity';
+import {resetBossSupport} from './bossSupport';
 import type {Engine} from './engine';
 import {BASE_FIELD_W,BASE_FIELD_H,MAX_HP,MAX_BOMBS,clamp} from './core';
 export type StoryPreview='arrival'|'phase-clear'|'awakening'|'victory'|'complete';
@@ -43,11 +44,11 @@ export const storyCinematic=(e:Engine)=>e.encounter.enabled&&e.encounter.mode!==
 export const currentStoryCue=(e:Engine)=>(e.encounter.phase===1?phaseOneScore:phaseTwoScore)[e.encounter.cue];
 function scene(e:Engine,mode:StoryMode){const s=e.encounter,p=e.localPlayer();s.sceneFrom={w:e.fieldW,h:e.fieldH,angle:e.angle,x:p.x,y:p.y};s.mode=mode;s.age=0;s.line=0;s.lineAge=0;s.revealed=false;s.weighted=false;s.glyphs=0;
  if(mode==='threat'){s.phase=2;e.bossForm=2;e.bossHpMax=PHASE_HP[2];e.bossHp=e.bossHpMax;}
- e.continuity=freshContinuity();e.clearAttack();e.enemies=[];e.items=[];e.effects=[];e.advanced.zones=[];e.smartBombActive=false;e.bombParticles=[];e.keys.clear();e.rotation=0;e.pendingBombard=false;e.queuedIndex=null;e.miss=0;e.missTimer=0;e.playerFacing=0;e.playStorySound(mode==='false-clear'?'resolve':mode==='awakening'?'charge':mode==='victory'?'victory':'weight');e.log(`보스전 연출 · ${mode}`);e.notify();}
+ resetBossSupport(e);e.continuity=freshContinuity();e.clearAttack();e.enemies=[];e.items=[];e.effects=[];e.advanced.zones=[];e.smartBombActive=false;e.bombParticles=[];e.keys.clear();e.rotation=0;e.pendingBombard=false;e.queuedIndex=null;e.miss=0;e.missTimer=0;e.playerFacing=0;e.playStorySound(mode==='false-clear'?'resolve':mode==='awakening'?'charge':mode==='victory'?'victory':'weight');e.log(`보스전 연출 · ${mode}`);e.notify();}
 export function startEncounter(e:Engine,practice=false){
  e.bossMapScroll=0;getCombatParallax(e,"boss3").reset(e.clock);
  const old=e.encounter,lab=old.enabled?old.lab:{index:e.index,stage:e.stage,supports:[...e.selectedSupports],full:e.fullField,expert:e.expert,autoplay:e.autoplay,missCap:e.missCap};
- e.encounter={...freshEncounter(),enabled:true,practice,lab,phase:practice?2:1};e.paused=false;e.keys.clear();e.seed=314159;e.speed=1;e.angle=e.targetAngle=e.fromAngle=0;e.orientation=0;e.rotation=0;e.fullField=false;e.selectedSupports.clear();e.autoplay=false;e.expert=false;e.missCap=120;e.begin(e.patterns.findIndex(p=>p.id==='flowers'),0);
+ e.encounter={...freshEncounter(),enabled:true,practice,lab,phase:practice?2:1};resetBossSupport(e);e.paused=false;e.keys.clear();e.seed=314159;e.speed=1;e.angle=e.targetAngle=e.fromAngle=0;e.orientation=0;e.rotation=0;e.fullField=false;e.selectedSupports.clear();e.autoplay=false;e.expert=false;e.missCap=120;e.begin(e.patterns.findIndex(p=>p.id==='flowers'),0);
  e.hp=MAX_HP;e.bombs=MAX_BOMBS;e.bossHpMax=PHASE_HP[practice?2:1];e.bossHp=e.bossHpMax;e.bossForm=practice?2:1;e.hits=0;e.deaths=0;e.bossHits=0;e.gameOver=false;
  scene(e,practice?'threat':'opening');
 }
@@ -60,6 +61,8 @@ export function enterEncounterCue(e:Engine,continuous=false,continueLearning=fal
  const s=e.encounter,c=currentStoryCue(e);if(!c)throw new Error('Missing encounter cue');const index=e.patterns.findIndex(p=>p.id===c.id);if(index<0)throw new Error('Missing pattern '+c.id);
  const hp=e.hp,bombs=e.bombs,boss=e.bossHp,stats={hits:e.hits,deaths:e.deaths,bossHits:e.bossHits};
  if(!continuous)e.keys.clear();e.selectedSupports=new Set(c.supports);e.fullField=!!c.full;if(!continuous){e.angle=e.fromAngle=e.targetAngle=0;e.orientation=0;e.rotation=0;}e.pendingBombard=false;e.miss=0;e.missTimer=0;e.missCap=c.supports.includes('miss')?50:120;if(!continuous)e.effects=[];e.queuedIndex=null;e.begin(index,continueLearning?s.learning.stages[s.learning.step]:startLearning(s.learning,c.id,s.learningOverride),continuous);
+ // Special patterns remain dedicated to the boss mechanic, not support-enemy harvesting.
+ if(e.pattern.category!=='normal')e.enemies=e.enemies.filter(a=>!a.supportKind);
  e.hp=hp;e.bombs=bombs;e.bossHp=boss;e.bossForm=s.phase;e.bossHpMax=PHASE_HP[s.phase];Object.assign(e,stats);if(!continuous){e.cooldown=Math.max(e.cooldown,.8);e.shotTimer=.15;e.bombCooldown=.15;}
  if(c.supports.includes('shape')&&c.full){e.fieldWarp.current='full';e.fieldWarp.target='full';e.fieldWarp.from=e.gridSize();e.fieldWarp.bag=['wide','base','tiny','flat','tall','full'];}
  if(e.phase==='intro'&&!continuous)e.phaseTime=1.55;s.mode='combat';s.age=0;if(!continueLearning){s.history.push(c.id);s.history=s.history.slice(-100);}e.log(`보스전 ${s.phase}페이즈 · ${c.id}${c.supports.length?' + '+c.supports.join(', '):''}`);e.notify();
