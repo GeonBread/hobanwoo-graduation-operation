@@ -407,7 +407,8 @@
 .prologue-v7-fullscreen .core-v5-caption{font-size:clamp(14px,1.15cqw,20px)}
 /* Location title cards: only the place name, centered on the actual scene. */
 .prologue-v2-title.prologue-v8-location{top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;padding:0!important;text-align:center!important;pointer-events:none}
-.prologue-v2-title.prologue-v8-location .core-v5-main{display:block!important;margin:0!important;padding:0 4vw!important;max-width:100%;box-sizing:border-box;text-align:center!important;line-height:1.32!important;letter-spacing:.11em}
+.prologue-v2-title.prologue-v8-location{left:50%!important;right:auto!important;top:50%!important;bottom:auto!important;transform:translate(-50%,-50%)!important;width:min(92vw,840px)!important;min-height:128px;padding:28px 28px!important;display:flex!important;align-items:center;justify-content:center;box-sizing:border-box;border-radius:999px;background:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.24) 10%,rgba(0,0,0,.55) 24%,rgba(0,0,0,.72) 50%,rgba(0,0,0,.55) 76%,rgba(0,0,0,.24) 90%,rgba(0,0,0,0) 100%),linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.14) 18%,rgba(0,0,0,.34) 50%,rgba(0,0,0,.14) 82%,rgba(0,0,0,0) 100%)!important;box-shadow:0 14px 40px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.05)}
+.prologue-v2-title.prologue-v8-location .core-v5-main{display:block!important;margin:0!important;padding:0 4vw!important;max-width:100%;box-sizing:border-box;text-align:center!important;line-height:1.32!important;letter-spacing:.11em;text-shadow:0 2px 8px rgba(0,0,0,.95),0 0 20px rgba(0,0,0,.58)}
 #storyStage.is-v7-admission .scene-background{transition:none!important;animation:none!important}
 #storyStage.is-v7-admission .scene-background:not(.is-visible){opacity:0!important}
 #storyStage.is-v7-admission .scene-background.is-visible{opacity:1!important}
