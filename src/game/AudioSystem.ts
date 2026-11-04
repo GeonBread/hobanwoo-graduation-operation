@@ -879,6 +879,28 @@ export class AudioSystem {
     this.requestBgmPlayback();
   }
 
+  /** Chapter 3 Digrion battle only: use the user-supplied Starfall Circuit asset. */
+  startChapter3BossBgm() {
+    const track = "/assets/audio/chapter3/starfall-circuit.mp3";
+    if (this.currentBgmTrack === track && this.bgmElement) {
+      this.cancelBgmFade();
+      this.bgmElement.volume = this.bgmVol;
+      this.isPlayingBgm = true;
+      if (this.bgmElement.paused) this.requestBgmPlayback();
+      return;
+    }
+
+    this.stopBgm();
+    this.init();
+    this.currentBgmTrack = track;
+    this.bgmElement = new Audio(track);
+    this.bgmElement.preload = "auto";
+    this.bgmElement.loop = true;
+    this.bgmElement.volume = this.bgmVol;
+    this.isPlayingBgm = true;
+    this.requestBgmPlayback();
+  }
+
   startChapter3FinalSpaceBgm() {
     const track = "/assets/audio/chapter3/chapter3-final-space-bgm.mp3";
     if (this.currentBgmTrack === track && this.bgmElement && !this.bgmElement.paused) {

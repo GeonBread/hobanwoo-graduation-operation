@@ -227,6 +227,7 @@ function isChapter3OwnedBgm(track: string | null): boolean {
     || track === "/assets/audio/chapter3/chapter3-contamination-event-bgm.mp3"
     || track === "/assets/audio/chapter3/chapter3-wave-bgm.mp3"
     || track === "/assets/audio/chapter3/chapter3-final-space-bgm.mp3"
+    || track === "/assets/audio/chapter3/starfall-circuit.mp3"
     || track === "/assets/audio/chapter3/chapter3-late-bgm.mp3"
     || track === "/assets/audio/chapter3/final-ending-bgm.mp3";
 }
@@ -591,6 +592,9 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
 
   const completeBossBattle = () => {
     if(bossOriginRef.current!=="story"){returnToSelector();return;}
+    // The story resumes inside the graduation core (scene 29) after this fight.
+    // Restore its original ambient BGM instead of carrying the battle track over.
+    sfx.startChapter3FinalSpaceBgm();
     restoreStoryFrameForStory();
     if(resumedBossRef.current){
       resumedBossRef.current=false;prepareStoryLaunch({kind:"continue-from-section",ordinal:14},false);return;
@@ -681,6 +685,12 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
           }
           if (effectId === "teleport-core") {
             sfx.fadeOutBgm(3600);
+          }
+          if (effectId === "boss-battle-transition") {
+            // Scene 20: the 18-second gate follows Hobanwoo's final line.
+            // Fade the final-space story BGM while the gate plays, then keep
+            // the gate silent until the boss battle starts its own music.
+            sfx.fadeOutBgm(8000);
           }
           if (effectId === "digrion-body-break") {
             // Scene 32: fade the core BGM during the body-destruction cinematic.

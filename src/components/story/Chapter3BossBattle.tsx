@@ -8,7 +8,7 @@ import {EncounterAudio} from '../../game/chapter3/degreeon/encounterAudio';
 import {useAppStore} from '../../store';
 import {sfx} from '../../game/AudioSystem';
 import '../../game/chapter3/degreeon/bossFont.css';
-// Noto Sans KR 700/800/900 is loaded globally; do not load legacy Thin subsets.
+import '../../game/chapter3/degreeon/font.css';
 import '../../game/chapter3/degreeon/encounterOverlay.css';
 import './chapter3BossBattle.css';
 export type Chapter3BossLaunch={phase?:1|2;tests?:boolean};
@@ -47,9 +47,10 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit}:Props){
   const up=(v:KeyboardEvent)=>e.keys.delete(keyName(v));
   const blur=()=>{e.keys.clear();e.paused=true;e.notify();};
   window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',blur);
-  // Reuse the existing CH3 final-space track. There is no replacement BGM asset in the boss ZIP.
-  sfx.startChapter3FinalSpaceBgm();e.start();focus();
-  return()=>{e.stop();e.keys.clear();a.close();window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',blur);};
+  // The entrance cinematic fades the story music; the actual encounter
+  // begins with the supplied Starfall Circuit track (including direct tests).
+  sfx.startChapter3BossBgm();e.start();focus();
+  return()=>{e.stop();e.keys.clear();a.close();if(sfx.currentBgmTrack==='/assets/audio/chapter3/starfall-circuit.mp3')sfx.stopBgm();window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',blur);};
  },[]);
  useEffect(()=>{if(tests||confirmExit)document.querySelector<HTMLElement>('.c3boss-modal button')?.focus();},[tests,confirmExit]);
  const e=engine.current;
