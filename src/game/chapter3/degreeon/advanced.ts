@@ -20,7 +20,13 @@ import type { Exile } from './exile';
 export type { Exile } from './exile';
 export type AdvancedState={zones:Zone[];walls:ErosionWall[];wallTimer:number;bolts:Bolt[];lightTimer:number;lightCount:number;lightTotal:number;lightSecond:boolean;lightTarget:Vec;lightAngle:number;sword:import('./sword').Sword;exile:Exile;rotationCount:number;destroyedSeeds:number;flowersFired:number};
 export function freshAdvanced():AdvancedState{return {zones:[],walls:[],wallTimer:1,bolts:[],lightTimer:.4,lightCount:0,lightTotal:5,lightSecond:false,lightTarget:{x:0,y:0},lightAngle:0,sword:freshSword(),exile:freshExile(),rotationCount:0,destroyedSeeds:0,flowersFired:0};}
-export function supports(e:Engine):Set<string>{return e.pattern.category==='support'?new Set([...e.selectedSupports,e.pattern.id]):e.pattern.category==='normal'?e.selectedSupports:new Set();}
+export function supports(e:Engine):Set<string>{
+ const ids=e.pattern.category==='support'?new Set([...e.selectedSupports,e.pattern.id]):e.pattern.category==='normal'?new Set(e.selectedSupports):new Set<string>();
+ if(e.pattern.id==='corridor-horizontal'||e.pattern.id==='corridor-vertical'||e.pattern.id==='mirror'){
+  ids.delete('time');ids.delete('clones');
+ }
+ return ids;
+}
 export function configureZones(e:Engine){
  e.advanced.zones=supports(e).has('time')?makeTimeZones(e.fieldW,e.fieldH,e.timeFieldFull,e.advanced.zones):[];
 }
@@ -96,7 +102,7 @@ export function updateLightning(e:Engine,dt:number){const s=e.advanced;s.lightTi
 }
 
 export function laserSegments(path:Vec[],age:number,zones:Zone[]=[],timing?:{head:number;tail:number}):[Vec,Vec][]{const head=pathDistanceForTime(path,Math.max(0,timing?.head??age-2.4)*5200,zones),tail=pathDistanceForTime(path,Math.max(0,timing?.tail??age-3.65)*5200,zones);const result:[Vec,Vec][]=[];let offset=0;for(let i=1;i<path.length;i++){const a=path[i-1],b=path[i],len=distance(a,b),lo=clamp((tail-offset)/len,0,1),hi=clamp((head-offset)/len,0,1);if(hi>lo)result.push([{x:a.x+(b.x-a.x)*lo,y:a.y+(b.y-a.y)*lo},{x:a.x+(b.x-a.x)*hi,y:a.y+(b.y-a.y)*hi}]);offset+=len;}return result;}
-export function activeLaserSegments(e:Engine,l:Laser,path:Vec[]){return laserSegments(path,l.age,e.advanced.zones,l.headTime===undefined?undefined:{head:l.headTime,tail:l.tailTime??0});}
+export function activeLaserSegments(e:Engine,l:Laser,path:Vec[]){return laserSegments(path,l.age,e.pattern.id==='mirror'?[]:e.advanced.zones,l.headTime===undefined?undefined:{head:l.headTime,tail:l.tailTime??0});}
 const simple=(id:string,name:string,english:string,subtitle:string,category:Category,update:Pattern['update'],render:Pattern['render']=()=>{},enter:Pattern['enter']=()=>{},duration=30):Pattern=>({id,name,english,subtitle,category,orientation:0,stages:['패턴 학습','연속 공격','복합 공격','숙련 공격'],duration,update,render,enter,exit:()=>{}});
 export const advancedPatterns:Pattern[]=[
  simple('flowers','오염 꽃 개화','CORRUPTION BLOOM','씨앗을 사격으로 제거하세요. 3초 뒤 6~8개 꽃잎이 순서대로 발사됩니다.','normal',e=>{if(!e.emitting||e.beat>0)return;e.beat=.55-e.stage*.07;const p={x:(e.random()-.5)*(e.fieldW-130),y:-e.fieldH/2+110+e.random()*(e.fieldH-220)};e.add({...e.boss,seedFrom:{...e.boss},seedTarget:p,kind:'seed',r:9,warn:.25,life:4,hp:2,petals:6+Math.floor(e.random()*3),rotation:e.random()*Math.PI*2,petalIndex:0,petalTimer:0,color:'#b77eff',tag:'오염 꽃 씨앗'});e.fx(p,'ring',23,'#d1a4ff',.35);}),

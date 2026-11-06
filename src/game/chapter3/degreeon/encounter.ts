@@ -4,6 +4,7 @@ import {AWAKEN_SECONDS,AWAKEN_REVEAL} from './awakeningCinema';
 import {ARRIVAL_SECONDS,CLEAR_SECONDS,DEFEAT_SECONDS} from './bossCinema';
 import {freshContinuity} from './continuity';
 import {resetBossSupport} from './bossSupport';
+import {rollSupportMix,installSupportMix} from './supportMix';
 import type {Engine} from './engine';
 import {BASE_FIELD_W,BASE_FIELD_H,MAX_HP,MAX_BOMBS,clamp} from './core';
 export type StoryPreview='arrival'|'phase-clear'|'awakening'|'victory'|'complete';
@@ -12,22 +13,22 @@ export type StorySound='glyph'|'weight'|'resolve'|'charge'|'awaken'|'victory';
 export type DialogueLine={text:string;emphasis?:string;still?:boolean};
 export type EncounterCue={id:string;seconds:number;stage:number;supports:string[];full?:boolean};
 type LabState={index:number;stage:number;supports:string[];full:boolean;expert:boolean;autoplay:boolean;missCap:number};
-export type EncounterState={learning:Learning;trainingOnly:boolean;learningOverride?:'first'|'expert';preview:StoryPreview|null;enabled:boolean;mode:StoryMode;phase:1|2;age:number;elapsed:number;line:number;lineAge:number;revealed:boolean;weighted:boolean;glyphs:number;cue:number;loop:number;practice:boolean;lab:LabState|null;sceneFrom:{w:number;h:number;angle:number;x:number;y:number};history:string[]};
-export const freshEncounter=():EncounterState=>({learning:freshLearning(),trainingOnly:false,preview:null,enabled:false,mode:'opening',phase:1,age:0,elapsed:0,line:0,lineAge:0,revealed:false,weighted:false,glyphs:0,cue:0,loop:0,practice:false,lab:null,sceneFrom:{w:BASE_FIELD_W,h:BASE_FIELD_H,angle:0,x:0,y:404},history:[]});
+export type EncounterState={learning:Learning;trainingOnly:boolean;learningOverride?:'first'|'expert';preview:StoryPreview|null;enabled:boolean;mode:StoryMode;phase:1|2;age:number;elapsed:number;line:number;lineAge:number;revealed:boolean;weighted:boolean;glyphs:number;cue:number;loop:number;practice:boolean;lab:LabState|null;lastSupportId:string;sceneFrom:{w:number;h:number;angle:number;x:number;y:number};history:string[]};
+export const freshEncounter=():EncounterState=>({learning:freshLearning(),trainingOnly:false,preview:null,enabled:false,mode:'opening',phase:1,age:0,elapsed:0,line:0,lineAge:0,revealed:false,weighted:false,glyphs:0,cue:0,loop:0,practice:false,lab:null,lastSupportId:'',sceneFrom:{w:BASE_FIELD_W,h:BASE_FIELD_H,angle:0,x:0,y:404},history:[]});
 export const PHASE_HP={1:3200,2:5200};
 const cue=(id:string,seconds:number,stage=0,supports:string[]=[],full=false):EncounterCue=>({id,seconds,stage,supports,full});
 export const phaseOneScore:EncounterCue[]=[
- cue('volley-rhythm',10),cue('triple-wave',9),cue('flowers',11,0,['erosion']),cue('rockets',10),cue('inspection',18),
- cue('volley-cross',10),cue('volley-gap',10),cue('corridor-vertical',10,1,['magnet']),cue('split8',18,0),
- cue('mirror',11,1),cue('lightning',10,1,['wall']),cue('graduation-gate',30,0),cue('graduation-stamp',11,1),cue('corridor-horizontal',10,1,['erosion'])
+ cue('volley-rhythm',10),cue('triple-wave',9),cue('flowers',11),cue('rockets',10),cue('inspection',18),
+ cue('volley-cross',10),cue('volley-gap',10),cue('corridor-vertical',10,1),cue('split8',18,0),
+ cue('mirror',11,1),cue('lightning',10,1),cue('graduation-gate',30,0),cue('graduation-stamp',11,1),cue('corridor-horizontal',10,1)
 ];
 export const phaseTwoScore:EncounterCue[]=[
- cue('hp-sword',19,2),cue('corridor-vertical',11,2,['rotation']),cue('exile',Infinity,2),cue('tail-shed',11,2,['magnet']),
- cue('pause-storm',34,2),cue('volley-core',11,2,['recycle']),cue('menu-deception',34,2),cue('graduation-stamp',13,2,['shape'],true),
- cue('outside-hands',32,2),cue('flowers',11,2,['clones']),cue('volley-cross',11,2,['portals','path-fold']),
- cue('tile-stream',23,3),cue('volley-curve',11,3,['cut']),cue('fluid',27,3),cue('volley-gap',11,3,['time']),
- cue('menu-deception-mobs',30,3),cue('link',12,3,['recycle','time']),cue('flight',21,3),cue('corridor-horizontal',13,3,['miss']),
- cue('rhythm',26,3),cue('tail-shed',11,3,['magnet'])
+ cue('hp-sword',19,2),cue('corridor-vertical',11,2),cue('exile',Infinity,2),cue('tail-shed',11,2),
+ cue('pause-storm',34,2),cue('volley-core',11,2),cue('menu-deception',34,2),cue('graduation-stamp',13,2,['shape'],true),
+ cue('outside-hands',32,2),cue('flowers',11,2),cue('volley-cross',11,2),
+ cue('tile-stream',23,3),cue('volley-curve',11,3),cue('fluid',27,3),cue('volley-gap',11,3),
+ cue('menu-deception-mobs',30,3),cue('link',12,3),cue('flight',21,3),cue('corridor-horizontal',13,3),
+ cue('rhythm',26,3),cue('tail-shed',11,3)
 ];
 export const storyLines:Partial<Record<StoryMode,DialogueLine[]>>={
  opening:[{text:'마지막까지 왔군.'},{text:'하지만 여기서는……'},{text:'네가 배운 규칙이\n통하지 않을 수도 있다.',emphasis:'규칙'}],
@@ -60,13 +61,26 @@ export function leaveEncounter(e:Engine,restore=true){const lab=e.encounter.lab;
 export function enterEncounterCue(e:Engine,continuous=false,continueLearning=false){
  const s=e.encounter,c=currentStoryCue(e);if(!c)throw new Error('Missing encounter cue');const index=e.patterns.findIndex(p=>p.id===c.id);if(index<0)throw new Error('Missing pattern '+c.id);
  const hp=e.hp,bombs=e.bombs,boss=e.bossHp,stats={hits:e.hits,deaths:e.deaths,bossHits:e.bossHits};
- if(!continuous)e.keys.clear();e.selectedSupports=new Set(c.supports);e.fullField=!!c.full;if(!continuous){e.angle=e.fromAngle=e.targetAngle=0;e.orientation=0;e.rotation=0;}e.pendingBombard=false;e.miss=0;e.missTimer=0;e.missCap=c.supports.includes('miss')?50:120;if(!continuous)e.effects=[];e.queuedIndex=null;// In the phase-2 STORY fight, each curated cue runs exactly once at its
+ if(!continuous)e.keys.clear();
+ const isNormal=e.patterns[index].category==='normal';
+ // Only fullscreen stage effects (e.g. the stamp's shape) remain mandatory.
+ // Ordinary helpers are rolled fresh for EVERY normal encounter cue.
+ const required=isNormal?(c.full?c.supports:[]):c.supports;
+ e.selectedSupports=new Set(required);e.fullField=!!c.full;
+ if(!continuous){e.angle=e.fromAngle=e.targetAngle=0;e.orientation=0;e.rotation=0;}
+ e.pendingBombard=false;e.miss=0;e.missTimer=0;e.missCap=required.includes('miss')?50:120;if(!continuous)e.effects=[];e.queuedIndex=null;// In the phase-2 STORY fight, each curated cue runs exactly once at its
  // intended difficulty. The four-step teaching loop remains in phase 1 and
  // in the explicit pattern-practice mode.
  const initialStage=continueLearning?s.learning.stages[s.learning.step]:startLearning(s.learning,c.id,s.learningOverride);
  const singleRun=s.phase===2&&!s.trainingOnly&&!continueLearning;
  if(singleRun){s.learning.stages=[c.stage];s.learning.step=0;s.learning.first=false;}
  e.begin(index,singleRun?c.stage:initialStage,continuous);
+ if(isNormal){
+  const random=typeof window==='undefined'?()=>e.random():()=>Math.random();
+  const plan=rollSupportMix(random,s.phase,c.id,required,s.lastSupportId);
+  installSupportMix(e,plan);
+  if(plan.entries.length)s.lastSupportId=plan.entries.find(x=>x.at===0)?.id??plan.entries[0].id;
+ }
  // Projectiles cannot travel into independent full-screen dimensions. Hostile
  // bullets finish first in tickHandoff; erase only player shots at the exact
  // exclusive-scene boundary, never while the previous cue is playable.

@@ -187,12 +187,14 @@ export const patterns:Pattern[]=[
   }),
   make('mirror','거울 레이저','MIRROR REFLECTION','점선 전체가 발사 경로입니다. 레이저는 보스 쪽부터 순서대로 사라집니다.',0,['레이저 1개 / 반사','레이저 2개 / 부채꼴','레이저 3개 / 부채꼴','세 갈래 반사 회피'],30,(e,dt)=>{
     if(e.emitting&&e.beat<=0){e.beat=7.5;e.lasers.push({age:0,aim:0,paths:[],count:Math.min(3,e.stage+1),fired:false,lastReflect:0,reflections:[],headTime:0,tailTime:0});e.log(`거울 조준 · ${Math.min(3,e.stage+1)}개 / 최대 5회 반사`);}
-    for(const laser of e.lasers){const scale=e.localTime(e.boss),before=laser.age;laser.age+=dt*scale;laser.headTime=(laser.headTime??0)+Math.max(0,dt-Math.max(0,2.4-before)/scale);laser.tailTime=(laser.tailTime??0)+Math.max(0,dt-Math.max(0,3.65-before)/scale);
+    // Mirror rays also use a single real-time clock, independent of time zones.
+    for(const laser of e.lasers){const scale=1,before=laser.age;laser.age+=dt;laser.headTime=(laser.headTime??0)+Math.max(0,dt-Math.max(0,2.4-before)/scale);laser.tailTime=(laser.tailTime??0)+Math.max(0,dt-Math.max(0,3.65-before)/scale);
       if(laser.age<1.6){const p=e.localPlayer();laser.aim=Math.atan2(p.y-e.boss.y,p.x-e.boss.x);laser.paths=Array.from({length:laser.count},(_,i)=>reflectedPath(e.boss,laser.aim+(i-(laser.count-1)/2)*.19,e.fieldW,e.fieldH,5));}
       if(laser.age>=2.4){
         if(!laser.fired){laser.fired=true;e.log('거울 레이저 발사 · 반사 대기 없음');}
         for(const [pathIndex,path] of laser.paths.entries()){
-          for(const [a,b] of activeLaserSegments(e,laser,path))for(const body of e.bodies())if(segmentDistance(e.local(body),a,b)<7.5)e.hit('거울 반사 레이저',body);
+          // Real player only: clone proxies are deliberately ignored for laser damage.
+          for(const [a,b] of activeLaserSegments(e,laser,path))if(segmentDistance(e.localPlayer(),a,b)<7.5)e.hit('거울 반사 레이저');
           let offset=0;for(let i=1;i<path.length;i++){offset+=distance(path[i-1],path[i]);if(pathTimeCost(path.slice(0,i+1),e.advanced.zones)<=(laser.headTime??Math.max(0,laser.age-2.4))*5200&&i<path.length-1){const key=`${pathIndex}:${i}`;if(!laser.reflections.includes(key)){laser.reflections.push(key);e.fx(path[i],'ring',22,purple,.3);}}}
         }
       }

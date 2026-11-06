@@ -13,8 +13,9 @@ export const exileReturnBlackOpacity=(age:number)=>1-smooth((age-.17)/1.25);
 export const exileDeadline=(stage:number)=>stage>=2?15:20;
 export type ExileEnemy=Vec&{hp:number;age:number;vx:number;vy:number;kind?:'swarm'|'corrupt-spitter'|'corrupt-rupture';fireTimer?:number};
 export type ExileEnemyShot=Vec&{vx:number;vy:number;age:number;color:string};
-export type Exile={state:'grab'|'throw'|'drift'|'explore'|'collapse'|'enter'|'return'|'done';age:number;detached:boolean;viewW:number;viewH:number;camera:Vec;world:Vec;velocity:Vec;initialVelocity:Vec;flightStart:Vec;breakAt:Vec;travel:number;portal:Vec;w:number;h:number;spawn:number;from:Vec;entryFrom:Vec;enemies:ExileEnemy[];enemyShots:ExileEnemyShot[];shots:Shot[];fire:number;heading:number;returned:boolean;timeoutTriggered:boolean;bombOrigin:Vec|null;collapseSnapshot:HTMLCanvasElement|null};
-export function freshExile():Exile{return {state:'grab',age:0,detached:false,viewW:1600,viewH:960,camera:{x:0,y:0},world:{x:0,y:0},velocity:{x:0,y:0},initialVelocity:{x:0,y:0},flightStart:{x:0,y:0},breakAt:{x:0,y:0},travel:0,portal:{x:0,y:0},w:0,h:0,spawn:0,from:{x:0,y:0},entryFrom:{x:0,y:0},enemies:[],enemyShots:[],shots:[],fire:0,heading:0,returned:false,timeoutTriggered:false,bombOrigin:null,collapseSnapshot:null};}
+export type ExileContactBurst=Vec&{age:number;kind:'swarm'|'corrupt-spitter'|'corrupt-rupture';force?:number};
+export type Exile={state:'grab'|'throw'|'drift'|'explore'|'collapse'|'enter'|'return'|'done';age:number;detached:boolean;viewW:number;viewH:number;camera:Vec;world:Vec;velocity:Vec;initialVelocity:Vec;flightStart:Vec;breakAt:Vec;travel:number;portal:Vec;w:number;h:number;spawn:number;from:Vec;entryFrom:Vec;enemies:ExileEnemy[];enemyShots:ExileEnemyShot[];contactBursts:ExileContactBurst[];shots:Shot[];fire:number;heading:number;returned:boolean;timeoutTriggered:boolean;bombOrigin:Vec|null;collapseSnapshot:HTMLCanvasElement|null};
+export function freshExile():Exile{return {state:'grab',age:0,detached:false,viewW:1600,viewH:960,camera:{x:0,y:0},world:{x:0,y:0},velocity:{x:0,y:0},initialVelocity:{x:0,y:0},flightStart:{x:0,y:0},breakAt:{x:0,y:0},travel:0,portal:{x:0,y:0},w:0,h:0,spawn:0,from:{x:0,y:0},entryFrom:{x:0,y:0},enemies:[],enemyShots:[],contactBursts:[],shots:[],fire:0,heading:0,returned:false,timeoutTriggered:false,bombOrigin:null,collapseSnapshot:null};}
 export function exileOutside(e:Engine){return e.pattern.id==='exile'&&e.phase==='active'&&e.advanced.exile.detached;}
 export function enterExile(e:Engine){const size=e.gridSize(),x=e.advanced.exile;x.viewW=size.w;x.viewH=size.h;x.w=size.w*1.75;x.h=size.h*1.6;x.from=e.localPlayer();x.portal={x:x.w*.29,y:-x.h*.28};e.cooldown=5;}
 export function seedExileEnemies(e:Engine){
@@ -41,12 +42,20 @@ export function collapseExile(e:Engine){
  const x=e.advanced.exile;
  if(x.state!=='explore'||x.timeoutTriggered)return;
  x.timeoutTriggered=true;
- x.velocity={x:0,y:0};x.enemies=[];x.enemyShots=[];x.shots=[];
+ x.velocity={x:0,y:0};x.enemies=[];x.enemyShots=[];x.contactBursts=[];x.shots=[];
  e.hits++;e.hp=Math.max(0,e.hp-1);e.cooldown=2.8;e.damageFlash=1.25;
  e.shake=Math.max(e.shake,.85);e.smartBombActive=false;e.bombParticles=[];
  e.log(`추방 공간 대폭발 · 제한시간 초과 · LIFE -1 (${e.hp})`);
  if(e.hp<=0){e.deaths++;e.dead=EXILE_COLLAPSE_SECONDS+.15;e.log('LIFE 0 · 공간 붕괴 연출 후 GAME OVER');}
  setState(e,'collapse');e.notify();
+}
+/** A defeated outside-space creature must visibly rupture, regardless of whether
+ * the fatal hit came from contact, a player shot, a beam, or a smart bomb. */
+export function burstExileEnemy(x:Exile,m:ExileEnemy,force=1){
+ if(m.hp<=0)return false;
+ m.hp=0;
+ x.contactBursts.push({x:m.x,y:m.y,age:0,kind:m.kind??'swarm',force});
+ return true;
 }
 function spawnExileEnemy(e:Engine,p:Vec):ExileEnemy{
  const shooter=e.stage>=2&&e.random()<.27;
@@ -64,6 +73,8 @@ function updateExileEnemyShots(e:Engine,dt:number){
 }
 export function updateExile(e:Engine,dt:number){
  const x=e.advanced.exile;x.age+=dt;e.cooldown=Math.max(e.cooldown,x.state==='explore'?0:.3);
+ for(const burst of x.contactBursts)burst.age+=dt;
+ x.contactBursts=x.contactBursts.filter(b=>b.age<.72);
  if(x.state==='grab'){
   const k=smooth(x.age/1.1);e.player=e.screen({x:x.from.x*(1-k)+e.boss.x*k,y:x.from.y*(1-k)+(e.boss.y+75)*k});
   if(x.age>=1.45){x.from=e.localPlayer();e.fx(e.boss,'burst',100,'#d48dff',.55);setState(e,'throw');}
@@ -101,7 +112,14 @@ export function updateExile(e:Engine,dt:number){
     const sp=shooter?(d<190?0:24+e.stage*4):19+e.stage*4;
     m.vx=(x.world.x-m.x)/d*sp;m.vy=(x.world.y-m.y)/d*sp;
     m.x+=m.vx*dt;m.y+=m.vy*dt;
-    if(d<28)e.hit('화면 밖 오염 군집');
+    // Collision consumes this corruption creature even if the player is
+    // invulnerable or still inside a normal damage cooldown. This prevents
+    // repeated contact from the same mass.
+    if(distance(m,x.world)<28){
+     e.hit(shooter?'화면 밖 조준 오염체 충돌':'화면 밖 오염 군집',e.player);
+     burstExileEnemy(x,m);
+     continue;
+    }
     if(shooter){
      m.fireTimer=(m.fireTimer??1)-dt;
      // Only visible shooters may fire, with a cap to prevent projectile overload.
@@ -124,7 +142,11 @@ export function updateExile(e:Engine,dt:number){
     moveNativeShot(e,s,dt);if(s.age>=3)continue;
     const prev={x:s.x,y:s.y};s.age+=dt;s.x+=(s.vx??0)*dt;s.y+=s.vy*dt;
     const beam=isNativeBeam(s),m=beam?nearestExileEnemy(x):x.enemies.find(m=>m.hp>0&&segmentDistance(m,prev,s)<24);
-    if(m&&(!beam||e.clock>=(s.beamNextHit??0))){m.hp-=shotDamage(s);if(beam)s.beamNextHit=e.clock+.12;else s.age=10;}
+    if(m&&(!beam||e.clock>=(s.beamNextHit??0))){
+     const remaining=m.hp-shotDamage(s);
+     if(remaining<=0)burstExileEnemy(x,m,1.17);else m.hp=remaining;
+     if(beam)s.beamNextHit=e.clock+.12;else s.age=10;
+    }
    }
    x.shots=x.shots.filter(s=>s.age<3);
    x.enemies=x.enemies.filter(m=>m.hp>0&&m.age<150);
@@ -304,6 +326,14 @@ export function drawExile(e:Engine,c:CanvasRenderingContext2D,drawPlayer:(p:Vec)
     const size=75+Math.sin(m.age*4.1)*5;
     c.rotate(Math.sin(m.age*1.3)*.13);c.drawImage(corruptionShooterSprite(m.kind,m.hp<2),-size/2,-size/2,size,size);
    }else{c.rotate(m.age*.3);c.drawImage(enemySprite(m.hp<2),-48,-48);}
+   c.restore();
+  }
+  for(const burst of x.contactBursts){
+   const k=clamp(burst.age/.72,0,1),r=(13+49*smooth(k))*(burst.force??1),alpha=1-smooth(k);
+   c.save();c.translate(burst.x,burst.y);c.globalAlpha=alpha;
+   c.shadowColor=burst.kind==='corrupt-rupture'?'#ffa5de':'#cb8eff';c.shadowBlur=20;
+   c.strokeStyle='#f5d7ff';c.lineWidth=4*(1-k)+1;c.beginPath();c.arc(0,0,r,0,Math.PI*2);c.stroke();
+   for(let i=0;i<14;i++){const a=i*2.399+(burst.kind==='swarm'?.2:.9),d=(7+32*k)*(1+i%3*.14)*(burst.force??1);c.fillStyle=i%3?'#a867e7':'#ffdcf4';c.save();c.translate(Math.cos(a)*d,Math.sin(a)*d);c.rotate(a+k*5);c.beginPath();c.moveTo(-5,-7);c.lineTo(6,-1);c.lineTo(1,9);c.closePath();c.fill();c.restore();}
    c.restore();
   }
   for(const bullet of x.enemyShots){

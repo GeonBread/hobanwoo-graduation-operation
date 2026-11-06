@@ -23,15 +23,8 @@ export function nextPathFoldRecord(e:Engine){const s=e.pathFold;s.phase='record'
 export function pathFoldActive(e:Engine){return e.phase==='active'&&(e.pattern.id==='path-fold'||e.pattern.category!=='special'&&e.selectedSupports.has('path-fold'));}
 export function updatePathFold(e:Engine,dt:number){
  const s=e.pathFold;s.age+=dt;
- // Mix ordinary aimed boss bullets into the three geometric folds.
- s.bulletTimer-=dt;
- if(e.emitting&&s.bulletTimer<=0&&s.phase!=='rest'){
-  const origin={...e.boss},target=e.localPlayer(),angle=Math.atan2(target.y-origin.y,target.x-origin.x),count=e.stage>=2?5:3;
-  for(let i=0;i<count;i++){const a=angle+(i-(count-1)/2)*.19,spd=165+e.stage*13;
-   e.add({...origin,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,r:8,visual:'shard',warn:.6,life:7,color:'#ffe8aa',tag:'지나온 길 봉합 교차탄'});
-  }
-  s.bulletTimer=Math.max(1.8,2.8-e.stage*.24);
- }
+ // The selected normal attack supplies ordinary bullets when this runs as a
+ // support overlay. Solo support previews therefore contain only the fold.
  if(s.phase==='record'){
   if(!s.points.length)s.points.push({...e.localPlayer(),at:0});s.sample+=dt;
   if(s.sample>=1/24){s.sample%=1/24;const p=e.localPlayer(),last=s.points[s.points.length-1];if(distance(p,last)>3||s.age-last.at>.24)s.points.push({...p,at:Math.min(TRACE_RECORD_TIME,s.age)});}
@@ -83,5 +76,4 @@ export function renderPathFold(e:Engine,c:CanvasRenderingContext2D){
  if(s.phase==='record'){const p=s.points[s.points.length-1];c.globalAlpha=.8;c.strokeStyle='#d8b4f4';c.lineWidth=2;c.beginPath();c.arc(p.x,p.y,13,-Math.PI/2,-Math.PI/2+Math.PI*2*clamp(s.age/TRACE_RECORD_TIME,0,1));c.stroke();}
  c.restore();
 }
-export const pathFoldPattern:Pattern={id:'path-fold',name:'지나온 길이 접힌다',english:'FOOTPRINT ZIPPER',subtitle:'4초간 남긴 이동 경로를 기억하세요. 예고 후 오래된 경로부터 전장이 지그재그로 접히며 닫힙니다.',category:'special',orientation:0,stages:['이동 흔적 3회','빠른 봉합 3회','경로 봉합 3회','고속 추격 봉합 3회'],duration:Infinity,enter:enterPathFold,update:updatePathFold,render:renderPathFold,exit:e=>{e.pathFold=freshPathFold();}};
-export const pathFoldSupportPattern:Pattern={id:'path-fold-support',name:'지나온 길 보조 접힘',english:'FOOTPRINT FOLD SUPPORT',subtitle:'이동 흔적을 따라 보조 접힘이 발생합니다.',category:'support',orientation:0,stages:['이동 흔적 3회','빠른 봉합 3회','경로 봉합 3회','고속 추격 봉합 3회'],duration:Infinity,enter:enterPathFold,update:updatePathFold,render:renderPathFold,exit:e=>{e.pathFold=freshPathFold();}};
+export const pathFoldPattern:Pattern={id:'path-fold',name:'지나온 길이 접힌다',english:'FOOTPRINT ZIPPER',subtitle:'4초간 남긴 이동 경로를 기억하세요. 예고 후 오래된 경로부터 전장이 지그재그로 접히며 닫힙니다.',category:'support',orientation:0,stages:['이동 흔적 3회','빠른 봉합 3회','경로 봉합 3회','고속 추격 봉합 3회'],duration:Infinity,enter:enterPathFold,update:updatePathFold,render:renderPathFold,exit:e=>{e.pathFold=freshPathFold();}};

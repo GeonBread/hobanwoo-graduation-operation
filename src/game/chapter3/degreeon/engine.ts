@@ -1,6 +1,7 @@
 import {freshNativeWeapon,emitNativeShots,nativeFireInterval,nativeCanFire,moveNativeShot,shotDamage,isNativeBeam} from './nativeWeapon';
 import {bossMapSpeed,type BossMapStage} from '../../render/bossMapScroll';
 import {freshContinuity,requestHandoff,tickHandoff,beginBridge,tickBridge,bossTarget,tickBossPresence,playerFireAllowed} from './continuity';
+import {updateSupportMix,type SupportMixState} from './supportMix';
 import {freshEncounter,startEncounter,startStoryPreview,leaveEncounter,updateEncounter,storyCinematic,advanceEncounterCue,encounterDamage,encounterCueExpired,skipStoryScene} from './encounter';
 import type {StorySound} from './encounter';
 import {drawEncounterScene} from './encounterView';
@@ -14,7 +15,7 @@ import {freshRecycle,collectRecycledBullets,clearRecycleByBomb} from './bulletRe
 import {initSpaceCut,syncSpaceCut,constrainCutPlayer} from './spaceCut';
 import {freshMenuDeception,isMenuDeception,menuInputLocked,syncMenuField,moveMenuPlayer,beginMenuReturn,updateMenuReturn,clearMenuByBomb} from './menuDeception';
 import { freshAdvanced, configureZones, timeScale, supports, updateSupports, attackDestructibles, updateSeed, moveExile, constrainWalls, Category } from './advanced';
-import { exileOutside } from './exile';
+import { exileOutside,burstExileEnemy } from './exile';
 import {freshFlightPresence,tickFlightPresence} from './flightPresence';
 import { timedMotion } from './time';
 import { freshVolley, prepareBullet, finishBullet, bulletHarmless } from './normalBullets';
@@ -32,7 +33,7 @@ export class Engine {
   continuity=freshContinuity();bossVisibility=1;bossVisualSize=268;
   flightPresence=freshFlightPresence();
   get emitting(){return !this.encounter.enabled||!this.continuity.closing;}
-  encounter=freshEncounter();playStorySound:(kind:StorySound)=>void=()=>{};
+  encounter=freshEncounter();supportMix:SupportMixState|null=null;supportLabSolo=false;playStorySound:(kind:StorySound)=>void=()=>{};
   onItemPickup:()=>void=()=>{};bossSupportTimer=6.5;bossSupportWaveSerial=0;
   startEncounter(practice=false){startEncounter(this,practice);}
   leaveEncounter(){leaveEncounter(this);}
@@ -114,7 +115,7 @@ export class Engine {
       bomb:{smartBombActive:this.smartBombActive,smartBombRadius:this.smartBombRadius,smartBombLimit:this.smartBombLimit,smartBombWorldOrigin:this.smartBombWorldOrigin,smartBombHitBoss:this.smartBombHitBoss,smartBombOrigin:this.smartBombOrigin,bombParticles:this.bombParticles}}:null;
     this.continuity=freshContinuity();
     if(this.pattern?.id==='inspection'&&this.unseen.inspection.eyes.length)this.inspectionMemory={eyes:this.unseen.inspection.eyes.map(eye=>({angle:eye.angle,direction:eye.direction}))};
-    this.pattern?.exit(this);this.index=i;this.pattern=this.patterns[i];this.stage=stage;
+    this.pattern?.exit(this);this.index=i;this.pattern=this.patterns[i];this.stage=stage;this.supportMix=null;this.supportLabSolo=false;
     this.flightPresence=freshFlightPresence(this.pattern.id==='flight');
     this.finalStand=freshFinalStand();
     this.corridor=freshCorridor();this.fieldWarp=freshFieldWarp();
@@ -251,7 +252,7 @@ export class Engine {
     this.corridor.beams=this.corridor.beams.filter(b=>{const [a,z]=waveBeamPath(this,b),rect=waveBeamBounds(this,b);return !bombReaches(this,this.nearestPoint(p,a,z),Math.min(rect.w,rect.h)/2);});
     clearStormByBomb(this);clearMenuByBomb(this);clearStampByBomb(this);clearPathFoldByBomb(this);clearRecycleByBomb(this);clearUnseenByBomb(this);
     for(const w of this.advanced.walls)for(let i=0;i<w.cells.length;i++){if(w.cells[i]<=0)continue;const center={x:-this.fieldW/2+(i%w.cols+.5)*w.cellW,y:w.y+(Math.floor(i/w.cols)+.5-w.rows/2)*w.cellH};if(bombReaches(this,center,Math.hypot(w.cellW,w.cellH)/2))w.cells[i]=0;}
-    if(exileOutside(this)){const x=this.advanced.exile;x.enemies=x.enemies.filter(m=>!bombReaches(this,m,27));x.enemyShots=x.enemyShots.filter(b=>!bombReaches(this,b,9));}
+    if(exileOutside(this)){const x=this.advanced.exile;x.enemies=x.enemies.filter(m=>{if(bombReaches(this,m,27)){burstExileEnemy(x,m,1.25);return false;}return true;});x.enemyShots=x.enemyShots.filter(b=>!bombReaches(this,b,9));}
     else if(!isMenuDeception(this)&&!this.smartBombHitBoss&&this.purification<0&&this.phase==='active'&&bombReaches(this,this.boss,52)){this.smartBombHitBoss=true;this.damageBoss(SMART_BOMB_BOSS_DAMAGE);this.fx(this.boss,'burst',82,'#ffe684',.7);}
   }
   nearestPoint(p:Vec,a:Vec,b:Vec):Vec{const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return {x:a.x+dx*t,y:a.y+dy*t};}
@@ -526,11 +527,12 @@ export class Engine {
     if(this.phase==='intro'&&this.encounter.enabled){this.updateEntities(dt);this.updateShots(dt);this.updateWorldActors(dt);updateSupports(this,dt);}
     if(this.phase==='intro'&&this.phaseTime>2.2&&!this.rotation&&!this.continuity.bridge){this.phase='active';this.phaseTime=0;this.player=this.pattern.id==='rhythm'?this.point(.5,1-100/this.fieldH):this.pattern.id==='flight'?this.screen({x:0,y:this.fieldH/6}):this.player;this.log('공격 개시 · 빗나간 탄은 폭격 자원으로 누적');}
     else if(this.phase==='active'&&(!this.rotation||this.rotationLive)){
-      this.t+=dt;this.beat-=bossDt;this.missTimer+=dt;
+      this.t+=dt;this.beat-=bossDt;this.missTimer+=dt;updateSupportMix(this);
       if(this.debtEnabled&&this.missTimer>=30&&!this.pendingBombard){this.pendingBombard=true;this.log('30초 경과 · 패턴 종료 후 폭격 예약');}
       if(!this.encounter.enabled&&['split8','tile-stream'].includes(this.pattern.id)){this.boss.x=0;this.boss.y=-this.fieldH/2+140;}
       else if(!this.encounter.enabled&&!isMenuDeception(this)&&!(this.combatPattern.id==='mirror'&&this.lasers.some(l=>l.age>=1.6)))this.boss.x+=(Math.sin(this.bossAnimClock*.65)*(this.pattern.id==='miss'?165:65)-this.boss.x)*(1-Math.exp(-bossDt*5));
-      if(this.pattern.category==='support')this.combatPattern.update(this,dt);else this.pattern.update(this,dt);
+      if(this.supportLabSolo&&this.pattern.category==='normal'){/* laboratory: support attacks only */}
+      else if(this.pattern.category==='support')this.combatPattern.update(this,dt);else this.pattern.update(this,dt);
       updateSupports(this,dt);
       if(this.pattern.id!=='exile'){this.updateShots(dt);this.updateEntities(dt);this.updateWorldActors(dt);}
       if(this.t>=this.pattern.duration||encounterCueExpired(this))this.finish();
