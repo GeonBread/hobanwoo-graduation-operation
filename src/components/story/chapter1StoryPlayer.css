@@ -501,3 +501,37 @@ body:has(.story-effect-layer.is-fullscreen-effect[data-active-effect="opening-cr
   z-index: 2147482100 !important;
   pointer-events: auto !important;
 }
+
+/* V19: CH1 actor dialogue uses CH3 logical-stage proportions, never desktop vw.
+ * The common narrator stylesheet intentionally owns the narrator variant. */
+.chapter1-story-player .story-stage { container-type: inline-size; }
+.chapter1-story-player .dialogue-layer:not(.is-narrator-dialogue):not(.is-global-dialogue) {
+  left:3.5% !important;right:3.5% !important;bottom:4.5% !important;
+}
+.chapter1-story-player .dialogue-layer:not(.is-narrator-dialogue) .dialogue-box {
+  min-height:clamp(142px,18cqw,202px) !important;
+  padding:clamp(30px,3cqw,38px) clamp(26px,3cqw,42px) !important;
+  display:flex !important;align-items:center !important;gap:0 !important;
+}
+.chapter1-story-player .dialogue-layer:not(.is-narrator-dialogue) .dialogue-text {
+  font-size:clamp(18px,2.3cqw,31px) !important;line-height:1.48 !important;
+}
+.chapter1-story-player .dialogue-layer:not(.is-narrator-dialogue) .dialogue-marker {
+  font-size:clamp(24px,3cqw,38px) !important;
+}
+/* Explicitly collapse the old Chapter 1 portrait column: the CH3 story
+   dialogue has a single two-column glyph/text copy, not a portrait cell. */
+.chapter1-story-player .dialogue-box .portrait-frame { display:none !important; }
+.chapter1-story-player .dialogue-layer:not(.is-narrator-dialogue) .dialogue-copy {
+  display:grid !important;
+  grid-column:1 / -1 !important;
+  grid-row:1 !important;
+  grid-template-columns:auto minmax(0,1fr) !important;
+  align-items:center !important;
+  column-gap:clamp(12px,1.8cqw,20px) !important;
+  width:100% !important;
+  min-width:0 !important;
+}
+.chapter1-story-player .dialogue-layer:not(.is-narrator-dialogue) .dialogue-text {
+  width:100% !important;min-width:0 !important;padding-right:0 !important;
+}

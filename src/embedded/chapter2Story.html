@@ -16546,5 +16546,24 @@ html.chapter1-output-parity .story-stage.is-full-story:not(.is-game-mode) .story
 }
 </style>
 
+
+<style id="chapter2-dialogue-ch3-ratio-v19">
+/* V19: restore CH3's actual in-game proportions with stage-sized cqw. */
+html.chapter1-output-parity .story-stage { container-type:inline-size; }
+html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue):not(.is-global-dialogue) {
+  left:3.5% !important;right:3.5% !important;bottom:4.5% !important;
+}
+html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue-box {
+  min-height:clamp(142px,18cqw,202px) !important;
+  padding:clamp(30px,3cqw,38px) clamp(26px,3cqw,42px) !important;
+  display:flex !important;align-items:center !important;gap:0 !important;
+}
+html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue-text {
+  font-size:clamp(18px,2.3cqw,31px) !important;line-height:1.48 !important;
+}
+html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue-marker {
+  font-size:clamp(24px,3cqw,38px) !important;
+}
+</style>
 </body>
 </html>

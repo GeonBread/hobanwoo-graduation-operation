@@ -16,3 +16,41 @@
 
 .c3boss-modal header{align-items:flex-start}
 @media(max-width:700px){.c3boss-modal header{flex-direction:column-reverse;gap:12px}.c3boss-modal header>button{align-self:flex-end;white-space:nowrap}.c3boss-modal h2{font-size:21px;word-break:keep-all}}
+/* V17 – in-fight random-support visibility and independent pairing lab. */
+.c3boss-mix-hud{position:absolute;left:15px;bottom:18px;z-index:80;max-width:min(320px,48vw);pointer-events:none;display:flex;flex-direction:column;gap:3px;padding:9px 12px;border:1px solid #c8acdb77;background:linear-gradient(110deg,#0a091de8,#17112acb);border-radius:7px;box-shadow:0 6px 22px #0009;color:#eeeaff;text-shadow:0 1px 3px #05040c;font:600 11px/1.45 "Noto Sans KR",sans-serif}
+.c3boss-mix-hud strong{font-size:10px;color:#efc887;letter-spacing:.13em}.c3boss-mix-hud span{font-size:12px}.c3boss-mix-hud small{font-size:10px;color:#bcfff1}
+.c3boss-support-lab{padding:14px;border:1px solid #af8cce66;border-radius:9px;background:linear-gradient(140deg,#1c132bea,#10121cee)}.c3boss-support-lab h3{margin:3px 0 11px;color:#f7dfb8;font-size:15px}.c3boss-support-lab p{margin:0 0 18px;font-size:12px}.c3boss-mix-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.c3boss-mix-fields label{display:flex;flex-direction:column;gap:6px;color:#d7c4e8;font-size:11px}.c3boss-mix-fields select{width:100%;min-width:0;padding:10px;border:1px solid #a985c388;border-radius:6px;background:#21172d;color:#fff0e6;font-size:12px}.c3boss-mix-buttons{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 21px}.c3boss-mix-buttons button:last-child{border-color:#e6c484;color:#fff2d7;background:#5b3a55}.c3boss-support-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.c3boss-support-list button{display:flex;justify-content:space-between;align-items:center;gap:6px}.c3boss-support-list small{font-size:10px;letter-spacing:normal;white-space:nowrap}
+@media(max-width:700px){.c3boss-mix-hud{left:7px;bottom:9px;padding:6px 8px;max-width:53vw}.c3boss-mix-fields{grid-template-columns:1fr}.c3boss-support-list{grid-template-columns:1fr}.c3boss-support-lab{padding:10px}.c3boss-mix-hud span{font-size:10px}}
+
+/* V19: CH3 boss uses the same navigation skin as CH1/CH2/CH3 story.
+   The F7 boss laboratory remains functional but no longer owns a separate
+   full-screen simulator UI. ESC and its overlay are 100% story-host-owned. */
+.c3boss-root .c3boss-story-test-nav {position:absolute;top:12px;right:12px;z-index:80;}
+.c3boss-root .c3boss-story-test-nav .chapter2-story-test-toolbar {pointer-events:auto;}
+.c3boss-root .c3boss-test-dim {
+  position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:flex-end;
+  padding:60px 12px 14px;background:transparent;backdrop-filter:none;pointer-events:none;z-index:81;
+}
+.c3boss-root .c3boss-test-dim .c3boss-modal.chapter2-story-test-panel {
+  width:min(760px,95vw);max-height:calc(100dvh - 76px);margin:0;pointer-events:auto;
+  border:1px solid rgba(100,116,139,.82);border-radius:12px;
+  background:rgba(4,8,18,.97);box-shadow:0 24px 70px rgba(0,0,0,.58),0 0 24px rgba(34,211,238,.12);
+  padding:16px;color:#e5edf6;
+}
+.c3boss-root .c3boss-test-dim .c3boss-modal header {border-bottom:1px solid rgba(100,116,139,.35);}
+.c3boss-root .c3boss-test-dim .c3boss-modal header small {color:#67e8f9;}
+.c3boss-root .c3boss-test-dim .c3boss-modal h2 {color:#e5edf6;}
+.c3boss-root .c3boss-test-dim .c3boss-modal button {
+  border-color:rgba(71,85,105,.82);border-radius:7px;background:rgba(15,23,42,.9);
+  color:#e2e8f0;font-weight:800;
+}
+.c3boss-root .c3boss-test-dim .c3boss-modal button:hover {
+  border-color:rgba(103,232,249,.7);background:rgba(8,47,73,.88);
+}
+.c3boss-root .c3boss-test-dim .c3boss-modal .c3boss-tabs button[aria-pressed=true] {
+  border-color:#67e8f9;background:rgba(8,47,73,.96);color:#a5f3fc;
+}
+@media(max-width:700px){
+ .c3boss-root .c3boss-test-dim{padding:55px 7px 8px;}
+ .c3boss-root .c3boss-test-dim .c3boss-modal.chapter2-story-test-panel{width:min(100%,95vw);max-height:calc(100dvh - 64px);padding:10px;}
+}

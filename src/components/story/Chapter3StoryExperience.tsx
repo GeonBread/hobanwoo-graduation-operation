@@ -330,6 +330,14 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
   const [wavePaused, setWavePaused] = useState(false);
   const [waveHud, setWaveHud] = useState<Chapter3WaveHud>({ hp: 3, maxHp: 3, bombs: 3, powerLevel: 1, waveIndex: initialWaveIndex, totalWaves: WAVES.length, enemies: 0 });
 
+  // The boss uses this same story ESC dialog; move focus to its first action
+  // while it is open. Closing it restores canvas focus in Chapter3BossBattle.
+  useEffect(() => {
+    if (screen !== "boss" || exitConfirmMode !== "story") return;
+    const id = window.requestAnimationFrame(() => document.querySelector<HTMLElement>(".chapterStoryPauseDialog button")?.focus({ preventScroll: true }));
+    return () => window.cancelAnimationFrame(id);
+  }, [screen, exitConfirmMode]);
+
   useEffect(() => {
     if (!waveActive) return;
     sfx.startBgmForPhase(3);
@@ -402,7 +410,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
     if (mode === "wave") {
       setWavePaused(true);
       postWaveCommand("set-paused", { paused: true });
-    } else {
+    } else if (screen !== "boss") {
       postStoryCommand("set-exit-confirm", { open: true });
     }
   };
@@ -417,7 +425,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
         waveFrameRef.current?.focus({ preventScroll: true });
         waveFrameRef.current?.contentWindow?.focus();
       });
-    } else if (mode === "story") {
+    } else if (mode === "story" && screen !== "boss") {
       postStoryCommand("set-exit-confirm", { open: false });
       window.requestAnimationFrame(() => frameRef.current?.contentWindow?.focus());
     }
@@ -426,11 +434,12 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
   const leaveChapter3FromExitConfirm = () => {
     const mode = exitConfirmMode;
     if (!storyIsTestJump) {
-      if (mode === "wave") saveStoryCheckpoint(chapter3WaveCheckpoint(waveHud.waveIndex));
+      if (screen === "boss") saveStoryCheckpoint({version:1,chapter:3,kind:"boss",savedAt:Date.now()});
+      else if (mode === "wave") saveStoryCheckpoint(chapter3WaveCheckpoint(waveHud.waveIndex));
       else saveStoryCheckpoint(chapter3StoryCheckpoint(currentStoryIndexRef.current));
     }
     if (mode === "wave") postWaveCommand("set-paused", { paused: false });
-    if (mode === "story") postStoryCommand("set-exit-confirm", { open: false });
+    if (mode === "story" && screen !== "boss") postStoryCommand("set-exit-confirm", { open: false });
     setWavePaused(false);
     setExitConfirmMode(null);
     onExit?.();
@@ -1252,7 +1261,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
         </div>
       )}
 
-      {screen === "boss" && <Chapter3BossBattle key={`boss-${bossRunKey}`} launch={bossLaunch} power={waveHud.powerLevel} onComplete={completeBossBattle} onExit={returnToSelector} />}
+      {screen === "boss" && <Chapter3BossBattle key={`boss-${bossRunKey}`} launch={bossLaunch} power={waveHud.powerLevel} onComplete={completeBossBattle} onExit={returnToSelector} storyPaused={exitConfirmMode === "story"} onStoryPauseRequest={() => openExitConfirm("story")} onStoryPauseClose={closeExitConfirm} />}
 
       {waveActive && (
         <div className="chapter3WaveStage" aria-label="챕터 3 일반 몬스터 웨이브">
