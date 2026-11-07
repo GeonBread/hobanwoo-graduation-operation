@@ -5462,9 +5462,27 @@ window.STORY_DATA = {
         "duration": 6300,
         "scene": "library_reading_day",
         "time": "오후 2:10 ~ 3:05",
-        "task": "시험공부 50분",
+        "task": "시험공부 50분 · 고체역학 개념 정리",
         "phone": "가방 안",
-        "handwrite": true
+        "handwrite": true,
+        "studyTemplate": {
+          "className": "is-solid-mechanics-concept",
+          "title": "고체역학 핵심 개념 정리",
+          "line1": "응력은 단면에 작용하는 힘의 세기를 나타내며 단위는 Pa 또는 MPa를 사용한다.",
+          "line2": "변형률은 길이 변화량을 원래 길이로 나눈 무차원 값이며 탄성구간에서 훅의 법칙을 따른다.",
+          "formula1": "σ = P / A",
+          "formula2": "ε = ΔL / L₀",
+          "line3": "훅의 법칙: σ = Eε · 축하중 부재의 기본 개념과 적용 조건을 함께 정리한다.",
+          "values": [
+            "σ",
+            "P",
+            "A",
+            "ε",
+            "ΔL",
+            "L₀"
+          ]
+        },
+        "calculatorIntervalMs": 620
       },
       {
         "type": "custom-effect",
@@ -7304,9 +7322,28 @@ window.STORY_DATA = {
         "duration": 6500,
         "scene": "library_reading_day",
         "time": "시험 공부",
-        "task": "신관 지하 열람실에서 공부",
+        "task": "중간고사 대비 · 고체역학 계산 문제 풀이",
         "phone": "",
-        "handwrite": true
+        "handwrite": true,
+        "studyTemplate": {
+          "className": "is-solid-mechanics-problem",
+          "title": "고체역학 계산 문제 풀이",
+          "line1": "예제 3.2 인장봉 문제 · 주어진 값: P = 12 kN, A = 240 mm², E = 200 GPa, L₀ = 200 mm",
+          "line2": "응력과 변형률을 먼저 계산한 뒤 마지막에 축변형량 ΔL을 구한다.",
+          "formula1": "σ = P / A = 12000 / 240 = 50 MPa",
+          "formula2": "ε = σ / E = 50 / 200000 = 2.5×10⁻⁴",
+          "line3": "ΔL = εL₀ = 2.5×10⁻⁴ × 200 = 0.05 mm",
+          "values": [
+            "12000",
+            "÷240",
+            "=50",
+            "50÷200000",
+            "=2.5e-4",
+            "×200",
+            "=0.05"
+          ]
+        },
+        "calculatorIntervalMs": 420
       },
       {
         "type": "custom-effect",
@@ -10679,44 +10716,60 @@ window.STORY_DATA = {
         "right": "hobanwoo"
       },
       {
-        "speaker": "junho",
-        "text": "다들 발표 준비하시느라 정말 고생 많으셨습니다. 호반우님도 감사해요!",
-        "scene": "presentation_room",
-        "pose": "greeting",
-        "statusLabel": "발표 마무리",
-        "left": "junho",
-        "right": "hobanwoo"
-      },
-      {
-        "speaker": "soyeon",
-        "text": "저도요. 다음 프로젝트에서는 처음부터 더 적극적으로 참여할게요.",
-        "scene": "presentation_room",
-        "pose": "default",
-        "statusLabel": "발표 마무리",
-        "left": "soyeon",
-        "right": "hobanwoo"
-      },
-      {
-        "speaker": "minjae",
-        "text": "남은 시험도 다들 잘 보시고, 끝나면 같이 밥 한번 먹어요!",
-        "scene": "presentation_room",
-        "pose": "default",
-        "statusLabel": "발표 마무리",
-        "left": "minjae",
-        "right": "hobanwoo"
-      },
-      {
-        "speaker": "hobanwoo",
-        "text": "네, 정말 고생 많으셨습니다! 다들 시험도 파이팅이에요!",
-        "scene": "presentation_room",
-        "pose": "wave",
-        "statusLabel": "발표 마무리",
-        "right": "hobanwoo"
-      },
-      {
         "type": "location-title",
         "scene": "campus_hall",
         "duration": 1400
+      },
+      {
+        "type": "custom-effect",
+        "effect": "chat-snapshot",
+        "scene": "campus_hall",
+        "duration": 8400,
+        "title": "팀플 단체방",
+        "currentTime": "오후 5:42",
+        "participants": [
+          "준호",
+          "소연",
+          "민재"
+        ],
+        "notificationCount": 2,
+        "notificationHoldMs": 2300,
+        "notificationSwapMs": 900,
+        "messages": [
+          {
+            "side": "in",
+            "sender": "준호",
+            "text": "다들 발표 준비하시느라 정말 고생 많으셨습니다. 호반우님도 감사해요!",
+            "time": "오후 5:42",
+            "dateIso": "2029-04-16",
+            "dateLabel": "4월 16일 화요일"
+          },
+          {
+            "side": "in",
+            "sender": "소연",
+            "text": "저도요. 다음 프로젝트에서는 처음부터 더 적극적으로 참여할게요.",
+            "time": "오후 5:43",
+            "dateIso": "2029-04-16",
+            "dateLabel": "4월 16일 화요일"
+          },
+          {
+            "side": "in",
+            "sender": "민재",
+            "text": "남은 시험도 다들 잘 보시고, 끝나면 같이 밥 한번 먹어요!",
+            "time": "오후 5:43",
+            "dateIso": "2029-04-16",
+            "dateLabel": "4월 16일 화요일"
+          },
+          {
+            "side": "out",
+            "author": "호반우",
+            "text": "네, 정말 고생 많으셨습니다! 다들 시험도 파이팅이에요!",
+            "time": "오후 5:44",
+            "dateIso": "2029-04-16",
+            "dateLabel": "4월 16일 화요일",
+            "unread": 0
+          }
+        ]
       },
       {
         "speaker": "hobanwoo",
@@ -12094,7 +12147,20 @@ window.STORY_CUSTOM_EFFECTS['study-session'] = ({ layer, item }) => {
   const visitCount = Number(window.__c2StudyVariantCounter || 0);
   window.__c2StudyVariantCounter = visitCount + 1;
   const variantSeed = baseSeed + visitCount * 5;
-  const variant = studyVariants[variantSeed % studyVariants.length];
+  const fallbackVariant = studyVariants[variantSeed % studyVariants.length];
+  const requestedVariant = item.studyTemplate && typeof item.studyTemplate === 'object'
+    ? {
+        className: String(item.studyTemplate.className || 'is-custom-study'),
+        title: String(item.studyTemplate.title || fallbackVariant.title),
+        line1: String(item.studyTemplate.line1 || fallbackVariant.line1),
+        line2: String(item.studyTemplate.line2 || fallbackVariant.line2),
+        formula1: String(item.studyTemplate.formula1 || fallbackVariant.formula1),
+        formula2: String(item.studyTemplate.formula2 || fallbackVariant.formula2),
+        line3: String(item.studyTemplate.line3 || fallbackVariant.line3),
+        values: Array.isArray(item.studyTemplate.values) && item.studyTemplate.values.length ? item.studyTemplate.values.map(v => String(v)) : fallbackVariant.values
+      }
+    : fallbackVariant;
+  const variant = requestedVariant;
   const cleanup = c2MakeLayer(layer, `
     <div class="c2-study-animation-root is-problem-solving is-study-enter ${variant.className} ${item.handwrite ? 'is-handwriting' : ''}">
       <div class="c2-study-light"></div>
@@ -12132,11 +12198,12 @@ window.STORY_CUSTOM_EFFECTS['study-session'] = ({ layer, item }) => {
     </div>`, 'linear-gradient(155deg,#17130f,#080b10)');
   const stopWriting = item.handwrite ? c2AnimateStudyHandwriting(layer.querySelector('.c2-study-animation-root')) : () => {};
   const display = layer.querySelector('.c2-calculator-display');
-  const values = variant.values;
+  const values = Array.isArray(variant.values) && variant.values.length ? variant.values : ['0'];
+  const calculatorIntervalMs = Math.max(260, Number(item.calculatorIntervalMs || 520));
   let index = 0;
   const timer = window.setInterval(() => {
     if (display) display.textContent = values[index++ % values.length];
-  }, 520);
+  }, calculatorIntervalMs);
   return () => {
     window.clearInterval(timer);
     stopWriting();
@@ -13801,17 +13868,27 @@ window.STORY_CUSTOM_EFFECTS['desktop-workflow'] = ({ layer, item }) => {
     stage.classList.add('is-ppt-manual-editor');
     const later = (delay, action) => timeouts.push(window.setTimeout(action, delay));
     const label = (value) => { if (operation) operation.textContent = value; };
-    const movePointer = (target, fx=.35, fy=.55) => {
+    let pointerState = null;
+    const pointerTravelDefaultMs = finalizing ? 520 : 560;
+    const movePointer = (target, fx=.35, fy=.55, duration=pointerTravelDefaultMs) => {
       if (!target) return null;
       const outer = stage.getBoundingClientRect();
       const inner = target.getBoundingClientRect();
       const x = inner.left - outer.left + inner.width*fx;
       const y = inner.top - outer.top + inner.height*fy;
-      pointer.style.left = `${x}px`;
-      pointer.style.top = `${y}px`;
+      pointer.style.transition = `left ${duration}ms cubic-bezier(.22,.61,.36,1), top ${duration}ms cubic-bezier(.22,.61,.36,1), opacity .2s ease`;
+      if (!pointerState) {
+        pointer.style.left = `${x}px`;
+        pointer.style.top = `${y}px`;
+      } else {
+        pointer.style.left = `${x}px`;
+        pointer.style.top = `${y}px`;
+      }
       pointer.style.opacity = '1';
-      return {x,y};
+      pointerState = { x, y };
+      return {x,y,duration};
     };
+    const afterTravel = (moveResult, wait, action) => later((moveResult?.duration || 0) + wait, action);
     const tapPointer = () => {
       if (typeof pointer.animate !== 'function') return;
       animations.push(pointer.animate([{transform:'scale(1)'},{transform:'scale(.76)',offset:.44},{transform:'scale(1)'}],{duration:280,easing:'ease-out'}));
@@ -13835,51 +13912,82 @@ window.STORY_CUSTOM_EFFECTS['desktop-workflow'] = ({ layer, item }) => {
       if (!node) return;
       shapeTool?.classList.add('is-current');
       label('삽입 → 도형 → 둥근 모서리 사각형 드래그');
-      const dest=movePointer(node,.07,.1);
-      node.classList.add('is-placed');
-      if (typeof node.animate === 'function') {
-        animations.push(node.animate([
-          {opacity:.2,transform:'scale(.06,.12)',offset:0},
-          {opacity:.78,transform:'scale(.58,.62)',offset:.52},
-          {opacity:1,transform:'scale(1)',offset:1},
-        ],{duration:720,easing:'cubic-bezier(.19,.72,.22,1)',fill:'forwards'}));
-      }
-      if (dest && typeof pointer.animate==='function') {
-        const rect=node.getBoundingClientRect();
-        animations.push(pointer.animate([
-          {left:`${dest.x}px`,top:`${dest.y}px`},
-          {left:`${dest.x+rect.width*.8}px`,top:`${dest.y+rect.height*.78}px`}
-        ],{duration:720,easing:'cubic-bezier(.19,.72,.22,1)',fill:'forwards'}));
-      }
-      later(790,()=>{shapeTool?.classList.remove('is-current');movePointer(node,.78,.63);});
+      const dest = movePointer(node,.07,.1);
+      afterTravel(dest, 70, () => {
+        tapPointer();
+        node.classList.add('is-placed');
+        if (typeof node.animate === 'function') {
+          animations.push(node.animate([
+            {opacity:.2,transform:'scale(.06,.12)',offset:0},
+            {opacity:.78,transform:'scale(.58,.62)',offset:.52},
+            {opacity:1,transform:'scale(1)',offset:1},
+          ],{duration:720,easing:'cubic-bezier(.19,.72,.22,1)',fill:'forwards'}));
+        }
+      });
+      afterTravel(dest, 860, () => {
+        shapeTool?.classList.remove('is-current');
+        movePointer(node,.78,.63,420);
+      });
     };
     const alignAll = () => {
       label('도형 여러 개 선택 → 도형 서식 → 맞춤 → 가운데 정렬 · 가로 간격 동일하게');
       nodeList.forEach(node=>node.classList.add('is-selected'));
       slide.classList.add('is-aligning');
       alignmentTool?.classList.add('is-current');
-      movePointer(alignmentTool,.5,.5);
-      tapPointer();
-      later(1020,()=>{nodeList.forEach(node=>node.classList.remove('is-selected'));slide.classList.remove('is-aligning');alignmentTool?.classList.remove('is-current');});
+      const travel = movePointer(alignmentTool,.5,.5);
+      afterTravel(travel, 90, tapPointer);
+      afterTravel(travel, 1120, () => {nodeList.forEach(node=>node.classList.remove('is-selected'));slide.classList.remove('is-aligning');alignmentTool?.classList.remove('is-current');});
     };
     if (finalizing) {
       later(180,()=>{label('8/8 · 결론 슬라이드 검토');movePointer(nodeList[2] || slide);});
-      later(600,()=>drawNode(nodeList[2]));
-      later(1500,()=>{label('마지막 공정 도형에 텍스트 직접 입력');const target=nodeList[2]?.querySelector('[data-ppt-type]');movePointer(target||nodeList[2]);typeText(target,620);});
-      later(2550,alignAll);
-      later(4000,()=>{const conclusion=slide.querySelector('.c2-ppt-final-recommendation');conclusion?.classList.add('is-visible');label('결론 텍스트 상자 선택 → 문장 수정');movePointer(conclusion);tapPointer();});
-      later(4400,()=>{const target=slide.querySelector('.c2-ppt-final-recommendation [data-ppt-type]');typeText(target,1650);});
-      later(6650,()=>{label('결론 슬라이드 최종 검토 · 정렬 완료');movePointer(slide.querySelector('.c2-ppt-slide-page'));slide.classList.add('is-ppt-complete');});
+      later(760,()=>drawNode(nodeList[2]));
+      later(1880,()=>{
+        label('마지막 공정 도형에 텍스트 직접 입력');
+        const target=nodeList[2]?.querySelector('[data-ppt-type]');
+        const travel = movePointer(target||nodeList[2]);
+        afterTravel(travel, 90, () => { tapPointer(); typeText(target,620); });
+      });
+      later(3160,alignAll);
+      later(4680,()=>{
+        const conclusion=slide.querySelector('.c2-ppt-final-recommendation');
+        conclusion?.classList.add('is-visible');
+        label('결론 텍스트 상자 선택 → 문장 수정');
+        const travel = movePointer(conclusion);
+        afterTravel(travel, 90, tapPointer);
+      });
+      later(5450,()=>{const target=slide.querySelector('.c2-ppt-final-recommendation [data-ppt-type]');typeText(target,1650);});
+      later(7920,()=>{label('결론 슬라이드 최종 검토 · 정렬 완료');movePointer(slide.querySelector('.c2-ppt-slide-page'));slide.classList.add('is-ppt-complete');});
     } else {
-      later(180,()=>{label('2/2 · 발표 자료 초안의 구조도 작성');movePointer(shapeTool);tapPointer();});
-      later(650,()=>drawNode(nodeList[0]));
-      later(1700,()=>drawNode(nodeList[1]));
-      later(2720,()=>drawNode(nodeList[2]));
-      later(3650,()=>{label('제목 텍스트 상자 선택 → 직접 입력');const t=slide.querySelector('.c2-ppt-page-heading [data-ppt-type]');movePointer(t||slide);typeText(t,700);});
-      later(4550,()=>{label('각 도형에 단계별 설명 직접 입력');nodeList.forEach((node,index)=>later(index*250,()=>{const t=node.querySelector('[data-ppt-type]');movePointer(t||node);typeText(t,580);}));});
-      later(5870,alignAll);
-      later(6900,()=>{label('부제 텍스트 입력 · 초안 2페이지 완성');const target=slide.querySelector('.c2-ppt-chapter-caption[data-ppt-type]');movePointer(target);typeText(target,720);});
-      later(7780,()=>{slide.classList.add('is-ppt-complete');label('2/2 · 발표 자료 초안 저장');pointer.style.opacity='0';});
+      later(180,()=>{
+        label('2/2 · 발표 자료 초안의 구조도 작성');
+        const travel = movePointer(shapeTool);
+        afterTravel(travel, 80, tapPointer);
+      });
+      later(760,()=>drawNode(nodeList[0]));
+      later(1920,()=>drawNode(nodeList[1]));
+      later(3140,()=>drawNode(nodeList[2]));
+      later(4300,()=>{
+        label('제목 텍스트 상자 선택 → 직접 입력');
+        const t=slide.querySelector('.c2-ppt-page-heading [data-ppt-type]');
+        const travel = movePointer(t||slide);
+        afterTravel(travel, 90, () => { tapPointer(); typeText(t,700); });
+      });
+      later(5320,()=>{
+        label('각 도형에 단계별 설명 직접 입력');
+        nodeList.forEach((node,index)=>later(index*420,()=>{
+          const t=node.querySelector('[data-ppt-type]');
+          const travel = movePointer(t||node,.45,.55,430);
+          afterTravel(travel, 80, () => { tapPointer(); typeText(t,580); });
+        }));
+      });
+      later(7020,alignAll);
+      later(8240,()=>{
+        label('부제 텍스트 입력 · 초안 2페이지 완성');
+        const target=slide.querySelector('.c2-ppt-chapter-caption[data-ppt-type]');
+        const travel = movePointer(target);
+        afterTravel(travel, 80, () => { tapPointer(); typeText(target,720); });
+      });
+      later(9440,()=>{slide.classList.add('is-ppt-complete');label('2/2 · 발표 자료 초안 저장');pointer.style.opacity='0';});
     }
   };
 
@@ -16836,7 +16944,7 @@ html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue
 .c2-ppt-step-slide.is-snapshot-complete .c2-ppt-process-node.is-drawing{opacity:1;transform:none}
 .c2-ppt-step-slide.is-snapshot-complete .c2-ppt-final-recommendation{opacity:1}
 .c2-ppt-edit-instruction{position:absolute;right:10px;bottom:25px;z-index:12;padding:7px 10px;max-width:82%;border:1px solid #bf9a74;background:rgba(35,32,36,.88);color:#fff8df;font-size:clamp(10px,1.2vw,14px);border-radius:5px;box-shadow:0 4px 10px rgba(0,0,0,.25);white-space:normal}
-.c2-ppt-live-pointer{position:absolute;left:20%;top:44%;z-index:15;width:24px;height:31px;background:#fff;border:2px solid #18202d;clip-path:polygon(0 0,0 93%,29% 69%,48% 99%,67% 91%,49% 64%,83% 64%);filter:drop-shadow(1px 2px 1px rgba(0,0,0,.65));opacity:0;pointer-events:none;transition:left .34s ease,top .34s ease,opacity .2s}
+.c2-ppt-live-pointer{position:absolute;left:20%;top:44%;z-index:15;width:24px;height:31px;background:#fff;border:2px solid #18202d;clip-path:polygon(0 0,0 93%,29% 69%,48% 99%,67% 91%,49% 64%,83% 64%);filter:drop-shadow(1px 2px 1px rgba(0,0,0,.65));opacity:0;pointer-events:none;transition:left .56s cubic-bezier(.22,.61,.36,1),top .56s cubic-bezier(.22,.61,.36,1),opacity .2s}
 @keyframes c2PptCaretBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
 @media (max-width:700px){.c2-ppt-context-tools{height:30px;font-size:9px;gap:3px;padding:0 4px}.c2-ppt-context-tools span{padding:4px}.c2-ppt-edit-instruction{right:4px;bottom:21px;font-size:9px}.c2-ppt-step-slide .c2-ppt-process{padding:4px;gap:2px}}
 
