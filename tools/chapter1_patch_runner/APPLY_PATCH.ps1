@@ -484,10 +484,21 @@ try {
         foreach ($relativePath in ($preservePaths | Sort-Object -Unique)) {
             Invoke-CheckedCommand -Command 'git' -Arguments @('add', '--', $relativePath) -FailureMessage "Could not stage preserved file: $relativePath"
         }
-        Invoke-CheckedCommand -Command 'git' -Arguments $preserveArguments -FailureMessage "Could not preserve local changes in a Git commit. Backups were retained."
-        $preflightPreserved = $true
-        $baselineCommit = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', 'HEAD')
-        Write-Ok "Local contents preserved. Updated baseline: $baselineCommit"
+        $stagedPreservePaths = @(& git diff --cached --name-only -- $preservePaths)
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not inspect staged preservation changes."
+}
+
+if ($stagedPreservePaths.Count -gt 0) {
+    Invoke-CheckedCommand -Command 'git' -Arguments $preserveArguments -FailureMessage "Could not preserve local changes in a Git commit. Backups were retained."
+    $preflightPreserved = $true
+    $baselineCommit = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', 'HEAD')
+    Write-Ok "Local contents preserved. Updated baseline: $baselineCommit"
+}
+else {
+    Write-Ok "No actual Git content changes to preserve. Skipping empty commit."
+}
         Write-Host "Original-file backups: $preserveDirectory"
         $statusLines = @(Get-PatchWorkingTreeStatus -SelectedZipRelativePath $selectedZipRelativePath)
     }
