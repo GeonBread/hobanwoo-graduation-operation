@@ -548,6 +548,12 @@ function finishWave(engine: Chapter1WaveEngine): void {
 
   if (cleared >= CHAPTER1_WAVE_CATALOG.length - 1) {
     runtime.allWavesCleared = true;
+    // 보호 시작 시점을 React phase 변경보다 앞당겨 마지막 프레임 피격도 방지.
+    if (engine.playMode === 'story' && engine.player) {
+      engine.player.invulnTimer = Math.max(engine.player.invulnTimer || 0, 30);
+      engine.playerDamageFlashTimer = 0;
+      engine.screenShakeIntensity = 0;
+    }
     runtime.telegraphs = [];
     runtime.deferred = [];
     engine.bullets.forEach((bullet: Bullet) => {

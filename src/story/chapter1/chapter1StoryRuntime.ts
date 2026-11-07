@@ -224,6 +224,23 @@ function normalizeStoryRuntimeScript(source: string, part: Chapter1StoryPart): s
     normalized = normalized.replace(gatekeeperDialogueHook, gatekeeperDialogueUpgrade);
   }
 
+  // '말을.. 하잖아!!' 대사에서는 내부 922x960 스테이지만이 아니라
+  // 브라우저의 전체 앱 화면을 단 한 번 강하게 흔들어 충격을 표현한다.
+  if (part === 1) {
+    const oldImpactHook = `    if (item.screenShake) {
+      void storyStage.offsetWidth;
+      storyStage.classList.add('is-dialogue-impact-shake');
+      window.setTimeout(() => storyStage.classList.remove('is-dialogue-impact-shake'), 900);
+    }`;
+    const newImpactHook = `    if (item.screenShake) {
+      window.__CHAPTER1_TRIGGER_FULL_VIEWPORT_SHAKE__?.();
+    }`;
+    if (!normalized.includes(oldImpactHook)) {
+      throw new Error('Chapter 1 screen-shake dialogue hook was not found.');
+    }
+    normalized = normalized.replace(oldImpactHook, newImpactHook);
+  }
+
   // 학생증 발화는 챕터 1·2·3 공통의 노란빛 전용 대사창을 사용한다.
   // Part 2의 게이트키퍼 스타일 주입 이후에 적용해 보스 전용 클래스와 서로 덮어쓰지 않게 한다.
   const studentCardDialogueClassHook = `    dialogueLayer.classList.toggle('speaker-right', speakerCharacter.side === 'right');`;
@@ -1054,7 +1071,8 @@ function normalizeStoryRuntimeScript(source: string, part: Chapter1StoryPart): s
         arrivalTitleName.textContent = bossInteriorPreviewScene.title || '학사 코어 영역';
         const arrivalTitleSubtitle = document.createElement('span');
         arrivalTitleSubtitle.textContent = bossInteriorPreviewScene.subtitle || '핵심 오염원 구역';
-        arrivalTitle.append(arrivalTitleKicker, arrivalTitleName, arrivalTitleSubtitle);
+        // '학사 코어 영역' 장면 텍스트만 표시한다. 별/코어 설명 부제는 이 장면에서 숨김.
+        arrivalTitle.append(arrivalTitleName);
         arrivalOverlay.appendChild(arrivalTitle);
         document.body.appendChild(arrivalOverlay);
 
@@ -2984,9 +3002,29 @@ export function createChapter1StoryRuntime({
     window.cancelAnimationFrame(id);
   };
 
+  // 강한 단발 충격: fixed ratio 스토리 내부가 아닌 최상위 body를 흔들기 때문에
+  // 캐릭터/대사창/배경 및 외부 레이어가 함께 반응한다.
+  let studentCardShockAnimation: Animation | null = null;
+  const triggerStudentCardViewportShake = () => {
+    studentCardShockAnimation?.cancel();
+    if (!document.body?.animate) return;
+    studentCardShockAnimation = document.body.animate([
+      { offset: 0, transform: 'translate3d(0,0,0) rotate(0deg)' },
+      { offset: .08, transform: 'translate3d(-24px,13px,0) rotate(-.7deg)' },
+      { offset: .17, transform: 'translate3d(27px,-16px,0) rotate(.78deg)' },
+      { offset: .28, transform: 'translate3d(-23px,-11px,0) rotate(-.64deg)' },
+      { offset: .40, transform: 'translate3d(20px,12px,0) rotate(.52deg)' },
+      { offset: .54, transform: 'translate3d(-14px,-7px,0) rotate(-.38deg)' },
+      { offset: .69, transform: 'translate3d(10px,6px,0) rotate(.26deg)' },
+      { offset: .84, transform: 'translate3d(-5px,-3px,0) rotate(-.12deg)' },
+      { offset: 1, transform: 'translate3d(0,0,0) rotate(0deg)' },
+    ], { duration: 840, easing: 'linear', iterations: 1 });
+  };
+
   const localWindowValues = new Map<PropertyKey, unknown>();
   const embeddedAssets = createChapter1StoryEmbeddedAssets();
   localWindowValues.set("EMBEDDED_ASSETS", embeddedAssets);
+  localWindowValues.set("__CHAPTER1_TRIGGER_FULL_VIEWPORT_SHAKE__", triggerStudentCardViewportShake);
 
   let scopedWindow: Window & typeof globalThis;
   scopedWindow = new Proxy(window, {
@@ -3414,6 +3452,8 @@ export function createChapter1StoryRuntime({
   function dispose(): void {
     if (disposed) return;
     disposed = true;
+    studentCardShockAnimation?.cancel();
+    studentCardShockAnimation = null;
     for (const id of timeoutIds) window.clearTimeout(id);
     for (const id of intervalIds) window.clearInterval(id);
     for (const id of animationFrameIds) window.cancelAnimationFrame(id);

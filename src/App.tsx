@@ -92,6 +92,7 @@ interface GameCanvasProps {
   chapter1StartingPowerLevel?: number;
   inputEnabled?: boolean;
   chapter1PurificationExit?: boolean;
+  chapter1PurificationActive?: boolean;
   chapter2PurificationExit?: boolean;
   simulationEnabled?: boolean;
   onVisualReady?: () => void;
@@ -127,6 +128,7 @@ function GameCanvas({
   chapter1StartingPowerLevel = 1,
   inputEnabled = true,
   chapter1PurificationExit = false,
+  chapter1PurificationActive = false,
   chapter2PurificationExit = false,
   simulationEnabled = true,
   onVisualReady,
@@ -464,6 +466,19 @@ function GameCanvas({
     }
     engineRef.current.skipCurrentChapter2Boss();
   }, [chapter2BossOnly, chapter2BossControlCommand]);
+
+  useEffect(() => {
+    if (!chapter1WaveOnly || !chapter1PurificationActive || !engineRef.current) return;
+    // 일반 웨이브 완료뿐 아니라 TEST에서 바로 100% 연출로 이동한 경우에도
+    // 후속 3.3초/상승 퇴장 동안 플레이어가 절대 피격되지 않도록 완료 상태를 고정한다.
+    const engine = engineRef.current;
+    engine.chapter1Wave.allWavesCleared = true;
+    engine.chapter1Wave.enabled = false;
+    engine.chapter1Wave.running = false;
+    engine.player.invulnTimer = Math.max(engine.player.invulnTimer, 10);
+    engine.playerDamageFlashTimer = 0;
+    engine.screenShakeIntensity = 0;
+  }, [chapter1WaveOnly, chapter1PurificationActive]);
 
   useEffect(() => {
     if (!chapter1PurificationExit && !chapter2PurificationExit) return;
@@ -1266,6 +1281,7 @@ function Chapter1StoryExperience({
               simulationEnabled={phase !== "wave-guide" && !combatFailure}
               inputEnabled={phase === "wave" && !combatFailure}
               chapter1PurificationExit={phase === "wave-purification-exit"}
+              chapter1PurificationActive={phase === "wave-purification-effect" || phase === "wave-purification-exit"}
               onVisualReady={() => setWaveGuideVisualReady(true)}
               onPlayerScreenPositionChange={setPlayerPosition}
               onChapter1WaveIndexChange={(waveIndex) => {

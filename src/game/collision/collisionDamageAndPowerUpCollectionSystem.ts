@@ -43,6 +43,8 @@ function circleIntersectsCenteredBox(
  * 적탄과 플레이어, 플레이어 탄환과 적/보스, 적 몸체와 플레이어, 파워업과 플레이어의 충돌을 한 번에 처리한다.
  */
 export function checkCollisionDamageAndPowerUpCollectionSystem(engine: CollisionDamageRuntime) {
+  // 챕터 1 마지막 웨이브를 완료하면 화면 전환 중의 모든 충돌 판정을 차단.
+  if (engine.playMode === 'story' && engine.stage === 1 && engine.chapter1Wave?.allWavesCleared && !engine.bossActive) return;
 checkChapter1WaveCollisionsSystem(engine);
 engine.bullets.forEach((b) => {
   if (!b.active) return;

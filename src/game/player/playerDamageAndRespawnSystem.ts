@@ -16,6 +16,8 @@ type PlayerDamageRuntime = any;
  * 체력이 0이면 짧은 붉은 화면 연출 뒤 게임오버 처리가 진행되도록 사망 상태를 설정한다.
  */
 export function triggerPlayerDamageAndRespawnSystem(engine: PlayerDamageRuntime) {
+  // 100% 정화 직후부터 스토리 전환까지는 피격 자체를 무효 처리한다.
+  if (engine.playMode === 'story' && engine.stage === 1 && engine.chapter1Wave?.allWavesCleared && !engine.bossActive) return;
   if (!engine.player || engine.player.isDead || engine.player.invulnTimer > 0) return;
 
   engine.player.hp = Math.max(0, engine.player.hp - 1);

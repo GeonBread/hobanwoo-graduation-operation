@@ -333,7 +333,7 @@ export function renderChapter1WaveHudSystem(engine: any): void {
     : Math.min(0.985, eventRatio * 0.7 + defeatedRatio * 0.3);
   const completedWaves = progress.allWavesCleared ? waveCount : progress.waveIndex;
   const purificationRatio = Math.max(0, Math.min(1, (completedWaves + currentWaveRatio) / waveCount));
-  const percent = Math.round(purificationRatio * 100);
+  const percent = progress.allWavesCleared ? 100 : Math.min(99, Math.floor(purificationRatio * 100));
 
   const ctx = engine.ctx as CanvasRenderingContext2D;
   const centerX = engine.canvas.width / 2;

@@ -67,6 +67,8 @@ function tryBlockWithSatellite(engine: any, bullet: Bullet): boolean {
 }
 
 function checkPlayerAgainstChapter1Bullets(engine: any): void {
+  // 100% 정화 이후 남아 있는 투사체는 플레이어의 HP/위성/피격 연출에 영향 없음.
+  if (engine.playMode === 'story' && engine.stage === 1 && engine.chapter1Wave?.allWavesCleared && !engine.bossActive) return;
   if (engine.player.isDead || engine.player.invulnTimer > 0) return;
   const playerCenter = centerOf(engine.player);
   const scale = Math.min(engine.canvas.width / 800, engine.canvas.height / 960);
