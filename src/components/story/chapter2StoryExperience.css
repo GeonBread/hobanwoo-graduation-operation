@@ -965,3 +965,52 @@
   transform: none !important;
   zoom: 1 !important;
 }
+
+/* 2026-11-07: Chapter 2 boss becomes an absorbing purple "unfair group project" singularity. */
+.chapter2-fullscreen-story-boss-emergence{background:radial-gradient(circle at 50% 48%,#130728 0,#07040e 48%,#010104 94%)}
+.chapter2-fullscreen-story-boss-emergence::before{background:radial-gradient(ellipse at 50% 46%,rgba(110,42,182,.31) 0 21%,rgba(45,12,96,.24) 38%,rgba(2,0,8,.84) 70%),repeating-conic-gradient(from 12deg at 50% 49%,transparent 0deg 18deg,rgba(135,67,196,.045) 18deg 19deg)}
+.chapter2-story-boss-emergence-bg{filter:brightness(.21) saturate(.9) hue-rotate(6deg)}
+.chapter2-story-boss-emergence-vortex{background:repeating-conic-gradient(from 20deg,rgba(60,22,113,.82) 0 4deg,rgba(8,2,21,.9) 7deg 15deg,rgba(110,40,167,.55) 17deg 22deg,rgba(4,1,11,.9) 27deg 42deg),radial-gradient(circle,#020104 0 28%,#2d1355 31%,#120724 45%,transparent 68%);box-shadow:inset 0 0 75px 36px rgba(0,0,0,.98),0 0 0 2px rgba(147,93,207,.26),0 0 65px rgba(97,34,180,.35),0 0 155px rgba(64,15,105,.31);filter:saturate(.94)}
+.chapter2-story-boss-emergence-accretion{position:absolute;z-index:4;left:50%;top:50%;width:min(78vw,78vh);aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none;animation:chapter2AccretionDiscArrival 3.1s ease both}
+.chapter2-story-boss-emergence-accretion i{position:absolute;inset:7%;border-radius:50%;border:10px solid transparent;border-top-color:rgba(166,85,235,.64);border-right-color:rgba(103,52,165,.31);border-bottom-color:rgba(21,6,35,.22);transform:rotateX(64deg) rotate(0);filter:drop-shadow(0 0 11px rgba(122,64,188,.25));animation:chapter2AccretionSpin 2.8s linear infinite}
+.chapter2-story-boss-emergence-accretion .orbit-b{inset:16%;border-width:9px;border-top-color:rgba(212,155,235,.65);animation-duration:1.8s;animation-direction:reverse}
+.chapter2-story-boss-emergence-accretion .orbit-c{inset:25%;border-width:7px;border-right-color:rgba(118,45,208,.79);animation-duration:3.6s}
+.chapter2-story-boss-emergence-papers{position:absolute;z-index:6;inset:0;overflow:hidden;pointer-events:none}
+.chapter2-story-boss-emergence-papers span{position:absolute;left:50%;top:50%;min-width:clamp(95px,10vw,148px);padding:9px 13px;background:linear-gradient(135deg,rgba(237,224,249,.88),rgba(164,136,196,.62));color:#210d36;border:1px solid rgba(222,194,245,.8);font:800 clamp(12px,1.2vw,16px)/1.2 'Noto Sans KR',sans-serif;text-align:center;box-shadow:0 9px 25px rgba(2,0,5,.5);opacity:0;transform:translate(-50%,-50%) rotate(calc(var(--i) * 36deg)) translateY(-69vh) scale(1.25);animation:chapter2PaperSucked 3.6s calc(.18s + var(--i) * .1s) ease-in both}
+.chapter2-story-boss-emergence-boss-wrap{z-index:8;filter:drop-shadow(0 18px 33px rgba(2,0,8,.86)) drop-shadow(0 0 18px rgba(96,24,148,.42))}
+.chapter2-story-boss-emergence-title{top:5%;z-index:13;width:min(94vw,1080px);padding:16px 28px 17px;background:linear-gradient(180deg,rgba(7,3,17,.98),rgba(23,10,39,.94) 75%,rgba(7,3,17,.85));border:1px solid rgba(162,112,201,.68);box-shadow:0 16px 38px rgba(0,0,0,.82),inset 0 0 22px rgba(77,35,124,.19)}
+.chapter2-story-boss-emergence-title small{font-size:clamp(10px,1.1vw,14px);color:#ae87d7;letter-spacing:.24em;text-shadow:none}
+.chapter2-story-boss-emergence-title strong{font-size:clamp(28px,5.1vw,65px);line-height:1.12;color:#e5d3f3;-webkit-text-stroke:0 transparent;text-shadow:0 3px 6px #07030c,0 0 11px rgba(109,48,169,.24);font-weight:950}
+.chapter2-story-boss-emergence-title em{display:block;margin-top:8px;font:750 clamp(11px,1.15vw,16px)/1.3 'Noto Sans KR',sans-serif;letter-spacing:.1em;font-style:normal;color:#ae8dc6;text-shadow:0 2px 4px #000}
+.chapter2-story-boss-emergence-shock{border-color:rgba(150,89,218,.78);box-shadow:0 0 25px rgba(118,43,167,.32)}
+.chapter2-story-boss-emergence-beams span{background:linear-gradient(180deg,rgba(167,122,213,.69),rgba(108,36,161,.38) 42%,transparent)}
+.chapter2-story-boss-emergence-dust span{background:radial-gradient(circle,rgba(217,185,247,.76),rgba(96,42,164,.4) 55%,transparent 74%)}
+@keyframes chapter2AccretionDiscArrival{0%,22%{opacity:0;transform:translate(-50%,-50%) scale(.15)}48%{opacity:.96;transform:translate(-50%,-50%) scale(1.18)}75%,100%{opacity:.8;transform:translate(-50%,-50%) scale(1)}}
+@keyframes chapter2AccretionSpin{from{transform:rotateX(64deg) rotate(0deg)}to{transform:rotateX(64deg) rotate(360deg)}}
+@keyframes chapter2PaperSucked{0%{opacity:0;transform:translate(-50%,-50%) rotate(calc(var(--i) * 36deg)) translateY(-69vh) scale(1.28)}14%{opacity:.92}65%{opacity:.78}100%{opacity:0;transform:translate(-50%,-50%) rotate(calc(var(--i) * 36deg + 190deg)) translateY(-2vh) scale(.06)}}
+
+.chapter2-fullscreen-boss-intro{background:radial-gradient(circle at 50% 50%,rgba(70,19,129,.67) 0,rgba(19,6,46,.7) 35%,rgba(2,1,9,.98) 87%);color:#eadcf6}
+.chapter2-boss-intro-grid{opacity:.24;background-image:linear-gradient(rgba(165,88,232,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(165,88,232,.22) 1px,transparent 1px)}
+.chapter2-boss-intro-shutter{background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 16px,transparent 16px 32px),linear-gradient(90deg,#22073e,#57228a 45%,#2b0c50);box-shadow:0 0 55px rgba(121,57,199,.42)}
+.chapter2-boss-intro-slash{background:#d2a9ee;box-shadow:0 0 14px rgba(234,193,255,.75),0 0 48px rgba(118,46,207,.54)}
+.chapter2-boss-intro-ring{border-color:rgba(155,84,218,.76);box-shadow:0 0 32px rgba(133,59,200,.38),inset 0 0 32px rgba(93,36,165,.23)}
+.chapter2-boss-intro-warning{border-color:rgba(146,69,196,.8);background:rgba(23,4,42,.86);color:#cfb1e7;text-shadow:0 1px 4px #0b0014}
+.chapter2-boss-intro-copy{border-color:#9564bf;background:linear-gradient(90deg,transparent,rgba(10,2,20,.87) 14%,rgba(10,2,20,.94) 50%,rgba(10,2,20,.87) 86%,transparent)}
+.chapter2-boss-intro-copy small{color:#ae82cc}
+.chapter2-boss-intro-copy strong{font:italic 950 clamp(38px,7.2vw,104px)/.98 'Noto Sans KR','Malgun Gothic',sans-serif;color:#f0e0ff;letter-spacing:-.03em;text-shadow:4px 5px 0 rgba(32,5,57,.9),0 0 11px rgba(139,68,197,.36)}
+.chapter2-boss-intro-copy h2{color:#e4cef4;text-shadow:2px 2px 0 #030106}
+.chapter2-boss-intro-copy p{color:#b99bce}
+.chapter2-boss-intro-singularity{position:absolute;z-index:3;left:50%;top:50%;width:min(68vw,68vh);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#030107 0 18%,rgba(61,19,113,.97) 22%,rgba(28,5,55,.92) 38%,transparent 71%);box-shadow:inset 0 0 80px rgba(0,0,0,.92),0 0 95px rgba(116,51,182,.27);transform:translate(-50%,-50%) scale(.16);animation:chapter2BossIntroBlackhole 3.6s ease both}
+.chapter2-boss-intro-singularity i{position:absolute;inset:13%;border-radius:50%;border:7px solid transparent;border-top-color:#9661b9;border-right-color:rgba(168,104,204,.38);transform:rotateX(55deg) rotate(-5deg);animation:chapter2AccretionSpin 2.3s linear infinite}
+.chapter2-boss-intro-singularity i:nth-child(2){inset:24%;border-width:5px;animation-direction:reverse}.chapter2-boss-intro-singularity i:nth-child(3){inset:34%;border-width:4px}
+.chapter2-boss-intro-paperstream{position:absolute;z-index:4;inset:0;overflow:hidden;pointer-events:none}
+.chapter2-boss-intro-paperstream span{position:absolute;left:50%;top:50%;min-width:clamp(75px,8vw,120px);padding:7px 10px;border:1px solid #be96db;background:rgba(204,181,222,.9);font:850 clamp(10px,1.05vw,14px)/1.2 'Noto Sans KR',sans-serif;text-align:center;color:#240d35;opacity:0;animation:chapter2BossIntroSuction 2.55s calc(var(--i)*.12s) ease-in both}
+@keyframes chapter2BossIntroBlackhole{0%,6%{opacity:0;transform:translate(-50%,-50%) scale(.08)}35%,78%{opacity:.95;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}}
+@keyframes chapter2BossIntroSuction{0%{opacity:0;transform:translate(-50%,-50%) rotate(calc(var(--i)*60deg)) translateY(-65vh) scale(1.05)}25%{opacity:.85}100%{opacity:0;transform:translate(-50%,-50%) rotate(calc(var(--i)*60deg + 200deg)) translateY(-4vh) scale(.04)}}
+
+/* Prevent a white flash from breaking the black-purple Chapter 2 boss palette. */
+@keyframes chapter2BossIntroScreen {
+  0% { opacity: 0; background-color: #070210; }
+  7%, 88% { opacity: 1; }
+  100% { opacity: 0; }
+}

@@ -2214,6 +2214,7 @@ window.STORY_CHARACTERS = {
       uneasy: 'characters/hobanwoo/hobanwoo_pose_uneasy.png',
       worried: 'characters/hobanwoo/hobanwoo_pose_worried.png',
       surprised: 'characters/hobanwoo/hobanwoo_pose_surprised.png',
+      flustered: 'characters/hobanwoo/hobanwoo_pose_flustered_raised_brows_slightly_open_mouth_palms_forward_sweat_drop.png',
       shocked: 'characters/hobanwoo/hobanwoo_pose_shocked.png',
       battleReady: 'characters/hobanwoo/hobanwoo_pose_battle_ready.png',
       battle_ready: 'characters/hobanwoo/hobanwoo_pose_battle_ready.png',
@@ -2242,7 +2243,7 @@ window.STORY_CHARACTERS = {
 
   professor: {
     name: '교수', side: 'left', image: 'chapter2/characters/professor_default.png', portrait: 'chapter2/portraits/professor_default.png',
-    frame: 'frame_knu_default.svg', frameInset: '17%', accent: '#4d78b8', scale: 1, alt: '교수', voice: 'professor',
+    frame: 'frame_knu_default.svg', frameInset: '17%', accent: '#c88c54', scale: 1, alt: '교수', voice: 'professor',
     portraitPoses: { default: 'chapter2/portraits/professor_default.png', serious: 'chapter2/portraits/professor_default.png', thinking: 'chapter2/portraits/professor_default.png', surprised: 'chapter2/portraits/professor_default.png', tired: 'chapter2/portraits/professor_default.png', angry: 'chapter2/portraits/professor_default.png', apologetic: 'chapter2/portraits/professor_default.png' },
     poses: {
       default: 'chapter2/characters/professor_default.png',
@@ -2345,6 +2346,7 @@ window.STORY_CHARACTERS = {
       apologetic: 'chapter2/characters/junho_apologetic.png',
       awkward: 'chapter2/characters/junho_awkward_v47.png',
       presentation: 'chapter2/characters/junho_presentation_v47.png',
+      greeting: 'chapter2/characters/junho_greeting.png',
       earnest: 'chapter2/characters/junho_default.png'
     }
   },
@@ -2812,7 +2814,8 @@ window.STORY_DATA = {
         "duration": 7600,
         "scene": "cafeteria",
         "time": "다음 날 오후 12시 20분",
-        "place": "학생식당 밖 · 다음 강의실 이동 전",
+        "place": "공학관 식당",
+        "sceneTitle": "공학관 식당",
         "dayLabel": "다음 날",
         "dateTime": "4월 10일 화요일 · 오후 12시 20분",
         "transitionMode": "date",
@@ -4423,7 +4426,7 @@ window.STORY_DATA = {
         "effect": "study-session",
         "duration": 5600,
         "scene": "library_basement",
-        "time": "오후 11:50 ~ 오전 12:30",
+        "time": "오후 7:50 ~ 오후 8:30",
         "task": "보고서 작업 계속",
         "phone": "가방 안"
       },
@@ -4441,10 +4444,10 @@ window.STORY_DATA = {
         "effect": "time-card",
         "duration": 7600,
         "scene": "future_creator_hall",
-        "time": "오전 12시 30분",
+        "time": "다음 날 오전 10시 30분",
         "place": "미래창직관 1층",
-        "dateTime": "4월 13일 금요일 · 오전 12시 30분",
-        "dayLabel": "자정이 지난 뒤",
+        "dateTime": "4월 13일 금요일 · 오전 10시 30분",
+        "dayLabel": "다음 날 오전",
         "transitionMode": "date",
         "calendarYear": 2029
       },
@@ -5456,11 +5459,12 @@ window.STORY_DATA = {
       {
         "type": "custom-effect",
         "effect": "study-session",
-        "duration": 2400,
+        "duration": 6300,
         "scene": "library_reading_day",
         "time": "오후 2:10 ~ 3:05",
         "task": "시험공부 50분",
-        "phone": "가방 안"
+        "phone": "가방 안",
+        "handwrite": true
       },
       {
         "type": "custom-effect",
@@ -7207,7 +7211,7 @@ window.STORY_DATA = {
         "speaker": "hobanwoo",
         "text": "우선, 보고서랑 발표 자료는 제가 거의 다 만들어두었습니다.",
         "scene": "meeting_room",
-        "pose": "explaining",
+        "pose": "presenting",
         "statusLabel": "예정된 중간 점검",
         "right": "hobanwoo"
       },
@@ -7297,11 +7301,12 @@ window.STORY_DATA = {
       {
         "type": "custom-effect",
         "effect": "study-session",
-        "duration": 2400,
+        "duration": 6500,
         "scene": "library_reading_day",
         "time": "시험 공부",
         "task": "신관 지하 열람실에서 공부",
-        "phone": ""
+        "phone": "",
+        "handwrite": true
       },
       {
         "type": "custom-effect",
@@ -9813,7 +9818,7 @@ window.STORY_DATA = {
         "speaker": "hobanwoo",
         "text": "이름이 왜 저래? 좀 유치한데?",
         "scene": "library_transition_hall",
-        "pose": "uneasy",
+        "pose": "flustered",
         "statusLabel": "핵심 오염원 출현",
         "right": "hobanwoo"
       },
@@ -9904,7 +9909,7 @@ window.STORY_DATA = {
       {
         "type": "custom-effect",
         "effect": "seat-expiry",
-        "duration": 1300,
+        "duration": 3900,
         "scene": "library_transition_hall",
         "remaining": "10분"
       },
@@ -10578,9 +10583,9 @@ window.STORY_DATA = {
       {
         "type": "custom-effect",
         "effect": "presentation-background-hold",
-        "duration": 2000,
+        "duration": 3100,
         "scene": "presentation_room",
-        "title": ""
+        "title": "팀프로젝트 발표날"
       },
       {
         "speaker": "junho",
@@ -10671,6 +10676,41 @@ window.STORY_DATA = {
         "pose": "default",
         "statusLabel": "발표",
         "left": "professor",
+        "right": "hobanwoo"
+      },
+      {
+        "speaker": "junho",
+        "text": "다들 발표 준비하시느라 정말 고생 많으셨습니다. 호반우님도 감사해요!",
+        "scene": "presentation_room",
+        "pose": "greeting",
+        "statusLabel": "발표 마무리",
+        "left": "junho",
+        "right": "hobanwoo"
+      },
+      {
+        "speaker": "soyeon",
+        "text": "저도요. 다음 프로젝트에서는 처음부터 더 적극적으로 참여할게요.",
+        "scene": "presentation_room",
+        "pose": "default",
+        "statusLabel": "발표 마무리",
+        "left": "soyeon",
+        "right": "hobanwoo"
+      },
+      {
+        "speaker": "minjae",
+        "text": "남은 시험도 다들 잘 보시고, 끝나면 같이 밥 한번 먹어요!",
+        "scene": "presentation_room",
+        "pose": "default",
+        "statusLabel": "발표 마무리",
+        "left": "minjae",
+        "right": "hobanwoo"
+      },
+      {
+        "speaker": "hobanwoo",
+        "text": "네, 정말 고생 많으셨습니다! 다들 시험도 파이팅이에요!",
+        "scene": "presentation_room",
+        "pose": "wave",
+        "statusLabel": "발표 마무리",
         "right": "hobanwoo"
       },
       {
@@ -11840,6 +11880,85 @@ window.STORY_CUSTOM_EFFECTS['chat-snapshot'] = ({ layer, item }) => {
   };
 };
 
+// Handwriting tied to the actual ink position; enabled only for the requested study scenes.
+function c2AnimateStudyHandwriting(root) {
+  const paper = root?.querySelector('.c2-study-paper');
+  const canvas = paper?.querySelector('.c2-study-ink-canvas');
+  const pen = paper?.querySelector('.c2-study-ink-pen');
+  if (!paper || !canvas || !pen) return () => {};
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return () => {};
+  const checkmark = paper.querySelector('.c2-study-checkmark');
+  const segments = Array.from(paper.querySelectorAll('.c2-study-writing-line, .c2-study-formula'));
+  const period = 1130;
+  const startOffset = 300;
+  let frameId = 0;
+  let stopped = false;
+  let start = 0;
+  let lastWidth = -1;
+  let lastHeight = -1;
+  const draw = (timestamp) => {
+    if (stopped || !root.isConnected) return;
+    if (!start) start = timestamp;
+    const paperRect = paper.getBoundingClientRect();
+    if (!paperRect.width || !paperRect.height) { frameId = requestAnimationFrame(draw); return; }
+    const scale = Math.min(window.devicePixelRatio || 1, 2);
+    const w = paperRect.width, h = paperRect.height;
+    if (Math.abs(w - lastWidth)>1 || Math.abs(h - lastHeight)>1) {
+      canvas.width = Math.max(1, Math.round(w*scale));
+      canvas.height = Math.max(1, Math.round(h*scale));
+      lastWidth=w;lastHeight=h;
+    }
+    ctx.setTransform(scale,0,0,scale,0,0);
+    ctx.clearRect(0,0,w,h);
+    const elapsed = timestamp - start - startOffset;
+    let tip = null;
+    segments.forEach((node,index) => {
+      const t = Math.max(0,Math.min(1,(elapsed-index*period)/(period-100)));
+      if(t<=0) return;
+      const rect = node.getBoundingClientRect();
+      const left = rect.left-paperRect.left;
+      const top = rect.top-paperRect.top;
+      const style = getComputedStyle(node);
+      const fontSize = parseFloat(style.fontSize)||16;
+      const baseline = top + Math.max(15,rect.height*.78);
+      const text = node.textContent || '';
+      const isFormula = node.classList.contains('c2-study-formula');
+      ctx.save();
+      ctx.fillStyle = isFormula ? '#14436a' : '#254360';
+      ctx.font = `${isFormula?'italic 600':'italic 550'} ${fontSize*1.04}px 'Nanum Pen Script','Nanum Brush Script','Malgun Gothic',cursive`;
+      ctx.textBaseline = 'alphabetic';
+      const measure = ctx.measureText(text).width;
+      const maxWidth = Math.max(1,Math.min(rect.width,w-left-12));
+      const inkWidth = Math.min(measure,maxWidth);
+      const eased = t<1 ? t*t*(3-2*t) : 1;
+      const width = inkWidth*eased;
+      // Progressively expose exactly the ink under the moving pen instead of a fixed typewriter effect.
+      ctx.beginPath();
+      ctx.rect(left,Math.max(0,top-3),Math.max(0,width+2),Math.max(24,rect.height+10));
+      ctx.clip();
+      ctx.fillText(text,left,baseline,maxWidth);
+      ctx.restore();
+      if(t<1.0) tip={x:left+width,y:baseline - fontSize*.2 + Math.sin(t*31)*1.1};
+    });
+    if (tip) {
+      pen.style.opacity='1';
+      pen.style.left=`${tip.x}px`;
+      pen.style.top=`${tip.y}px`;
+    } else {
+      pen.style.opacity='0';
+    }
+    if (elapsed >= segments.length*period) {
+      if(checkmark) checkmark.classList.add('is-written');
+      pen.style.opacity='0';
+      return;
+    }
+    frameId=requestAnimationFrame(draw);
+  };
+  frameId=requestAnimationFrame(draw);
+  return () => { stopped=true; cancelAnimationFrame(frameId); };
+}
+
 window.STORY_CUSTOM_EFFECTS['study-session'] = ({ layer, item }) => {
   const task = String(item.task || '핵심 내용 정리');
   const reportMode = /보고서/.test(task);
@@ -11977,7 +12096,7 @@ window.STORY_CUSTOM_EFFECTS['study-session'] = ({ layer, item }) => {
   const variantSeed = baseSeed + visitCount * 5;
   const variant = studyVariants[variantSeed % studyVariants.length];
   const cleanup = c2MakeLayer(layer, `
-    <div class="c2-study-animation-root is-problem-solving is-study-enter ${variant.className}">
+    <div class="c2-study-animation-root is-problem-solving is-study-enter ${variant.className} ${item.handwrite ? 'is-handwriting' : ''}">
       <div class="c2-study-light"></div>
       <div class="c2-study-header">
         <small>${c2Escape(item.time || '')}</small>
@@ -11994,6 +12113,7 @@ window.STORY_CUSTOM_EFFECTS['study-session'] = ({ layer, item }) => {
             <div class="c2-study-formula formula-2">${c2Escape(variant.formula2)}</div>
             <div class="c2-study-writing-line line-3">${c2Escape(variant.line3)}</div>
             <div class="c2-study-checkmark">✓</div>
+            ${item.handwrite ? '<canvas class="c2-study-ink-canvas" aria-hidden="true"></canvas><div class="c2-study-ink-pen" aria-hidden="true"></div>' : ''}
           </article>
           <div class="c2-study-pencil"><i></i><b></b></div>
         </div>
@@ -12010,6 +12130,7 @@ window.STORY_CUSTOM_EFFECTS['study-session'] = ({ layer, item }) => {
         </div>
       </div>
     </div>`, 'linear-gradient(155deg,#17130f,#080b10)');
+  const stopWriting = item.handwrite ? c2AnimateStudyHandwriting(layer.querySelector('.c2-study-animation-root')) : () => {};
   const display = layer.querySelector('.c2-calculator-display');
   const values = variant.values;
   let index = 0;
@@ -12018,6 +12139,7 @@ window.STORY_CUSTOM_EFFECTS['study-session'] = ({ layer, item }) => {
   }, 520);
   return () => {
     window.clearInterval(timer);
+    stopWriting();
     cleanup?.();
   };
 };
@@ -12970,11 +13092,28 @@ window.STORY_CUSTOM_EFFECTS['core-portal-open'] = ({ layer, item }) => {
 };
 
 window.STORY_CUSTOM_EFFECTS['seat-expiry'] = ({ layer, item }) => c2MakeLayer(layer, `
-  <div class="c2-full-dark c2-soft"></div>
-  <div class="c2-seat-card c2-shake">
-    <small>도서관 좌석</small>
-    <strong>자리 연장까지 ${c2Escape(item.remaining || '10분')}</strong>
-    <span>연장하지 않으면 좌석이 자동 반납됩니다.</span>
+  <div class="c2-seat-phone-scene" role="img" aria-label="경북대학교 도서관 앱의 열람실 좌석 이용 현황을 재현한 알림 화면">
+    <div class="c2-seat-phone-aura"></div>
+    <div class="c2-seat-phone">
+      <div class="c2-seat-phone-camera"></div>
+      <div class="c2-seat-app-screen">
+        <div class="c2-seat-statusbar"><b>10:50</b><span>▮▮▮  ◖●  ▰</span></div>
+        <header><span>‹</span><strong>경북대학교 도서관</strong><span>☰</span></header>
+        <nav><small>좌석/시설물 예약</small><b>나의 이용현황</b></nav>
+        <section class="c2-seat-app-card">
+          <div class="c2-seat-location"><span>열람실 좌석 이용 중</span><b>배정 완료</b></div>
+          <h2>신관 지하 1층 열람실</h2>
+          <div class="c2-seat-usage-line"><span>이용 상태</span><strong>이용 중</strong></div>
+          <div class="c2-seat-usage-line"><span>잔여 시간</span><strong class="c2-seat-timer">${c2Escape(item.remaining || '10분')}</strong></div>
+          <div class="c2-seat-countdown"><i></i></div>
+          <p>좌석 이용이 곧 종료됩니다.<br>필요하신 경우 연장해 주세요.</p>
+          <div class="c2-seat-actions"><span>반납</span><strong>좌석 연장</strong></div>
+        </section>
+        <div class="c2-seat-notification"><i>!</i><div><strong>도서관 좌석 이용 종료 안내</strong><span>연장하지 않으면 좌석이 자동 반납됩니다.</span></div></div>
+        <div class="c2-seat-home-indicator"></div>
+      </div>
+    </div>
+    <div class="c2-seat-scene-caption"><b>도서관 좌석 연장 알림</b><span>남은 시간 ${c2Escape(item.remaining || '10분')}</span></div>
   </div>`);
 
 window.STORY_CUSTOM_EFFECTS['teleport-transition'] = ({ layer, item, api }) => {
@@ -13532,35 +13671,42 @@ window.STORY_CUSTOM_EFFECTS['desktop-workflow'] = ({ layer, item }) => {
     <h2 data-type-text="2. 조사 및 분석 결과"></h2>
     <p data-type-text="수집한 자료를 항목별로 정리한 결과, 공정 자동화와 실시간 모니터링이 핵심 개선 요소로 확인되었다."></p>
     <span class="c2-live-caret"></span>`;
-  const thumbCount = finalizing ? 8 : 3;
-  const thumbs = Array.from({ length: thumbCount }, (_, index) => `<div class="${index === (finalizing ? 6 : 0) ? 'is-active' : 'is-filled'}"><b>${index + 1}</b><i></i></div>`).join('');
+  // #63 is genuinely the start of a two-slide draft; #104 edits the eighth (conclusion) slide.
+  const thumbCount = finalizing ? 8 : 2;
+  const activeThumb = finalizing ? 7 : 1;
+  const thumbs = Array.from({ length: thumbCount }, (_, index) => `<div class="${index === activeThumb ? 'is-active' : 'is-filled'}"><b>${index + 1}</b><i></i></div>`).join('');
   const workflowClockMarkup = finalizing && item.showWorkflowClock !== false ? `
     <div class="c2-workflow-clock">
       <div class="c2-workflow-clock-face"><i class="c2-workflow-clock-hand c2-workflow-clock-hour"></i><i class="c2-workflow-clock-hand c2-workflow-clock-minute"></i><b></b></div>
       <div class="c2-workflow-clock-copy"><small>작업 진행 시간</small><strong class="c2-workflow-clock-label">${c2Escape(item.workflowStartDate || '4월 14일 토요일')} · ${c2Escape(item.workflowFromTime || '오후 4시 20분')}</strong><span>${c2Escape(item.workflowFromTime || '오후 4시 20분')} → ${c2Escape(item.workflowToTime || '오후 6시 40분')}</span></div>
     </div>` : '';
   const pptSlide = finalizing ? `
-    <section class="c2-ppt-slide is-final-slide">
-      <div class="c2-ppt-title-box is-existing">결론 및 기대 효과</div>
-      <div class="c2-ppt-rule is-existing"></div>
-      <div class="c2-final-slide-grid">
-        <div class="c2-final-diagram"><span>데이터 수집</span><i></i><span>상태 분석</span><i></i><span>공정 제어</span></div>
-        <div class="c2-final-bullets">
-          <p>• 공정 상태를 실시간으로 파악</p>
-          <p>• 반복 작업의 자동화로 운영 효율 향상</p>
-          <p class="is-new">• 통합 모니터링 기반의 최종 개선안 제안</p>
-        </div>
+    <section class="c2-ppt-slide c2-ppt-step-slide is-step-final" aria-label="8페이지 결론 및 기대 효과 편집">
+      <div class="c2-ppt-page-heading"><small>08 · CONCLUSION</small><strong>결론 및 기대 효과</strong></div>
+      <div class="c2-ppt-page-divider"></div>
+      <p class="c2-ppt-chapter-caption">데이터 기반 통합 모니터링 시스템의 최종 개선안</p>
+      <div class="c2-ppt-process" aria-label="결론 도식">
+        <div class="c2-ppt-process-node is-existing"><span>데이터 수집</span></div><i>›</i>
+        <div class="c2-ppt-process-node is-existing"><span>상태 분석</span></div><i>›</i>
+        <div class="c2-ppt-process-node is-drawing"><span data-ppt-type="공정 제어"></span></div>
       </div>
-      <div class="c2-ppt-conclusion-line">향후 실제 공정 데이터를 이용한 정량 검증 필요</div>
-      <div class="c2-edit-cursor"><span></span></div>
+      <div class="c2-ppt-final-evidence"><p>✓ 실시간 공정 상태 파악</p><p>✓ 반복 작업 자동화로 운영 효율 향상</p></div>
+      <div class="c2-ppt-final-recommendation"><small>최종 결론</small><strong data-ppt-type="데이터 수집·상태 분석·공정 제어를 하나의 시스템으로 통합"></strong></div>
+      <div class="c2-ppt-grid-guide" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="c2-ppt-slide-page">08 / 08</div>
     </section>` : `
-    <section class="c2-ppt-slide">
-      <div class="c2-ppt-title-box">${c2Escape(reportTitle)}</div>
-      <div class="c2-ppt-rule"></div>
-      <div class="c2-ppt-subtitle">PROJECT OVERVIEW</div>
-      <div class="c2-ppt-toc-title">목차</div>
-      <ol class="c2-ppt-toc"><li><b>01</b><span>연구 배경 및 목적</span></li><li><b>02</b><span>조사 및 분석 방법</span></li><li><b>03</b><span>결과 및 개선 방안</span></li><li><b>04</b><span>결론</span></li></ol>
-      <div class="c2-ppt-shape"></div><div class="c2-edit-cursor"><span></span></div>
+    <section class="c2-ppt-slide c2-ppt-step-slide is-step-initial" aria-label="2페이지 연구 배경 및 목적 도식 작성">
+      <div class="c2-ppt-page-heading"><small>02 · PROJECT OUTLINE</small><strong data-ppt-type="연구 배경 및 목적"></strong></div>
+      <div class="c2-ppt-page-divider"></div>
+      <p class="c2-ppt-chapter-caption" data-ppt-type="스마트 제조 시스템 개선 방안"></p>
+      <div class="c2-ppt-process" aria-label="프로젝트 초안 구조도">
+        <div class="c2-ppt-process-node is-drawing"><span data-ppt-type="현황 파악"></span></div><i>›</i>
+        <div class="c2-ppt-process-node is-drawing"><span data-ppt-type="문제 정의"></span></div><i>›</i>
+        <div class="c2-ppt-process-node is-drawing"><span data-ppt-type="개선 방향"></span></div>
+      </div>
+      <div class="c2-ppt-intro-notes"><span>01 · 배경 조사</span><span>02 · 분석할 문제 선정</span><span>03 · 개선 목표 설정</span></div>
+      <div class="c2-ppt-grid-guide" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="c2-ppt-slide-page">02 / 02</div>
     </section>`;
   const pptSaveStage = finalizing && item.pptSaveClose !== false ? `
       <div class="c2-workflow-stage" data-stage="ppt-save">
@@ -13568,7 +13714,7 @@ window.STORY_CUSTOM_EFFECTS['desktop-workflow'] = ({ layer, item }) => {
           <div class="c2-office-titlebar"><span class="c2-office-app-icon is-ppt">P</span><strong>${c2Escape(item.pptTitle || 'PPT 결론 슬라이드 마무리')}</strong><em>호반우</em></div>
           <div class="c2-office-ribbon"><b>파일</b><span>홈</span><span>삽입</span><span>그리기</span><span>디자인</span><span>전환</span><i></i></div>
           <div class="c2-ppt-workspace"><aside class="c2-ppt-thumbs">${thumbs}</aside>${pptSlide}<aside class="c2-ppt-properties"><strong>도형 서식</strong><span>채우기</span><span>선</span><span>텍스트 옵션</span></aside></div>
-          <div class="c2-office-status"><span>슬라이드 7 / 8</span><span>메모</span><span>맞춤</span></div>
+          <div class="c2-office-status"><span>슬라이드 8 / 8</span><span>메모</span><span>맞춤</span></div>
           <div class="c2-ppt-save-shade"></div>
           <div class="c2-ppt-save-dialog"><strong>Microsoft PowerPoint</strong><p>변경 내용을 저장하시겠습니까?</p><div><button type="button">저장 안 함</button><button type="button" class="is-primary">저장</button></div></div>
           <div class="c2-ppt-save-cursor" aria-hidden="true"><svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg"><path d="M3 2V28L9.8 22.6L14.2 34L18.6 31.9L14.2 20.9H22L3 2Z" fill="#ffffff" stroke="#111827" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
@@ -13589,8 +13735,11 @@ window.STORY_CUSTOM_EFFECTS['desktop-workflow'] = ({ layer, item }) => {
         <div class="c2-office-window c2-ppt-app">
           <div class="c2-office-titlebar"><span class="c2-office-app-icon is-ppt">P</span><strong>${c2Escape(item.pptTitle || 'PPT 슬라이드 구성')}</strong><em>호반우</em></div>
           <div class="c2-office-ribbon"><b>파일</b><span>홈</span><span>삽입</span><span>그리기</span><span>디자인</span><span>전환</span><i></i></div>
-          <div class="c2-ppt-workspace"><aside class="c2-ppt-thumbs">${thumbs}</aside>${pptSlide}<aside class="c2-ppt-properties"><strong>도형 서식</strong><span>채우기</span><span>선</span><span>텍스트 옵션</span></aside></div>
-          <div class="c2-office-status"><span>${finalizing ? '슬라이드 7 / 8' : '슬라이드 1 / 8'}</span><span>메모</span><span>맞춤</span></div>
+          <div class="c2-ppt-context-tools"><span class="c2-ppt-shapes-control" data-ppt-control="shapes">▣ 삽입 · 도형</span><span class="c2-ppt-align-control" data-ppt-control="align">☷ 도형 서식 · 맞춤 · 가운데 정렬 / 가로 간격 동일하게</span></div>
+          <div class="c2-ppt-workspace"><aside class="c2-ppt-thumbs">${thumbs}</aside>${pptSlide}<aside class="c2-ppt-properties"><strong>도형 서식</strong><span>채우기</span><span>윤곽선</span><span>정렬/맞춤</span></aside></div>
+          <div class="c2-ppt-edit-instruction" aria-live="polite">도형 선택</div>
+          <div class="c2-ppt-live-pointer" aria-hidden="true"></div>
+          <div class="c2-office-status"><span>${finalizing ? '슬라이드 8 / 8' : '슬라이드 2 / 2'}</span><span>메모</span><span>맞춤</span></div>
         </div>
       </div>
       ${pptSaveStage}
@@ -13633,68 +13782,105 @@ window.STORY_CUSTOM_EFFECTS['desktop-workflow'] = ({ layer, item }) => {
   // Word 창이 가운데의 가느다란 선에서 좌우로 펼쳐지며 켜집니다.
   timeouts.push(setTimeout(typeNext, 1050));
   const pptAt = finalizing ? 6100 : 6200;
-  const pptSaveAt = finalizing ? 10400 : 0;
-  const driveAt = finalizing ? 14200 : 10700;
+  const pptSaveAt = finalizing ? 16500 : 0;
+  const driveAt = finalizing ? 19800 : 14500;
   const uploadAnimationMs = 3400;
   const uploadCompleteAt = driveAt + uploadAnimationMs;
   const dialogueHoldAfterUpload = 1600;
   item.duration = Math.max(Number(item.duration || 0), uploadCompleteAt + dialogueHoldAfterUpload);
 
   const runPptCursorSync = () => {
-    const pptStage = layer.querySelector('[data-stage="ppt"]');
-    const slide = pptStage?.querySelector('.c2-ppt-slide');
-    const cursor = slide?.querySelector('.c2-edit-cursor');
-    const ring = cursor?.querySelector('span');
-    if (!pptStage || !slide || !cursor) return;
-
-    cursor.style.animation = 'none';
-    cursor.style.transition = 'left .28s cubic-bezier(.22,.72,.24,1), top .28s cubic-bezier(.22,.72,.24,1), opacity .16s ease';
-    cursor.style.transform = 'none';
-    cursor.style.opacity = '0';
-    if (ring) ring.style.animation = 'none';
-
-    const steps = finalizing ? [
-      { at: 190, selector: '.c2-final-bullets .is-new', xRatio: .22 },
-      { at: 1010, selector: '.c2-ppt-conclusion-line', xRatio: .48 }
-    ] : [
-      { at: 80, selector: '.c2-ppt-title-box', xRatio: .18 },
-      { at: 590, selector: '.c2-ppt-rule', xRatio: .62 },
-      { at: 1090, selector: '.c2-ppt-subtitle', xRatio: .28 },
-      { at: 1490, selector: '.c2-ppt-toc-title', xRatio: .35 },
-      { at: 1880, selector: '.c2-ppt-toc li:nth-child(1)', xRatio: .30 },
-      { at: 2230, selector: '.c2-ppt-toc li:nth-child(2)', xRatio: .30 },
-      { at: 2580, selector: '.c2-ppt-toc li:nth-child(3)', xRatio: .30 },
-      { at: 2930, selector: '.c2-ppt-toc li:nth-child(4)', xRatio: .30 },
-      { at: 3210, selector: '.c2-ppt-shape', xRatio: .46 }
-    ];
-
-    const pulseRing = () => {
-      if (!ring) return;
-      const animation = ring.animate([
-        { opacity: 0, transform: 'scale(.35)' },
-        { opacity: 1, transform: 'scale(.78)', offset: .42 },
-        { opacity: 0, transform: 'scale(1.45)' }
-      ], { duration: 330, easing: 'ease-out' });
-      animations.push(animation);
+    const stage = layer.querySelector('[data-stage="ppt"]');
+    const slide = stage?.querySelector('.c2-ppt-step-slide');
+    const pointer = stage?.querySelector('.c2-ppt-live-pointer');
+    const operation = stage?.querySelector('.c2-ppt-edit-instruction');
+    const nodeList = Array.from(slide?.querySelectorAll('.c2-ppt-process-node') || []);
+    const alignmentTool = stage?.querySelector('[data-ppt-control="align"]');
+    const shapeTool = stage?.querySelector('[data-ppt-control="shapes"]');
+    if (!stage || !slide || !pointer) return;
+    stage.classList.add('is-ppt-manual-editor');
+    const later = (delay, action) => timeouts.push(window.setTimeout(action, delay));
+    const label = (value) => { if (operation) operation.textContent = value; };
+    const movePointer = (target, fx=.35, fy=.55) => {
+      if (!target) return null;
+      const outer = stage.getBoundingClientRect();
+      const inner = target.getBoundingClientRect();
+      const x = inner.left - outer.left + inner.width*fx;
+      const y = inner.top - outer.top + inner.height*fy;
+      pointer.style.left = `${x}px`;
+      pointer.style.top = `${y}px`;
+      pointer.style.opacity = '1';
+      return {x,y};
     };
-
-    steps.forEach(step => {
-      timeouts.push(setTimeout(() => {
-        const target = slide.querySelector(step.selector);
-        if (!target) return;
-        const slideRect = slide.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
-        const x = targetRect.left - slideRect.left + targetRect.width * (step.xRatio ?? .35);
-        const y = targetRect.top - slideRect.top + Math.max(8, targetRect.height * .55);
-        cursor.style.opacity = '1';
-        cursor.style.left = `${Math.max(4, Math.min(slideRect.width - 24, x))}px`;
-        cursor.style.top = `${Math.max(4, Math.min(slideRect.height - 30, y))}px`;
-        timeouts.push(setTimeout(pulseRing, 285));
-      }, step.at));
-    });
-
-    const finalAt = steps.at(-1)?.at || 0;
-    timeouts.push(setTimeout(() => { cursor.style.opacity = '0'; }, finalAt + 560));
+    const tapPointer = () => {
+      if (typeof pointer.animate !== 'function') return;
+      animations.push(pointer.animate([{transform:'scale(1)'},{transform:'scale(.76)',offset:.44},{transform:'scale(1)'}],{duration:280,easing:'ease-out'}));
+    };
+    const typeText = (target, maxMs=840) => {
+      if (!target) return;
+      const content = target.dataset.pptType || '';
+      target.classList.add('is-ppt-typing');
+      const charMs = Math.max(14,Math.min(75,maxMs/Math.max(1,content.length)));
+      let count=0;
+      const timer=window.setInterval(() => {
+        target.textContent=content.slice(0,++count);
+        if (count>=content.length) {
+          clearInterval(timer);
+          target.classList.remove('is-ppt-typing');
+        }
+      },charMs);
+      intervals.push(timer);
+    };
+    const drawNode = (node) => {
+      if (!node) return;
+      shapeTool?.classList.add('is-current');
+      label('삽입 → 도형 → 둥근 모서리 사각형 드래그');
+      const dest=movePointer(node,.07,.1);
+      node.classList.add('is-placed');
+      if (typeof node.animate === 'function') {
+        animations.push(node.animate([
+          {opacity:.2,transform:'scale(.06,.12)',offset:0},
+          {opacity:.78,transform:'scale(.58,.62)',offset:.52},
+          {opacity:1,transform:'scale(1)',offset:1},
+        ],{duration:720,easing:'cubic-bezier(.19,.72,.22,1)',fill:'forwards'}));
+      }
+      if (dest && typeof pointer.animate==='function') {
+        const rect=node.getBoundingClientRect();
+        animations.push(pointer.animate([
+          {left:`${dest.x}px`,top:`${dest.y}px`},
+          {left:`${dest.x+rect.width*.8}px`,top:`${dest.y+rect.height*.78}px`}
+        ],{duration:720,easing:'cubic-bezier(.19,.72,.22,1)',fill:'forwards'}));
+      }
+      later(790,()=>{shapeTool?.classList.remove('is-current');movePointer(node,.78,.63);});
+    };
+    const alignAll = () => {
+      label('도형 여러 개 선택 → 도형 서식 → 맞춤 → 가운데 정렬 · 가로 간격 동일하게');
+      nodeList.forEach(node=>node.classList.add('is-selected'));
+      slide.classList.add('is-aligning');
+      alignmentTool?.classList.add('is-current');
+      movePointer(alignmentTool,.5,.5);
+      tapPointer();
+      later(1020,()=>{nodeList.forEach(node=>node.classList.remove('is-selected'));slide.classList.remove('is-aligning');alignmentTool?.classList.remove('is-current');});
+    };
+    if (finalizing) {
+      later(180,()=>{label('8/8 · 결론 슬라이드 검토');movePointer(nodeList[2] || slide);});
+      later(600,()=>drawNode(nodeList[2]));
+      later(1500,()=>{label('마지막 공정 도형에 텍스트 직접 입력');const target=nodeList[2]?.querySelector('[data-ppt-type]');movePointer(target||nodeList[2]);typeText(target,620);});
+      later(2550,alignAll);
+      later(4000,()=>{const conclusion=slide.querySelector('.c2-ppt-final-recommendation');conclusion?.classList.add('is-visible');label('결론 텍스트 상자 선택 → 문장 수정');movePointer(conclusion);tapPointer();});
+      later(4400,()=>{const target=slide.querySelector('.c2-ppt-final-recommendation [data-ppt-type]');typeText(target,1650);});
+      later(6650,()=>{label('결론 슬라이드 최종 검토 · 정렬 완료');movePointer(slide.querySelector('.c2-ppt-slide-page'));slide.classList.add('is-ppt-complete');});
+    } else {
+      later(180,()=>{label('2/2 · 발표 자료 초안의 구조도 작성');movePointer(shapeTool);tapPointer();});
+      later(650,()=>drawNode(nodeList[0]));
+      later(1700,()=>drawNode(nodeList[1]));
+      later(2720,()=>drawNode(nodeList[2]));
+      later(3650,()=>{label('제목 텍스트 상자 선택 → 직접 입력');const t=slide.querySelector('.c2-ppt-page-heading [data-ppt-type]');movePointer(t||slide);typeText(t,700);});
+      later(4550,()=>{label('각 도형에 단계별 설명 직접 입력');nodeList.forEach((node,index)=>later(index*250,()=>{const t=node.querySelector('[data-ppt-type]');movePointer(t||node);typeText(t,580);}));});
+      later(5870,alignAll);
+      later(6900,()=>{label('부제 텍스트 입력 · 초안 2페이지 완성');const target=slide.querySelector('.c2-ppt-chapter-caption[data-ppt-type]');movePointer(target);typeText(target,720);});
+      later(7780,()=>{slide.classList.add('is-ppt-complete');label('2/2 · 발표 자료 초안 저장');pointer.style.opacity='0';});
+    }
   };
 
   if (finalizing && item.showWorkflowClock !== false) {
@@ -13722,7 +13908,7 @@ window.STORY_CUSTOM_EFFECTS['desktop-workflow'] = ({ layer, item }) => {
   timeouts.push(setTimeout(() => {
     activate('ppt');
     const slide = layer.querySelector('[data-stage="ppt"] .c2-ppt-slide');
-    slide?.classList.add('is-building');
+    slide?.classList.add('is-ppt-editing');
     runPptCursorSync();
   }, pptAt));
 
@@ -13731,6 +13917,9 @@ window.STORY_CUSTOM_EFFECTS['desktop-workflow'] = ({ layer, item }) => {
       activate('ppt-save');
       const saveStage = layer.querySelector('[data-stage="ppt-save"]');
       saveStage?.classList.add('is-save-prompt');
+      const snapshot=saveStage?.querySelector('.c2-ppt-step-slide');
+      snapshot?.classList.add('is-snapshot-complete');
+      snapshot?.querySelectorAll('[data-ppt-type]').forEach(node => { node.textContent=node.dataset.pptType || ''; });
     }, pptSaveAt));
     timeouts.push(setTimeout(() => {
       const saveStage = layer.querySelector('[data-stage="ppt-save"]');
@@ -14044,15 +14233,20 @@ window.STORY_CUSTOM_EFFECTS['corruption-fire-transition'] = ({ layer, item }) =>
 
 window.STORY_CUSTOM_EFFECTS['presentation-background-hold'] = ({ layer, item }) => {
   const bg = c2GetSceneBackground(item.scene || 'presentation_room');
-  item.duration = Math.max(1900, Number(item.duration || 2000));
+  item.duration = Math.max(3100, Number(item.duration || 3100));
   return c2MakeLayer(layer, `
-    <div class="c2-presentation-background-hold"${bg ? ` style="background-image:url('${c2Escape(bg)}')"` : ''}></div>
+    <div class="c2-presentation-background-hold"${bg ? ` style="background-image:url('${c2Escape(bg)}')"` : ''}>
+      <div class="c2-presentation-lower-third"><strong>${c2Escape(item.title || '팀프로젝트 발표날')}</strong></div>
+    </div>
     <style>
       .c2-presentation-background-hold{
         position:absolute;inset:0;
         background-position:center center;background-repeat:no-repeat;background-size:cover;
         filter:none;opacity:1;transform:none;
       }
+      .c2-presentation-lower-third{position:absolute;inset:auto 0 0;display:flex;align-items:flex-end;justify-content:center;min-height:29%;padding:0 16px 8%;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.30) 37%,rgba(0,0,0,.73) 100%);opacity:0;animation:c2PresentationLowerThird 3.1s ease both}
+      .c2-presentation-lower-third strong{font-family:'Noto Sans KR',system-ui,sans-serif;font-weight:900;font-size:clamp(25px,4vw,46px);letter-spacing:-.035em;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.9);text-align:center}
+      @keyframes c2PresentationLowerThird{0%,5%{opacity:0;transform:translateY(8px)}20%,78%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(0)}}
     </style>`);
 };
 
@@ -15492,11 +15686,13 @@ document.head.appendChild(c2Style);
     const isMinjaeDialogue = speakerId === 'minjae';
     const isSoyeonDialogue = speakerId === 'soyeon';
     const isJunhoDialogue = speakerId === 'junho';
+    const isProfessorDialogue = speakerId === 'professor';
     el.dialogueLayer.classList.toggle('is-team-blackhole-boss-dialogue', isTeamBlackholeDialogue);
     el.dialogueLayer.classList.toggle('is-student-card-dialogue', isStudentCardDialogue);
     el.dialogueLayer.classList.toggle('is-minjae-dialogue', isMinjaeDialogue);
     el.dialogueLayer.classList.toggle('is-soyeon-dialogue', isSoyeonDialogue);
     el.dialogueLayer.classList.toggle('is-junho-dialogue', isJunhoDialogue);
+    el.dialogueLayer.classList.toggle('is-professor-dialogue', isProfessorDialogue);
     el.dialogueBox.setAttribute('data-boss-dialogue', isTeamBlackholeDialogue ? 'team-blackhole' : '');
     el.dialogueText.classList.remove('is-boss-name-reveal');
     if (item.bossNameReveal) {
@@ -16564,6 +16760,111 @@ html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue
 html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue-marker {
   font-size:clamp(24px,3cqw,38px) !important;
 }
+</style>
+
+<style id="chapter2-professor-dialogue-20261107">
+/* Same dialogue geometry and typography as the rest of Chapter 2; unique warm-copper professor palette. */
+.dialogue-layer.is-professor-dialogue {--speaker-accent:#c88c54}
+.dialogue-layer.is-professor-dialogue .dialogue-box {
+  border-color:#c88c54!important;
+  background:linear-gradient(180deg,rgba(31,22,18,.985),rgba(12,11,12,.997))!important;
+  box-shadow:0 0 0 3px #090b0d,0 0 0 6px rgba(171,109,61,.34),inset 0 0 38px rgba(181,105,57,.13),0 12px 0 #090b0d,0 24px 52px rgba(0,0,0,.76),0 0 27px rgba(198,132,68,.25)!important;
+}
+.dialogue-layer.is-professor-dialogue .dialogue-box::before,
+.dialogue-layer.is-professor-dialogue .dialogue-box::after {background:#c88c54!important;border-color:#634528!important}
+.dialogue-layer.is-professor-dialogue .speaker-tag {
+  border-color:#51351e!important;
+  background:linear-gradient(180deg,#dca46b,#966037 64%,#4b321f)!important;
+  box-shadow:0 0 0 2px #f0bc7d,0 6px 0 #312014,0 0 20px rgba(190,132,73,.30)!important;
+  color:#fff8ef!important;text-shadow:2px 2px 0 #241308!important;
+}
+.dialogue-layer.is-professor-dialogue .dialogue-marker,
+.dialogue-layer.is-professor-dialogue .continue-indicator {color:#ebba81!important;filter:none!important}
+.dialogue-layer.is-professor-dialogue .dialogue-text {color:#fff9f2!important;text-shadow:3px 3px 0 #070505!important}
+</style>
+<style id="chapter2-choreography-20261107">
+/* Chapter 2 patch 2026-11-07: specific study handwriting, genuine PPT editing choreography, KNU library-style phone. */
+.c2-study-animation-root.is-handwriting .c2-study-writing-line,
+.c2-study-animation-root.is-handwriting .c2-study-formula {
+  width:92%!important;max-width:92%!important;visibility:hidden!important;
+  animation:none!important;white-space:nowrap!important;
+}
+.c2-study-animation-root.is-handwriting .c2-study-paper{isolation:isolate}
+.c2-study-animation-root.is-handwriting .c2-study-pencil {display:none!important}
+.c2-study-ink-canvas{position:absolute;inset:0;z-index:8;width:100%;height:100%;pointer-events:none}
+.c2-study-ink-pen{
+  position:absolute;z-index:9;width:90px;height:12px;border:1px solid #ba9141;border-radius:7px;
+  background:linear-gradient(0deg,#c69c4a 0 18%,#f8d77c 38%,#e5b85b 70%,#f6df9e 85%,#c89b51);
+  box-shadow:0 3px 8px rgba(0,0,0,.24),inset 0 1px 1px #fff0bb;
+  transform:translate(1px,-11px) rotate(-48deg);transform-origin:0% 50%;opacity:0;pointer-events:none;
+}
+.c2-study-ink-pen::before{content:"";position:absolute;left:-18px;top:-1px;border-top:6px solid transparent;border-bottom:6px solid transparent;border-right:18px solid #d3b38c}
+.c2-study-ink-pen::after{content:"";position:absolute;left:-23px;top:3px;border-top:2px solid transparent;border-bottom:2px solid transparent;border-right:6px solid #272b30}
+.c2-study-animation-root.is-handwriting .c2-study-checkmark{z-index:11;opacity:0!important;animation:none!important;transform:scale(.6) rotate(-15deg)!important;transition:opacity .4s ease,transform .4s ease}
+.c2-study-animation-root.is-handwriting .c2-study-checkmark.is-written{opacity:1!important;transform:scale(1) rotate(0deg)!important}
+
+/* PowerPoint: two early-stage thumbnails versus eight completed slides, and visible shape/typing/align operations. */
+.c2-ppt-context-tools{position:relative;z-index:4;display:flex;align-items:center;gap:12px;height:33px;padding:0 18px;background:#fff7f2;color:#443e46;border-bottom:1px solid #dfd4cc;font-size:clamp(9px,1.1vw,13px);white-space:nowrap;overflow:hidden}
+.c2-ppt-context-tools span{padding:5px 9px;border-radius:3px;border:1px solid transparent;transition:background .18s,color .18s}
+.c2-ppt-context-tools .is-current{border-color:#e8a26e;background:#ffd9b9;color:#812f15;box-shadow:0 0 0 2px rgba(230,108,53,.15)}
+.c2-ppt-step-slide{display:flex!important;flex-direction:column!important;position:relative!important;background:linear-gradient(150deg,#fff 0 53%,#f0f5fb 100%)!important;border:1px solid #ccd4de!important;color:#172c4a!important;overflow:hidden!important;container-type:inline-size!important}
+.c2-ppt-step-slide::before{content:"";position:absolute;inset:0 0 auto;height:clamp(6px,1.1cqw,12px);background:linear-gradient(90deg,#143d62,#d86a3a 80%,#e9a55d);opacity:.98}
+.c2-ppt-step-slide .c2-ppt-page-heading{position:relative;display:grid;gap:clamp(4px,1.1cqw,10px);z-index:2;flex:0 0 auto}
+.c2-ppt-step-slide .c2-ppt-page-heading small{font-size:clamp(9px,1.5cqw,15px);font-weight:800;letter-spacing:.18em;color:#b55732}
+.c2-ppt-step-slide .c2-ppt-page-heading strong{min-height:1.23em;font-size:clamp(16px,4.2cqw,38px);font-weight:950;letter-spacing:-.045em;color:#173c65;line-height:1.2}
+.c2-ppt-step-slide .c2-ppt-page-divider{height:clamp(2px,.6cqw,5px);margin-top:clamp(3px,.7cqw,6px);background:linear-gradient(90deg,#d66435,#efb08a 76%,transparent);flex:0 0 auto}
+.c2-ppt-step-slide .c2-ppt-chapter-caption{min-height:1.3em;margin:clamp(6px,1.7cqw,16px) 0 0;font-size:clamp(10px,2.05cqw,18px);font-weight:720;color:#436480}
+.c2-ppt-step-slide .c2-ppt-process{display:flex;align-items:center;justify-content:space-between;gap:clamp(4px,.75cqw,9px);margin:clamp(13px,4.2cqw,36px) 0 clamp(6px,2cqw,20px);padding:clamp(7px,1.7cqw,16px);background:rgba(231,238,247,.84);border:1px solid #c4d3e6;border-radius:clamp(6px,1.2cqw,11px);flex:0 0 auto;min-width:0}
+.c2-ppt-step-slide .c2-ppt-process-node{display:flex;flex:1 1 0;min-width:0;aspect-ratio:2.25;align-items:center;justify-content:center;padding:clamp(4px,1.15cqw,10px);background:linear-gradient(165deg,#184a76,#0e2c52);border:2px solid #143b64;border-radius:clamp(5px,1cqw,9px);box-shadow:0 5px 10px rgba(17,47,76,.18);color:#fff;font-size:clamp(10px,2.15cqw,19px);font-weight:850;text-align:center;white-space:nowrap;transform-origin:top left;transition:box-shadow .2s,border-color .2s}
+.c2-ppt-step-slide .c2-ppt-process-node span{overflow:hidden;white-space:nowrap}
+.c2-ppt-step-slide .c2-ppt-process-node.is-drawing:not(.is-placed){opacity:0;transform:scale(.05,.05)}
+.c2-ppt-step-slide .c2-ppt-process-node.is-selected{border:2px dashed #ed7d31;outline:2px dashed rgba(20,75,149,.62);outline-offset:5px;box-shadow:0 0 0 4px rgba(229,111,45,.15)}
+.c2-ppt-step-slide .c2-ppt-process>i{flex:0 0 auto;color:#cc6438;font-style:normal;font-weight:900;font-size:clamp(17px,3.5cqw,35px)}
+.c2-ppt-step-slide .c2-ppt-intro-notes{display:flex;flex-wrap:wrap;gap:clamp(4px,1.2cqw,12px);margin-top:auto;padding-bottom:5%;color:#60768e;font-weight:700;font-size:clamp(8px,1.5cqw,14px)}
+.c2-ppt-step-slide .c2-ppt-intro-notes span{padding:clamp(5px,.8cqw,8px);border-left:3px solid #cf7040;background:rgba(230,238,246,.68)}
+.c2-ppt-step-slide .c2-ppt-final-evidence{display:flex;flex-wrap:wrap;gap:clamp(4px,1cqw,10px);font-size:clamp(9px,1.7cqw,16px);font-weight:680}
+.c2-ppt-step-slide .c2-ppt-final-evidence p{margin:0;padding:clamp(5px,1cqw,10px);background:#edf2f9;border-left:3px solid #4b7a9e}
+.c2-ppt-step-slide .c2-ppt-final-recommendation{position:relative;display:grid;align-content:center;gap:clamp(3px,.7cqw,7px);margin-top:auto;min-height:16%;padding:clamp(6px,1.2cqw,13px);border:1px solid #becee1;border-radius:4px;background:linear-gradient(90deg,#dce9f5,#f3f7fb);opacity:.52;transition:opacity .35s ease}
+.c2-ppt-step-slide .c2-ppt-final-recommendation.is-visible{opacity:1;border-color:#7e9ab8}
+.c2-ppt-step-slide .c2-ppt-final-recommendation small{font-size:clamp(9px,1.35cqw,14px);font-weight:950;color:#c5592a}
+.c2-ppt-step-slide .c2-ppt-final-recommendation strong{font-size:clamp(10px,1.7cqw,17px);font-weight:850;line-height:1.35;color:#1a3a5c}
+.c2-ppt-step-slide .c2-ppt-grid-guide{position:absolute;z-index:6;inset:7% 7% 7%;display:flex;justify-content:space-around;pointer-events:none;opacity:0;transition:opacity .2s}
+.c2-ppt-step-slide.is-aligning .c2-ppt-grid-guide{opacity:1}
+.c2-ppt-step-slide .c2-ppt-grid-guide i{height:100%;border-left:1px dashed #e36f2a}
+.c2-ppt-step-slide .c2-ppt-slide-page{position:absolute;right:clamp(13px,3cqw,26px);bottom:clamp(9px,1.8cqw,18px);font-size:clamp(9px,1.5cqw,14px);font-weight:850;letter-spacing:.1em;color:#8394a7}
+.c2-ppt-step-slide .is-ppt-typing::after{content:"";display:inline-block;width:2px;height:.85em;background:#d35a25;vertical-align:baseline;animation:c2PptCaretBlink .35s steps(1) infinite}
+.c2-ppt-step-slide.is-snapshot-complete .c2-ppt-process-node.is-drawing{opacity:1;transform:none}
+.c2-ppt-step-slide.is-snapshot-complete .c2-ppt-final-recommendation{opacity:1}
+.c2-ppt-edit-instruction{position:absolute;right:10px;bottom:25px;z-index:12;padding:7px 10px;max-width:82%;border:1px solid #bf9a74;background:rgba(35,32,36,.88);color:#fff8df;font-size:clamp(10px,1.2vw,14px);border-radius:5px;box-shadow:0 4px 10px rgba(0,0,0,.25);white-space:normal}
+.c2-ppt-live-pointer{position:absolute;left:20%;top:44%;z-index:15;width:24px;height:31px;background:#fff;border:2px solid #18202d;clip-path:polygon(0 0,0 93%,29% 69%,48% 99%,67% 91%,49% 64%,83% 64%);filter:drop-shadow(1px 2px 1px rgba(0,0,0,.65));opacity:0;pointer-events:none;transition:left .34s ease,top .34s ease,opacity .2s}
+@keyframes c2PptCaretBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@media (max-width:700px){.c2-ppt-context-tools{height:30px;font-size:9px;gap:3px;padding:0 4px}.c2-ppt-context-tools span{padding:4px}.c2-ppt-edit-instruction{right:4px;bottom:21px;font-size:9px}.c2-ppt-step-slide .c2-ppt-process{padding:4px;gap:2px}}
+
+/* Library phone: a UI reconstruction of the official KNU library seat / facility booking navigation, not a screenshot. */
+.c2-seat-phone-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 39%,#253b5a 0,#111725 48%,#05070e 89%);font-family:'Noto Sans KR',system-ui,sans-serif;color:#1d2d3d}
+.c2-seat-phone-aura{position:absolute;left:50%;top:40%;width:min(62vw,540px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(70,140,223,.2),transparent 68%);filter:blur(22px)}
+.c2-seat-phone{position:relative;z-index:2;width:min(340px,48vw,calc(75vh * .5));height:min(710px,74vh);padding:clamp(9px,1.25cqw,14px);border:4px solid #070b11;border-radius:clamp(25px,4vw,40px);background:linear-gradient(125deg,#222b36,#090d13 42%,#171c23);box-shadow:0 36px 70px rgba(0,0,0,.8),0 0 0 2px rgba(220,233,247,.18),inset 0 0 2px #aab1c0;transform:translateY(28px) scale(.88);opacity:0;animation:c2SeatPhoneArrive .68s cubic-bezier(.18,.9,.26,1) forwards}
+.c2-seat-phone-camera{position:absolute;z-index:8;left:50%;top:12px;transform:translateX(-50%);width:24%;height:13px;border-radius:0 0 13px 13px;background:#05070a}
+.c2-seat-app-screen{position:relative;display:flex;flex-direction:column;height:100%;overflow:hidden;border-radius:clamp(18px,3vw,29px);background:#f5f7f9}
+.c2-seat-statusbar{display:flex;justify-content:space-between;align-items:center;height:28px;padding:9px 20px 0;background:#153967;color:#fff;font-size:10px}
+.c2-seat-app-screen>header{display:flex;justify-content:space-between;align-items:center;flex:none;height:50px;padding:0 14px;background:#153967;color:white;font-size:13px}.c2-seat-app-screen>header strong{font-weight:900}.c2-seat-app-screen>header span{font-size:22px}
+.c2-seat-app-screen nav{display:flex;flex-direction:column;gap:5px;flex:none;padding:15px 20px 12px;background:#fff;border-bottom:1px solid #dde5ee}.c2-seat-app-screen nav small{font-size:10px;color:#768696}.c2-seat-app-screen nav b{font-size:16px;color:#183b66}
+.c2-seat-app-card{margin:14px 12px 0;padding:17px 14px 14px;border:1px solid #d6e0eb;border-radius:14px;background:white;box-shadow:0 8px 20px rgba(14,32,63,.06)}
+.c2-seat-location{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:10px;color:#73849b}.c2-seat-location b{color:#176647;background:#dff4e9;border-radius:3px;padding:4px 5px}
+.c2-seat-app-card h2{margin:13px 0 19px;font-size:17px;font-weight:900;color:#143459;line-height:1.3}
+.c2-seat-usage-line{display:flex;justify-content:space-between;align-items:center;margin:0 0 13px;font-size:12px;color:#596879}.c2-seat-usage-line strong{font-size:12px;color:#19354f}.c2-seat-usage-line .c2-seat-timer{font-size:27px;font-weight:950;color:#cc4b3a;animation:c2SeatTimePulse 1.4s ease-in-out infinite}
+.c2-seat-countdown{height:8px;overflow:hidden;border-radius:10px;background:#e7edf4}.c2-seat-countdown i{display:block;width:18%;height:100%;background:linear-gradient(90deg,#e7a65d,#d65a42);border-radius:10px;transform-origin:left;animation:c2SeatBarPulse 2s ease-in-out infinite}
+.c2-seat-app-card p{margin:15px 0 16px;font-size:12px;line-height:1.6;color:#68778b}
+.c2-seat-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:12px;text-align:center}.c2-seat-actions span,.c2-seat-actions strong{padding:11px 3px;border-radius:5px;border:1px solid #c9d6e4;color:#485970}.c2-seat-actions strong{border-color:#1d548b;background:#165187;color:#fff;box-shadow:0 0 0 0 rgba(26,104,181,.32);animation:c2SeatButtonPulse 1.5s 1s infinite}
+.c2-seat-notification{display:flex;align-items:flex-start;gap:10px;position:absolute;z-index:4;left:8px;right:8px;bottom:32px;padding:13px 10px;background:rgba(242,248,255,.98);border-left:4px solid #d65b46;border-radius:8px;box-shadow:0 8px 26px rgba(14,30,50,.16);opacity:0;transform:translateY(22px);animation:c2SeatNotificationRise .48s 1.22s ease-out forwards}
+.c2-seat-notification>i{flex:none;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#d45542;color:white;font-size:13px;font-weight:950;font-style:normal}.c2-seat-notification>div{display:grid;gap:6px}.c2-seat-notification strong{font-size:11px;color:#1a3452}.c2-seat-notification span{font-size:10px;line-height:1.5;color:#627286}
+.c2-seat-home-indicator{position:absolute;z-index:5;left:35%;right:35%;bottom:9px;height:4px;background:#212a34;border-radius:5px}
+.c2-seat-scene-caption{position:absolute;z-index:3;left:6%;bottom:6%;display:grid;gap:4px;padding:12px 18px;border-left:3px solid #80b9ec;background:rgba(7,14,25,.76);color:#fff;animation:c2SeatNotificationRise .6s .7s both}.c2-seat-scene-caption b{font-size:clamp(16px,2vw,25px)}.c2-seat-scene-caption span{font-size:clamp(11px,1.3vw,15px);color:#bed3ed}
+@keyframes c2SeatPhoneArrive{to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes c2SeatNotificationRise{to{opacity:1;transform:translateY(0)}}
+@keyframes c2SeatTimePulse{50%{opacity:.65}}
+@keyframes c2SeatBarPulse{50%{transform:scaleX(.86)}}
+@keyframes c2SeatButtonPulse{50%{box-shadow:0 0 0 6px rgba(26,104,181,0)}}
 </style>
 </body>
 </html>

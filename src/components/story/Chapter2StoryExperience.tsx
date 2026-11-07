@@ -984,6 +984,12 @@ export function Chapter2StoryExperience({
           <div className="chapter2-story-boss-emergence-bg" />
           <div className="chapter2-story-boss-emergence-void" />
           <div className="chapter2-story-boss-emergence-vortex" />
+          <div className="chapter2-story-boss-emergence-accretion" aria-hidden="true"><i className="orbit-a" /><i className="orbit-b" /><i className="orbit-c" /></div>
+          <div className="chapter2-story-boss-emergence-papers" aria-hidden="true">
+            {['미제출', '회의 불참', '역할 공백', '보고서 수정', '연락 두절', '기여도 0%', '자료 취합', '발표 준비', '마감 임박', '혼자 남은 일'].map((label,index) => (
+              <span key={label} style={{ "--i": index } as React.CSSProperties}>{label}</span>
+            ))}
+          </div>
           <div className="chapter2-story-boss-emergence-ring ring-a" />
           <div className="chapter2-story-boss-emergence-ring ring-b" />
           <div className="chapter2-story-boss-emergence-ring ring-c" />
@@ -998,8 +1004,9 @@ export function Chapter2StoryExperience({
             <img src="/assets/chapter2/story/illustrations/ill_boss_phase1.png" alt="팀플 블랙홀 무임승차자" />
           </div>
           <div className="chapter2-story-boss-emergence-title">
-            <small>CHAPTER 2 · BOSS</small>
+            <small>CHAPTER 2 · THE GRAVITY OF UNFAIR WORK</small>
             <strong>팀플 블랙홀 무임승차자</strong>
+            <em>사라지는 기여 · 한 사람에게 몰리는 모든 책임</em>
           </div>
         </div>
       )}
@@ -1007,18 +1014,24 @@ export function Chapter2StoryExperience({
       {phase === "boss-intro" && (
         <div className="chapter2-fullscreen-boss-intro" aria-label="챕터 2 보스전 시작 연출">
           <div className="chapter2-boss-intro-grid" />
+          <div className="chapter2-boss-intro-singularity" aria-hidden="true"><i /><i /><i /></div>
+          <div className="chapter2-boss-intro-paperstream" aria-hidden="true">
+            {['과제 독박', '제출 임박', '팀원 잠적', '책임 전가', '연락 없음', '마감 직전'].map((label,index) => (
+              <span key={label} style={{ "--i": index } as React.CSSProperties}>{label}</span>
+            ))}
+          </div>
           <div className="chapter2-boss-intro-shutter top" />
           <div className="chapter2-boss-intro-shutter bottom" />
           <div className="chapter2-boss-intro-slash slash-a" />
           <div className="chapter2-boss-intro-slash slash-b" />
           <div className="chapter2-boss-intro-ring ring-a" />
           <div className="chapter2-boss-intro-ring ring-b" />
-          <div className="chapter2-boss-intro-warning">WARNING · CORE CONTAMINATION</div>
+          <div className="chapter2-boss-intro-warning">WARNING · TEAMWORK COLLAPSE</div>
           <div className="chapter2-boss-intro-copy">
             <small>CHAPTER 2 · BOSS BATTLE</small>
-            <strong>BOSS APPROACH</strong>
-            <h2>시험·팀플 블랙홀 무임승차자</h2>
-            <p>핵심 오염원 확인 · 정화 전투 개시</p>
+            <strong>TEAM PROJECT VOID</strong>
+            <h2>팀플 블랙홀 무임승차자</h2>
+            <p>사라진 기여도 · 집중되는 책임 · 블랙홀 중심부 접근</p>
           </div>
         </div>
       )}
