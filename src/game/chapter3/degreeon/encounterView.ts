@@ -11,7 +11,7 @@ export function drawEncounterScene(e:Engine){const c=e.ctx,s=e.encounter,{w,h}=f
  const k=clear?smooth(age/.9):1,fw=clear?s.sceneFrom.w+(BASE_FIELD_W-s.sceneFrom.w)*k:BASE_FIELD_W,fh=clear?s.sceneFrom.h+(BASE_FIELD_H-s.sceneFrom.h)*k:BASE_FIELD_H;
  const hit=awaken&&t>=3.2?Math.exp(-(t-3.2)*3)*8:0;c.translate(Math.sin(t*107)*hit,Math.cos(t*89)*hit*.65);c.rotate(clear?s.sceneFrom.angle*(1-k):0);
  c.fillStyle='#191025';c.fillRect(-fw/2,-fh/2,fw,fh);drawBattleMap(e,c,fw,fh);
- if(s.mode==='complete'){c.save();c.globalAlpha=clear?smooth(age/3.8)*.7:smooth(age/3);sprite(c,'pure',0,0,fw,fh);c.restore();}
+ // Completion immediately returns to the story; do not overlay a purified battle map.
  c.fillStyle='#08061244';c.fillRect(-fw/2,-fh/2,fw,fh);c.strokeStyle=after?'#ce87f566':'#a6a0ca55';c.lineWidth=2;c.strokeRect(-fw/2,-fh/2,fw,fh);
  if(clear||s.mode==='victory'||s.mode==='complete'||s.mode==='opening'&&s.age<ARRIVAL_SECONDS){drawBossCinema(e,c,clear?'clear':s.mode==='victory'||s.mode==='complete'?'defeat':'arrival',s.mode==='complete'?16:s.age);c.restore();return;}
  if(awaken){drawAwakening(e,c,s.age);c.restore();return;}

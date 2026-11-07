@@ -64,13 +64,22 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit,storyPau
    e.keys.add(k);
   };
   const up=(v:KeyboardEvent)=>e.keys.delete(keyName(v));
-  const blur=()=>{e.keys.clear();e.paused=true;e.notify();};
+  const blur=()=>{e.keys.clear();e.notify();}; // never latch pause on browser blur; RAF resumes on focus
   window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',blur);
   // The entrance cinematic fades the story music; the actual encounter
   // begins with the supplied Starfall Circuit track (including direct tests).
   sfx.startChapter3BossBgm();e.start();focus();
   return()=>{e.stop();e.keys.clear();a.close();if(sfx.currentBgmTrack==='/assets/audio/chapter3/starfall-circuit.mp3')sfx.stopBgm();window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',blur);};
  },[]);
+ const completionReported=useRef(false);
+ useEffect(()=>{
+  const current=engine.current;
+  if(!current||tests||storyPaused||completionReported.current)return;
+  if(current.encounter.enabled&&!current.encounter.preview&&current.encounter.mode==='complete'){
+   completionReported.current=true;
+   callbacks.current.onComplete();
+  }
+ },[revision,tests,storyPaused]);
  useEffect(()=>{if(tests)document.querySelector<HTMLElement>('.c3boss-modal button')?.focus();},[tests]);
  const e=engine.current;
  const begin=(phase:1|2)=>act(e=>e.startEncounter(phase===2),true);
