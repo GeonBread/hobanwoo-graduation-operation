@@ -13160,41 +13160,14 @@ window.STORY_CUSTOM_EFFECTS['core-portal-open'] = ({ layer, item }) => {
 };
 
 window.STORY_CUSTOM_EFFECTS['seat-expiry'] = ({ layer, item }) => c2MakeLayer(layer, `
-  <div class="c2-seat-phone-scene c2-seat-extension-scene" role="img" aria-label="경북대학교 도서관 좌석배정확정 화면과 동일한 구성의 자리 연장 알림 연출">
+  <div class="c2-seat-phone-scene c2-seat-extension-scene" role="img" aria-label="실제 경북대학교 도서관 좌석배정확정 화면을 기반으로 한 자리 연장 알림 연출">
     <div class="c2-seat-phone-aura"></div>
-    <div class="c2-seat-phone c2-seat-phone-real">
-      <div class="c2-seat-app-screen c2-seat-real-screen">
-        <div class="c2-seat-real-statusbar">
-          <b>11:16</b>
-          <span class="mail">M</span>
-          <span class="kakao">Talk</span>
-          <span class="tiktok">♪</span>
-          <i>•</i>
-          <span class="wifi">◜◝</span>
-          <span class="signal">▮▮▮</span>
-          <em>88</em>
-        </div>
-        <div class="c2-seat-real-header"><span>✕</span><strong>좌석배정확정</strong><i></i></div>
-        <div class="c2-seat-real-body">
-          <section class="c2-seat-real-notice">
-            <div class="icon">i</div>
-            <div>
-              <p>퇴실 시 좌석반납을 해 주세요. 미 반납 시 제재를 받을 수 있습니다.</p>
-              <span>문의 : 950-4704</span>
-            </div>
-          </section>
-          <section class="c2-seat-real-card">
-            <div class="row"><span>좌석정보</span><strong>제2열람실 노트북석B / 242번</strong></div>
-            <div class="row"><span>이용상태</span><strong>임시배정</strong></div>
-            <div class="row"><span>입실시간</span><strong>2026-11-07 23:16:00</strong></div>
-            <div class="row"><span>퇴실시간</span><div class="stack"><strong>2026-11-08 00:00:00</strong><b>[반납유예시간 00:10]</b></div></div>
-            <div class="row"><span>연장가능 횟수</span><strong>0 / 2</strong></div>
-            <div class="row c2-seat-extend-row"><span>연장가능시간</span><div class="stack"><strong>2026-11-07 22:00:00</strong><strong>~ 2026-11-08 00:00:00</strong></div><div class="c2-seat-extend-pulse" aria-hidden="true"></div></div>
-          </section>
-          <div class="c2-seat-real-buttons"><button class="primary">배정확정</button><button>취소</button><button>선호좌석</button></div>
-        </div>
-        <div class="c2-seat-real-bottom-bar"></div>
-        <div class="c2-seat-real-home"></div>
+    <div class="c2-seat-phone c2-seat-phone-real c2-seat-phone-reference">
+      <img class="c2-seat-reference-shot" src="/assets/chapter2/story/ui/library_seat_reference_exact_20261108.png" alt="">
+      <div class="c2-seat-reference-highlight" aria-hidden="true">
+        <span class="ring ring1"></span>
+        <span class="ring ring2"></span>
+        <span class="ring ring3"></span>
       </div>
     </div>
   </div>`);
@@ -17046,7 +17019,7 @@ html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue
 /* Library phone: near-identical reconstruction of the official KNU seat confirmation screen. */
 .c2-seat-phone-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 38%,#3a3f49 0,#161a22 44%,#080a0f 100%);font-family:'Noto Sans KR',system-ui,sans-serif;color:#1d2d3d}
 .c2-seat-phone-aura{position:absolute;left:50%;top:41%;width:min(66vw,620px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,255,255,.09),transparent 70%);filter:blur(26px)}
-.c2-seat-phone{position:relative;z-index:2;width:min(418px,57vw,calc(82vh * .462));height:min(904px,88vh);padding:0;border-radius:32px;background:#0b0d12;box-shadow:0 34px 80px rgba(0,0,0,.78),0 0 0 1px rgba(222,232,247,.2);transform:translateY(24px) scale(.9);opacity:0;animation:c2SeatPhoneArrive .68s cubic-bezier(.18,.9,.26,1) forwards;overflow:hidden}
+.c2-seat-phone{position:relative;z-index:2;width:min(376px,47vw,calc(83vh * .462));height:min(815px,84vh);padding:0;border-radius:32px;background:#0b0d12;box-shadow:0 34px 80px rgba(0,0,0,.78),0 0 0 1px rgba(222,232,247,.2);transform:translateY(10px) scale(.96);opacity:0;animation:c2SeatPhoneArrive .68s cubic-bezier(.18,.9,.26,1) forwards;overflow:hidden}
 .c2-seat-app-screen{position:relative;display:flex;flex-direction:column;height:100%;overflow:hidden;background:#f2f2f2}
 .c2-seat-real-statusbar{display:flex;align-items:center;gap:8px;height:52px;padding:0 18px;background:#dc2026;color:#fff;font-size:16px;font-weight:800;letter-spacing:-.02em}.c2-seat-real-statusbar b{margin-right:4px;font-size:18px}.c2-seat-real-statusbar span,.c2-seat-real-statusbar i,.c2-seat-real-statusbar em{display:inline-flex;align-items:center;justify-content:center}.c2-seat-real-statusbar .mail{font-weight:900;letter-spacing:-.08em}.c2-seat-real-statusbar .kakao{font-size:11px;font-weight:900;padding:2px 5px;border-radius:999px;background:rgba(255,255,255,.18)}.c2-seat-real-statusbar .tiktok{font-size:17px}.c2-seat-real-statusbar i{font-style:normal;font-size:14px}.c2-seat-real-statusbar .wifi{font-size:15px;letter-spacing:-.18em}.c2-seat-real-statusbar .signal{font-size:14px;letter-spacing:-.16em;margin-left:auto}.c2-seat-real-statusbar em{font-style:normal;padding:1px 8px;border-radius:999px;border:1.5px solid rgba(255,255,255,.7);font-size:15px;line-height:1.2}
 .c2-seat-real-header{display:grid;grid-template-columns:74px 1fr 74px;align-items:center;height:102px;padding:0 12px;background:#dc2026;color:#fff}.c2-seat-real-header strong{justify-self:center;font-size:29px;font-weight:900;letter-spacing:-.03em}.c2-seat-real-header span{justify-self:start;padding-left:12px;font-size:80px;line-height:.8;font-weight:300}.c2-seat-real-header i{display:block;width:24px;height:24px}
@@ -17059,6 +17032,7 @@ html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue
 .c2-seat-real-buttons{display:grid;grid-template-columns:1.18fr .9fr 1.03fr;gap:14px;padding:8px 0 0}.c2-seat-real-buttons button{height:74px;border:1px solid #dddddd;border-radius:10px;background:#efefef;color:#404040;font-size:28px;font-weight:900;letter-spacing:-.04em}.c2-seat-real-buttons .primary{border-color:#df2329;background:#df2329;color:#fff;box-shadow:none;animation:none}.c2-seat-real-buttons button::before{display:inline-block;margin-right:10px;font-weight:700}.c2-seat-real-buttons .primary::before{content:'↪';font-size:28px}.c2-seat-real-buttons button:nth-child(2)::before{content:'✕';font-size:24px}.c2-seat-real-buttons button:nth-child(3)::before{content:'☆';font-size:26px}
 .c2-seat-real-bottom-bar{height:24px;background:#f2f2f2}
 .c2-seat-real-home{position:absolute;z-index:5;left:28%;right:28%;bottom:8px;height:6px;background:#cc5a5a;border-radius:999px;opacity:.9}
+.c2-seat-phone-reference{background:#05070c}.c2-seat-reference-shot{display:block;width:100%;height:100%;object-fit:cover;object-position:center center}.c2-seat-reference-highlight{position:absolute;left:11.2%;top:70.9%;width:77.6%;height:12.8%;pointer-events:none}.c2-seat-reference-highlight .ring{position:absolute;inset:0;border-radius:12px;border:3px solid rgba(255,72,72,.95);box-shadow:0 0 0 1px rgba(255,255,255,.1) inset,0 0 20px rgba(255,40,40,.22);opacity:0;transform:scale(.985)}.c2-seat-reference-highlight .ring1{animation:c2SeatRowPulse 2.55s ease-out .15s forwards}.c2-seat-reference-highlight .ring2{animation:c2SeatRowPulse 2.55s ease-out .95s forwards}.c2-seat-reference-highlight .ring3{animation:c2SeatRowPulse 2.55s ease-out 1.75s forwards}@keyframes c2SeatRowPulse{0%{opacity:0;transform:scale(.985)}10%{opacity:1;transform:scale(1)}32%{opacity:1;transform:scale(1)}52%{opacity:0;transform:scale(1.012)}100%{opacity:0;transform:scale(1.02)}}
 .c2-seat-home-indicator,.c2-seat-scene-caption,.c2-seat-phone-camera{display:none}
 @keyframes c2SeatPhoneArrive{to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes c2SeatNotificationRise{to{opacity:1;transform:translateY(0)}}
@@ -17068,7 +17042,7 @@ html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue
 @keyframes c2SeatExtendRowPulse{0%,100%{transform:scale(1);background:linear-gradient(180deg,#f6f6f6 0,#fff5f5 100%)}50%{transform:scale(1.012);background:linear-gradient(180deg,#fff 0,#ffe8e8 100%)}}
 @keyframes c2SeatExtendOutline{20%,85%{opacity:1}100%{opacity:0}}
 @keyframes c2SeatExtendDot{50%{box-shadow:0 0 0 12px rgba(225,36,36,0)}}
-@media (max-width:900px){.c2-seat-phone{width:min(438px,92vw);height:min(948px,94vh)}}
+@media (max-width:900px){.c2-seat-phone{width:min(386px,84vw);height:min(836px,89vh)}}
 </style>
 </body>
 </html>
