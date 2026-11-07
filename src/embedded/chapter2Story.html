@@ -9947,7 +9947,7 @@ window.STORY_DATA = {
       {
         "type": "custom-effect",
         "effect": "seat-expiry",
-        "duration": 3900,
+        "duration": 6200,
         "scene": "library_transition_hall",
         "remaining": "10분"
       },
@@ -13160,28 +13160,35 @@ window.STORY_CUSTOM_EFFECTS['core-portal-open'] = ({ layer, item }) => {
 };
 
 window.STORY_CUSTOM_EFFECTS['seat-expiry'] = ({ layer, item }) => c2MakeLayer(layer, `
-  <div class="c2-seat-phone-scene" role="img" aria-label="경북대학교 도서관 앱의 열람실 좌석 이용 현황을 재현한 알림 화면">
+  <div class="c2-seat-phone-scene c2-seat-extension-scene" role="img" aria-label="경북대학교 도서관 좌석배정확정 화면 기반의 자리 연장 알림 연출">
     <div class="c2-seat-phone-aura"></div>
-    <div class="c2-seat-phone">
+    <div class="c2-seat-phone c2-seat-phone-real">
       <div class="c2-seat-phone-camera"></div>
-      <div class="c2-seat-app-screen">
-        <div class="c2-seat-statusbar"><b>10:50</b><span>▮▮▮  ◖●  ▰</span></div>
-        <header><span>‹</span><strong>경북대학교 도서관</strong><span>☰</span></header>
-        <nav><small>좌석/시설물 예약</small><b>나의 이용현황</b></nav>
-        <section class="c2-seat-app-card">
-          <div class="c2-seat-location"><span>열람실 좌석 이용 중</span><b>배정 완료</b></div>
-          <h2>신관 지하 1층 열람실</h2>
-          <div class="c2-seat-usage-line"><span>이용 상태</span><strong>이용 중</strong></div>
-          <div class="c2-seat-usage-line"><span>잔여 시간</span><strong class="c2-seat-timer">${c2Escape(item.remaining || '10분')}</strong></div>
-          <div class="c2-seat-countdown"><i></i></div>
-          <p>좌석 이용이 곧 종료됩니다.<br>필요하신 경우 연장해 주세요.</p>
-          <div class="c2-seat-actions"><span>반납</span><strong>좌석 연장</strong></div>
-        </section>
-        <div class="c2-seat-notification"><i>!</i><div><strong>도서관 좌석 이용 종료 안내</strong><span>연장하지 않으면 좌석이 자동 반납됩니다.</span></div></div>
-        <div class="c2-seat-home-indicator"></div>
+      <div class="c2-seat-app-screen c2-seat-real-screen">
+        <div class="c2-seat-real-statusbar"><b>11:44</b><span>G</span><span>M</span><span>T</span><i>•</i><span>◔</span><span>▮▮▮</span><em>82</em></div>
+        <div class="c2-seat-real-header"><span>✕</span><strong>좌석배정확정</strong><i></i></div>
+        <div class="c2-seat-real-body">
+          <section class="c2-seat-real-notice">
+            <div class="icon">i</div>
+            <div>
+              <p>퇴실 시 좌석반납을 해 주세요. 미 반납 시 제재를 받을 수 있습니다.</p>
+              <span>문의 : 950-4704</span>
+            </div>
+          </section>
+          <section class="c2-seat-real-card">
+            <div class="row"><span>좌석정보</span><strong>제2열람실 노트북석B / 242번</strong></div>
+            <div class="row"><span>이용상태</span><strong>임시배정</strong></div>
+            <div class="row"><span>입실시간</span><strong>2029-04-12 18:30:00</strong></div>
+            <div class="row"><span>퇴실시간</span><div class="stack"><strong>2029-04-13 00:00:00</strong><b>[반납유예시간 00:10]</b></div></div>
+            <div class="row"><span>연장가능 횟수</span><strong>0 / 2</strong></div>
+            <div class="row c2-seat-extend-row"><span>연장가능시간</span><div class="stack"><strong>2029-04-12 23:50:00</strong><strong>~ 2029-04-13 00:00:00</strong><small>연장 가능시간이 얼마 남지 않았습니다.</small></div><div class="c2-seat-extend-pulse" aria-hidden="true"></div></div>
+          </section>
+          <div class="c2-seat-real-buttons"><button class="primary">연장하기</button><button>취소</button><button>선호좌석</button></div>
+        </div>
+        <div class="c2-seat-real-home"></div>
       </div>
     </div>
-    <div class="c2-seat-scene-caption"><b>도서관 좌석 연장 알림</b><span>남은 시간 ${c2Escape(item.remaining || '10분')}</span></div>
+    <div class="c2-seat-scene-caption"><b>도서관 자리 연장 알림</b><span>연장 가능시간이 곧 종료됩니다 · 남은 여유 ${c2Escape(item.remaining || '10분')}</span></div>
   </div>`);
 
 window.STORY_CUSTOM_EFFECTS['teleport-transition'] = ({ layer, item, api }) => {
@@ -17029,30 +17036,31 @@ html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue
 @media (max-width:700px){.c2-ppt-context-tools{height:30px;font-size:9px;gap:3px;padding:0 4px}.c2-ppt-context-tools span{padding:4px}.c2-ppt-edit-instruction{right:4px;bottom:21px;font-size:9px}.c2-ppt-step-slide .c2-ppt-process{padding:4px;gap:2px}}
 
 /* Library phone: a UI reconstruction of the official KNU library seat / facility booking navigation, not a screenshot. */
-.c2-seat-phone-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 39%,#253b5a 0,#111725 48%,#05070e 89%);font-family:'Noto Sans KR',system-ui,sans-serif;color:#1d2d3d}
-.c2-seat-phone-aura{position:absolute;left:50%;top:40%;width:min(62vw,540px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(70,140,223,.2),transparent 68%);filter:blur(22px)}
-.c2-seat-phone{position:relative;z-index:2;width:min(340px,48vw,calc(75vh * .5));height:min(710px,74vh);padding:clamp(9px,1.25cqw,14px);border:4px solid #070b11;border-radius:clamp(25px,4vw,40px);background:linear-gradient(125deg,#222b36,#090d13 42%,#171c23);box-shadow:0 36px 70px rgba(0,0,0,.8),0 0 0 2px rgba(220,233,247,.18),inset 0 0 2px #aab1c0;transform:translateY(28px) scale(.88);opacity:0;animation:c2SeatPhoneArrive .68s cubic-bezier(.18,.9,.26,1) forwards}
+.c2-seat-phone-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 38%,#3b4049 0,#171a21 42%,#090b10 100%);font-family:'Noto Sans KR',system-ui,sans-serif;color:#1d2d3d}
+.c2-seat-phone-aura{position:absolute;left:50%;top:40%;width:min(62vw,540px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,255,255,.08),transparent 68%);filter:blur(24px)}
+.c2-seat-phone{position:relative;z-index:2;width:min(392px,54vw,calc(75vh * .54));height:min(820px,82vh);padding:clamp(9px,1.25cqw,14px);border:4px solid #070b11;border-radius:clamp(25px,4vw,40px);background:linear-gradient(125deg,#222b36,#090d13 42%,#171c23);box-shadow:0 36px 70px rgba(0,0,0,.8),0 0 0 2px rgba(220,233,247,.18),inset 0 0 2px #aab1c0;transform:translateY(28px) scale(.88);opacity:0;animation:c2SeatPhoneArrive .68s cubic-bezier(.18,.9,.26,1) forwards}
 .c2-seat-phone-camera{position:absolute;z-index:8;left:50%;top:12px;transform:translateX(-50%);width:24%;height:13px;border-radius:0 0 13px 13px;background:#05070a}
-.c2-seat-app-screen{position:relative;display:flex;flex-direction:column;height:100%;overflow:hidden;border-radius:clamp(18px,3vw,29px);background:#f5f7f9}
-.c2-seat-statusbar{display:flex;justify-content:space-between;align-items:center;height:28px;padding:9px 20px 0;background:#153967;color:#fff;font-size:10px}
-.c2-seat-app-screen>header{display:flex;justify-content:space-between;align-items:center;flex:none;height:50px;padding:0 14px;background:#153967;color:white;font-size:13px}.c2-seat-app-screen>header strong{font-weight:900}.c2-seat-app-screen>header span{font-size:22px}
-.c2-seat-app-screen nav{display:flex;flex-direction:column;gap:5px;flex:none;padding:15px 20px 12px;background:#fff;border-bottom:1px solid #dde5ee}.c2-seat-app-screen nav small{font-size:10px;color:#768696}.c2-seat-app-screen nav b{font-size:16px;color:#183b66}
-.c2-seat-app-card{margin:14px 12px 0;padding:17px 14px 14px;border:1px solid #d6e0eb;border-radius:14px;background:white;box-shadow:0 8px 20px rgba(14,32,63,.06)}
-.c2-seat-location{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:10px;color:#73849b}.c2-seat-location b{color:#176647;background:#dff4e9;border-radius:3px;padding:4px 5px}
-.c2-seat-app-card h2{margin:13px 0 19px;font-size:17px;font-weight:900;color:#143459;line-height:1.3}
-.c2-seat-usage-line{display:flex;justify-content:space-between;align-items:center;margin:0 0 13px;font-size:12px;color:#596879}.c2-seat-usage-line strong{font-size:12px;color:#19354f}.c2-seat-usage-line .c2-seat-timer{font-size:27px;font-weight:950;color:#cc4b3a;animation:c2SeatTimePulse 1.4s ease-in-out infinite}
-.c2-seat-countdown{height:8px;overflow:hidden;border-radius:10px;background:#e7edf4}.c2-seat-countdown i{display:block;width:18%;height:100%;background:linear-gradient(90deg,#e7a65d,#d65a42);border-radius:10px;transform-origin:left;animation:c2SeatBarPulse 2s ease-in-out infinite}
-.c2-seat-app-card p{margin:15px 0 16px;font-size:12px;line-height:1.6;color:#68778b}
-.c2-seat-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:12px;text-align:center}.c2-seat-actions span,.c2-seat-actions strong{padding:11px 3px;border-radius:5px;border:1px solid #c9d6e4;color:#485970}.c2-seat-actions strong{border-color:#1d548b;background:#165187;color:#fff;box-shadow:0 0 0 0 rgba(26,104,181,.32);animation:c2SeatButtonPulse 1.5s 1s infinite}
-.c2-seat-notification{display:flex;align-items:flex-start;gap:10px;position:absolute;z-index:4;left:8px;right:8px;bottom:32px;padding:13px 10px;background:rgba(242,248,255,.98);border-left:4px solid #d65b46;border-radius:8px;box-shadow:0 8px 26px rgba(14,30,50,.16);opacity:0;transform:translateY(22px);animation:c2SeatNotificationRise .48s 1.22s ease-out forwards}
-.c2-seat-notification>i{flex:none;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#d45542;color:white;font-size:13px;font-weight:950;font-style:normal}.c2-seat-notification>div{display:grid;gap:6px}.c2-seat-notification strong{font-size:11px;color:#1a3452}.c2-seat-notification span{font-size:10px;line-height:1.5;color:#627286}
-.c2-seat-home-indicator{position:absolute;z-index:5;left:35%;right:35%;bottom:9px;height:4px;background:#212a34;border-radius:5px}
-.c2-seat-scene-caption{position:absolute;z-index:3;left:6%;bottom:6%;display:grid;gap:4px;padding:12px 18px;border-left:3px solid #80b9ec;background:rgba(7,14,25,.76);color:#fff;animation:c2SeatNotificationRise .6s .7s both}.c2-seat-scene-caption b{font-size:clamp(16px,2vw,25px)}.c2-seat-scene-caption span{font-size:clamp(11px,1.3vw,15px);color:#bed3ed}
+.c2-seat-app-screen{position:relative;display:flex;flex-direction:column;height:100%;overflow:hidden;border-radius:clamp(18px,3vw,29px);background:#f3f3f3}
+.c2-seat-real-statusbar{display:flex;align-items:center;gap:8px;height:30px;padding:7px 15px 0;background:#d81e25;color:#fff;font-size:10px;font-weight:700}.c2-seat-real-statusbar b{margin-right:auto;font-size:12px}.c2-seat-real-statusbar i{font-style:normal}.c2-seat-real-statusbar em{margin-left:auto;font-style:normal;padding:1px 7px;border-radius:999px;background:rgba(255,255,255,.24)}
+.c2-seat-real-header{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;height:68px;padding:0 14px;background:#df1f26;color:#fff}.c2-seat-real-header strong{justify-self:center;font-size:21px;font-weight:900}.c2-seat-real-header span{font-size:34px;line-height:1}.c2-seat-real-header i{display:block;width:24px;height:24px}
+.c2-seat-real-body{display:flex;flex-direction:column;gap:14px;padding:16px 16px 18px;background:#f3f3f3}
+.c2-seat-real-notice{display:grid;grid-template-columns:48px 1fr;gap:14px;padding:20px 18px;border:1px solid #d9d9d9;border-radius:10px;background:#f7f7f7;color:#444}.c2-seat-real-notice .icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#464646;color:#fff;font-size:28px;font-weight:900}.c2-seat-real-notice p{margin:0 0 10px;font-size:16px;line-height:1.42;font-weight:700}.c2-seat-real-notice span{font-size:16px;color:#555}
+.c2-seat-real-card{border:1px solid #dadada;border-radius:10px;background:#fff;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+.c2-seat-real-card .row{position:relative;display:grid;grid-template-columns:118px 1fr;gap:16px;align-items:center;padding:18px 18px;border-bottom:1px solid #e6e6e6;color:#333}.c2-seat-real-card .row:last-child{border-bottom:0}.c2-seat-real-card .row>span{font-size:14px;color:#909090;font-weight:700;text-align:center}.c2-seat-real-card .row strong{font-size:21px;line-height:1.3;color:#393939;font-weight:900}.c2-seat-real-card .row .stack{display:grid;gap:4px}.c2-seat-real-card .row .stack b{font-size:16px;color:#da201f;font-weight:900}.c2-seat-real-card .row .stack small{font-size:14px;color:#da201f;font-weight:900;letter-spacing:-.02em}
+.c2-seat-extend-row{background:linear-gradient(180deg,#fff 0,#fff3f3 100%);animation:c2SeatExtendRowPulse .9s ease-in-out .95s 3 both}.c2-seat-extend-row::after{content:'';position:absolute;inset:5px;border:2px solid rgba(229,48,45,.55);border-radius:8px;opacity:0;animation:c2SeatExtendOutline .9s ease-in-out .95s 3}
+.c2-seat-extend-pulse{position:absolute;right:12px;top:50%;width:18px;height:18px;border-radius:50%;background:#e12424;transform:translateY(-50%);box-shadow:0 0 0 0 rgba(225,36,36,.45);animation:c2SeatExtendDot .9s ease-in-out .95s 3}
+.c2-seat-real-buttons{display:grid;grid-template-columns:1.25fr .9fr 1fr;gap:14px;padding:8px 4px 0}.c2-seat-real-buttons button{height:58px;border:1px solid #d6d6d6;border-radius:8px;background:#efefef;color:#444;font-size:18px;font-weight:900}.c2-seat-real-buttons .primary{border-color:#d81e25;background:#df2329;color:#fff;box-shadow:0 0 0 0 rgba(223,35,41,.36);animation:c2SeatPrimaryPulse .9s ease-in-out 1.25s 3}
+.c2-seat-real-home{position:absolute;z-index:5;left:35%;right:35%;bottom:10px;height:5px;background:#d5d5d5;border-radius:999px}
+.c2-seat-home-indicator{display:none}
+.c2-seat-scene-caption{position:absolute;z-index:3;left:6%;bottom:6%;display:grid;gap:4px;padding:12px 18px;border-left:3px solid #ef6969;background:rgba(16,12,16,.82);color:#fff;animation:c2SeatNotificationRise .6s .7s both}.c2-seat-scene-caption b{font-size:clamp(16px,2vw,25px)}.c2-seat-scene-caption span{font-size:clamp(11px,1.3vw,15px);color:#ffd0d0}
 @keyframes c2SeatPhoneArrive{to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes c2SeatNotificationRise{to{opacity:1;transform:translateY(0)}}
 @keyframes c2SeatTimePulse{50%{opacity:.65}}
 @keyframes c2SeatBarPulse{50%{transform:scaleX(.86)}}
-@keyframes c2SeatButtonPulse{50%{box-shadow:0 0 0 6px rgba(26,104,181,0)}}
+@keyframes c2SeatPrimaryPulse{50%{box-shadow:0 0 0 9px rgba(223,35,41,0)}}
+@keyframes c2SeatExtendRowPulse{50%{transform:scale(1.01);background:linear-gradient(180deg,#fff6f6 0,#ffe8e8 100%)}}
+@keyframes c2SeatExtendOutline{20%,85%{opacity:1}100%{opacity:0}}
+@keyframes c2SeatExtendDot{50%{box-shadow:0 0 0 12px rgba(225,36,36,0)}}
 </style>
 </body>
 </html>
