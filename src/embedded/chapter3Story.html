@@ -3708,16 +3708,16 @@ window.STORY_CHARACTERS = {
     name:'나레이터', side:'left', image:'', portrait:'portrait_system.svg', frame:'frame_knu_default.svg', frameInset:'17%', accent:'#9aa0a8', scale:1, alt:'나레이터', voice:'narrator', poses:{}
   },
   hobanwoo: {
-    name:'호반우', side:'right', image:'characters/hobanwoo/hobanwoo_pose_neutral.png', portrait:'characters/hobanwoo/portrait_hobanwoo.png',
+    name:'호반우', side:'right', image:'characters/hobanwoo/hobanwoo_pose_relaxed_neutral_eyes_open_softly_curved_brows_straight_mouth_arms_down.png', portrait:'characters/hobanwoo/hobanwoo_portrait_eyes_open_soft_smile_hands_on_hips.png',
     frame:'frame_knu_default.svg', frameInset:'17%', accent:'#e60000', scale:1, alt:'호반우', voice:'hobanwoo',
-    portraitPoses:{ default:'characters/hobanwoo/portrait_hobanwoo.png' },
+    portraitPoses:{ default:'characters/hobanwoo/hobanwoo_portrait_eyes_open_soft_smile_hands_on_hips.png' },
     poses:{
-      default:'characters/hobanwoo/hobanwoo_pose_neutral.png', neutral:'characters/hobanwoo/hobanwoo_pose_neutral.png',
-      thinking:'characters/hobanwoo/hobanwoo_pose_thinking.png', uneasy:'characters/hobanwoo/hobanwoo_pose_uneasy.png', worried:'characters/hobanwoo/hobanwoo_pose_worried.png',
-      surprised:'characters/hobanwoo/hobanwoo_pose_surprised.png', brave:'characters/hobanwoo/hobanwoo_pose_brave.png', determined:'characters/hobanwoo/hobanwoo_pose_brave.png',
-      combat:'characters/hobanwoo/hobanwoo_pose_combat.png', angry:'characters/hobanwoo/hobanwoo_pose_angry.png', happy:'characters/hobanwoo/hobanwoo_pose_happy.png',
-      dejected:'characters/hobanwoo/hobanwoo_pose_dejected.png', presenting:'characters/hobanwoo/hobanwoo_pose_presenting.png', explaining:'characters/hobanwoo/hobanwoo_pose_presenting.png',
-      shocked:'characters/hobanwoo/hobanwoo_pose_surprised.png', earnest:'characters/hobanwoo/hobanwoo_pose_brave.png', wave:'characters/hobanwoo/hobanwoo_pose_happy.png'
+      default:'characters/hobanwoo/hobanwoo_pose_relaxed_neutral_eyes_open_softly_curved_brows_straight_mouth_arms_down.png', neutral:'characters/hobanwoo/hobanwoo_pose_relaxed_neutral_eyes_open_softly_curved_brows_straight_mouth_arms_down.png',
+      thinking:'characters/hobanwoo/hobanwoo_pose_thoughtful_furrowed_brows_frown_one_hand_on_chin_other_on_hip.png', uneasy:'characters/hobanwoo/hobanwoo_pose_anxious_drooping_brows_wavy_mouth_hands_under_chin_sweat_drop.png', worried:'characters/hobanwoo/hobanwoo_pose_worried_drooping_brows_frown_one_fist_at_chest_other_arm_down.png',
+      surprised:'characters/hobanwoo/hobanwoo_pose_shocked_wide_eyes_open_mouth_palms_beside_face_exclamation.png', brave:'characters/hobanwoo/hobanwoo_pose_gentle_smile_eyes_open_softly_curved_brows_arms_down.png', determined:'characters/hobanwoo/hobanwoo_pose_gentle_smile_eyes_open_softly_curved_brows_arms_down.png',
+      combat:'characters/hobanwoo/hobanwoo_pose_determined_frown_both_fists_raised_wide_combat_stance.png', angry:'characters/hobanwoo/hobanwoo_pose_angry_frown_hands_on_hips_steam_puffs.png', happy:'characters/hobanwoo/hobanwoo_pose_joyful_eyes_closed_open_smile_one_arm_raised_greeting.png',
+      dejected:'characters/hobanwoo/hobanwoo_pose_dejected_drooping_brows_frown_slumped_shoulders_arms_down.png', presenting:'characters/hobanwoo/hobanwoo_pose_serious_mouth_open_one_hand_on_hip_index_finger_raised_presenting.png', explaining:'characters/hobanwoo/hobanwoo_pose_serious_mouth_open_one_hand_on_hip_index_finger_raised_presenting.png',
+      shocked:'characters/hobanwoo/hobanwoo_pose_shocked_wide_eyes_open_mouth_palms_beside_face_exclamation.png', earnest:'characters/hobanwoo/hobanwoo_pose_gentle_smile_eyes_open_softly_curved_brows_arms_down.png', wave:'characters/hobanwoo/hobanwoo_pose_joyful_eyes_closed_open_smile_one_arm_raised_greeting.png'
     }
   },
   minjae: { name:'민재', side:'left', image:'chapter3/characters/minjae_team4_scene_default_v52.png', portrait:'chapter3/portraits/minjae_default.png', frame:'frame_knu_default.svg', frameInset:'17%', accent:'#49a271', scale:1, alt:'민재', voice:'minjae', poses:{default:'chapter3/characters/minjae_team4_scene_default_v52.png',neutral:'chapter3/characters/minjae_team4_scene_default_v52.png',talk:'chapter3/characters/minjae_team4_scene_default_v52.png',greeting:'chapter3/characters/minjae_team4_scene_greeting_v52.png',wave:'chapter3/characters/minjae_team4_scene_greeting_v52.png'} },
@@ -4945,7 +4945,7 @@ window.STORY_CUSTOM_EFFECTS['last-semester-visual'] = ({ layer, item }) => {
   }
   return c3Mount(layer, `<div class="ch3-last-semester-card kind-${c3Esc(kind)}">
     <div class="ch3-last-semester-bg"></div>
-    <img src="/assets/common/characters/hobanwoo/hobanwoo_pose_${kind==='certificate'?'thinking':kind==='recruiting'?'neutral':'thinking'}.png" alt="호반우">
+    <img src="${kind==='recruiting'?'/assets/common/characters/hobanwoo/hobanwoo_pose_relaxed_neutral_eyes_open_softly_curved_brows_straight_mouth_arms_down.png':'/assets/common/characters/hobanwoo/hobanwoo_pose_thoughtful_furrowed_brows_frown_one_hand_on_chin_other_on_hip.png'}" alt="호반우">
     <section><small>LAST SEMESTER</small><strong>${c3Esc(item.title||'막학기')}</strong><div>${(item.lines||[]).map(x=>`<span>${c3Esc(x)}</span>`).join('')}</div></section>
   </div>`);
 };
@@ -5249,7 +5249,7 @@ window.STORY_CUSTOM_EFFECTS['monthly-schedule'] = ({ layer, item }) => {
   });
 };
 
-window.STORY_CUSTOM_EFFECTS['recruiting-montage'] = ({layer,item}) => c3Mount(layer,`<div class="c3-recruiting-montage"><time>${c3Esc(item.date||'09.23.')}</time><section><small>KNU CAMPUS RECRUITING</small><strong>${c3Esc(item.title||'캠퍼스 리크루팅')}</strong><div class="booths"><i>기업 상담</i><i>직무 설명</i><i>채용 안내</i></div></section><img src="/assets/common/characters/hobanwoo/hobanwoo_pose_neutral.png" alt="호반우"></div>`);
+window.STORY_CUSTOM_EFFECTS['recruiting-montage'] = ({layer,item}) => c3Mount(layer,`<div class="c3-recruiting-montage"><time>${c3Esc(item.date||'09.23.')}</time><section><small>KNU CAMPUS RECRUITING</small><strong>${c3Esc(item.title||'캠퍼스 리크루팅')}</strong><div class="booths"><i>기업 상담</i><i>직무 설명</i><i>채용 안내</i></div></section><img src="/assets/common/characters/hobanwoo/hobanwoo_pose_relaxed_neutral_eyes_open_softly_curved_brows_straight_mouth_arms_down.png" alt="호반우"></div>`);
 
 
 /* Responsive DOM-anchored mouse for site interaction scenes.
