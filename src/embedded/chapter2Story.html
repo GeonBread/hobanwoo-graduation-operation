@@ -13160,17 +13160,11 @@ window.STORY_CUSTOM_EFFECTS['core-portal-open'] = ({ layer, item }) => {
 };
 
 window.STORY_CUSTOM_EFFECTS['seat-expiry'] = ({ layer, item }) => c2MakeLayer(layer, `
-  <div class="c2-seat-phone-scene c2-seat-extension-scene" role="img" aria-label="실제 경북대학교 도서관 좌석배정확정 화면을 기반으로 한 자리 연장 알림 연출">
-    <div class="c2-seat-phone-aura"></div>
-    <div class="c2-seat-phone c2-seat-phone-real c2-seat-phone-reference">
-      <img class="c2-seat-reference-shot" src="/assets/chapter2/story/ui/library_seat_reference_story232_20261108.png" alt="">
-      <div class="c2-seat-reference-highlight" aria-hidden="true">
-        <span class="badge">연장 마감 임박</span>
-        <span class="ring ring1"></span>
-        <span class="ring ring2"></span>
-        <span class="ring ring3"></span>
-      </div>
-    </div>
+  <div class="c2-seat-scene-exact" role="img" aria-label="도서관 좌석배정확정, 2029년 4월 15일 오후 11시 50분, 연장 가능 시간이 10분 남은 안내 화면">
+    <figure class="c2-seat-exact-device">
+      <img class="c2-seat-exact-image" src="/assets/chapter2/story/ui/library_seat_story_20290415_clean.png" alt="">
+      <div class="c2-seat-exact-emphasis" aria-hidden="true"></div>
+    </figure>
   </div>`);
 
 window.STORY_CUSTOM_EFFECTS['teleport-transition'] = ({ layer, item, api }) => {
@@ -17033,17 +17027,42 @@ html.chapter1-output-parity .dialogue-layer:not(.is-narrator-dialogue) .dialogue
 .c2-seat-real-buttons{display:grid;grid-template-columns:1.18fr .9fr 1.03fr;gap:14px;padding:8px 0 0}.c2-seat-real-buttons button{height:74px;border:1px solid #dddddd;border-radius:10px;background:#efefef;color:#404040;font-size:28px;font-weight:900;letter-spacing:-.04em}.c2-seat-real-buttons .primary{border-color:#df2329;background:#df2329;color:#fff;box-shadow:none;animation:none}.c2-seat-real-buttons button::before{display:inline-block;margin-right:10px;font-weight:700}.c2-seat-real-buttons .primary::before{content:'↪';font-size:28px}.c2-seat-real-buttons button:nth-child(2)::before{content:'✕';font-size:24px}.c2-seat-real-buttons button:nth-child(3)::before{content:'☆';font-size:26px}
 .c2-seat-real-bottom-bar{height:24px;background:#f2f2f2}
 .c2-seat-real-home{position:absolute;z-index:5;left:28%;right:28%;bottom:8px;height:6px;background:#cc5a5a;border-radius:999px;opacity:.9}
-.c2-seat-phone-reference{background:#05070c}.c2-seat-reference-shot{display:block;width:100%;height:100%;object-fit:cover;object-position:center center}.c2-seat-reference-highlight{position:absolute;left:24.8%;top:63.9%;width:57.2%;height:9.2%;pointer-events:none}.c2-seat-reference-highlight .badge{position:absolute;right:-1.2%;top:-28%;padding:.28em .72em;border-radius:999px;background:rgba(221,30,38,.96);color:#fff;font-weight:900;font-size:13px;letter-spacing:.02em;box-shadow:0 0 0 2px rgba(255,255,255,.18) inset,0 8px 24px rgba(194,12,24,.35);animation:c2SeatBadgeBlink .76s ease-in-out 0s 3}.c2-seat-reference-highlight .ring{position:absolute;inset:0;border-radius:14px;border:4px solid rgba(255,62,62,.96);box-shadow:0 0 0 1px rgba(255,255,255,.12) inset,0 0 0 6px rgba(255,62,62,.09),0 0 24px rgba(255,30,30,.34);opacity:0;transform:scale(.985)}.c2-seat-reference-highlight .ring1{animation:c2SeatRowPulse 2.7s ease-out .1s forwards}.c2-seat-reference-highlight .ring2{animation:c2SeatRowPulse 2.7s ease-out .95s forwards}.c2-seat-reference-highlight .ring3{animation:c2SeatRowPulse 2.7s ease-out 1.8s forwards}@keyframes c2SeatRowPulse{0%{opacity:0;transform:scale(.985)}8%{opacity:1;transform:scale(1)}30%{opacity:1;transform:scale(1)}52%{opacity:0;transform:scale(1.02)}100%{opacity:0;transform:scale(1.03)}}@keyframes c2SeatBadgeBlink{0%,100%{transform:translateY(0);filter:brightness(1)}50%{transform:translateY(-1px);filter:brightness(1.15)}}
-.c2-seat-home-indicator,.c2-seat-scene-caption,.c2-seat-phone-camera{display:none}
-@keyframes c2SeatPhoneArrive{to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes c2SeatNotificationRise{to{opacity:1;transform:translateY(0)}}
-@keyframes c2SeatTimePulse{50%{opacity:.65}}
-@keyframes c2SeatBarPulse{50%{transform:scaleX(.86)}}
-@keyframes c2SeatPrimaryPulse{50%{box-shadow:0 0 0 9px rgba(223,35,41,0)}}
-@keyframes c2SeatExtendRowPulse{0%,100%{transform:scale(1);background:linear-gradient(180deg,#f6f6f6 0,#fff5f5 100%)}50%{transform:scale(1.012);background:linear-gradient(180deg,#fff 0,#ffe8e8 100%)}}
-@keyframes c2SeatExtendOutline{20%,85%{opacity:1}100%{opacity:0}}
-@keyframes c2SeatExtendDot{50%{box-shadow:0 0 0 12px rgba(225,36,36,0)}}
-@media (max-width:900px){.c2-seat-phone{width:min(386px,84vw);height:min(836px,89vh)}}
+/* CH2 story #232: exact-ratio screenshot composition, with all story-time labels permanently embedded.
+   Highlight ONLY the extension-hours row, including its complete label and two time lines.
+   945 x 2048 reference coordinates: x=22..922; y=1190..1347. */
+.c2-seat-scene-exact{
+  position:absolute;inset:0;z-index:20;
+  display:grid;place-items:center;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 42%,#383f4a 0%,#151b24 54%,#090c12 100%);
+}
+.c2-seat-exact-device{
+  position:relative;display:block;flex:none;margin:0;padding:0;
+  width:min(96vw,43.5vh,475px);aspect-ratio:945/2048;
+  border-radius:clamp(18px,3vw,36px);overflow:hidden;
+  background:#fff;isolation:isolate;
+  box-shadow:0 34px 90px rgba(0,0,0,.76),0 0 0 1px rgba(255,255,255,.18);
+  opacity:0;transform:translateY(12px) scale(.975);
+  animation:c2SeatExactEnter .55s cubic-bezier(.18,.9,.22,1) forwards;
+}
+.c2-seat-exact-image{display:block!important;width:100%!important;height:100%!important;object-fit:fill!important;max-width:none!important;min-height:0!important;}
+.c2-seat-exact-emphasis{
+  box-sizing:border-box;position:absolute;z-index:2;pointer-events:none;
+  left:2.64%;top:58.1%;width:94.75%;height:7.72%;
+  border:clamp(3px,.55vw,5px) solid rgba(245,44,63,.98);
+  border-radius:clamp(7px,1.15vw,12px);
+  background:rgba(245,58,72,.11);
+  box-shadow:0 0 0 2px rgba(255,255,255,.4) inset,0 0 19px rgba(255,34,55,.65),0 0 29px rgba(231,32,52,.4);
+  opacity:0;animation:c2SeatExactExtensionPulse 1.12s ease-in-out .78s 3 both;
+}
+@keyframes c2SeatExactEnter{
+  0%{opacity:0;transform:translateY(12px) scale(.975)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes c2SeatExactExtensionPulse{
+  0%,100%{opacity:0}
+  16%,65%{opacity:1}
+  82%{opacity:.42}
+}
 </style>
 </body>
 </html>
