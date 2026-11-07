@@ -4509,8 +4509,6 @@ function c3PortalDiagnosisMarkup(){
 }
 
 function c3PortalOverviewMarkup(){
-  // Grounded to the user-provided KNU Department of Mechanical Engineering regulations.
-  // Story setting: 2027 freshman admission → 2026학년도 이후 신입학 기준 적용.
   const rows=[
     ['총취득학점','130','136','Y','total'],
     ['교양취득학점','30','33','Y','general'],
@@ -4519,7 +4517,7 @@ function c3PortalOverviewMarkup(){
     ['전공영역 이수학점','15','18','Y','majorArea'],
     ['전공필수과목 이수','5과목','5과목','Y','gpa']
   ];
-  return `<div class="ch3-result-table-wrap"><h4>교과구분별취득학점 정보 <span>${rows.length}건 · 기계공학부 2026학년도 이후 신입학 기준</span></h4><table class="ch3-result-table"><thead><tr><th>No</th><th>전공구분</th><th>졸업사정이수구분</th><th>기준정보</th><th>이수정보</th><th>충족여부</th><th>판정</th></tr></thead><tbody>${rows.map((r,i)=>`<tr data-pass-row="${r[4]}"><td>${i+1}</td><td>주전공</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="pass-y" data-pass="${r[4]}">${r[3]}</td><td><b class="pass-label">통과</b></td></tr>`).join('')}</tbody></table><small class="ch3-curriculum-note">※ 공과대학 기계공학부 2026학년도 이후 신입학 기준: 총 130학점, 교양 30학점(영역 이수), SDG 3학점, 전공 63학점, 전공영역 15학점 이상.</small></div>`;
+  return `<div class="ch3-result-table-wrap"><h4>교과구분별취득학점 정보 <span>${rows.length}건</span></h4><table class="ch3-result-table"><thead><tr><th>No</th><th>전공구분</th><th>졸업사정이수구분</th><th>기준정보</th><th>이수정보</th><th>충족여부</th><th>판정</th></tr></thead><tbody>${rows.map((r,i)=>`<tr data-pass-row="${r[4]}"><td>${i+1}</td><td>주전공</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="pass-y" data-pass="${r[4]}">${r[3]}</td><td><b class="pass-label">통과</b></td></tr>`).join('')}</tbody></table></div>`;
 }
 
 function c3PortalQualificationMarkup(){
@@ -4528,7 +4526,7 @@ function c3PortalQualificationMarkup(){
     ['지도교수 상담영역','지도교수 상담 8회 이상 완료','졸업자격 충족'],
     ['소프트웨어영역','C/C++프로그래밍기초 이수','3학점 충족']
   ];
-  return `<div class="ch3-result-table-wrap"><h4>졸업자격인정정보 <span>3건</span></h4><table class="ch3-result-table"><thead><tr><th>No</th><th>졸업자격인정기준구분</th><th>처리내용</th><th>상세</th><th>충족여부</th><th>판정</th></tr></thead><tbody>${rows.map((r,i)=>`<tr data-pass-row="qualification${i}"><td>${i+1}</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="pass-y" data-pass="qualification${i}">Y</td><td><b class="pass-label">통과</b></td></tr>`).join('')}</tbody></table><small class="ch3-curriculum-note">※ 2008학년도 이후 실용영어, 2012학년도 이후 지도교수 상담, 2016학년도 이후 소프트웨어 졸업자격인정 기준 반영.</small></div>`;
+  return `<div class="ch3-result-table-wrap"><h4>졸업자격인정정보 <span>3건</span></h4><table class="ch3-result-table"><thead><tr><th>No</th><th>졸업자격인정기준구분</th><th>처리내용</th><th>상세</th><th>충족여부</th><th>판정</th></tr></thead><tbody>${rows.map((r,i)=>`<tr data-pass-row="qualification${i}"><td>${i+1}</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="pass-y" data-pass="qualification${i}">Y</td><td><b class="pass-label">통과</b></td></tr>`).join('')}</tbody></table></div>`;
 }
 
 function c3PortalRequiredMarkup(){
@@ -4540,7 +4538,7 @@ function c3PortalRequiredMarkup(){
     ['전공필수','유체역학',3,'B+'],
     ['전공필수','기계공학실험',1,'A+']
   ];
-  return `<div class="ch3-result-table-wrap ch3-required-completion-2026"><h4>필수과목 이수정보 <span>이수 ${completed.length}건 · 미이수 0건</span></h4><table class="ch3-result-table"><thead><tr><th>No</th><th>이수구분</th><th>과정구분</th><th>교과목명</th><th>학점</th><th>성적</th></tr></thead><tbody>${completed.map((r,i)=>`<tr><td>${i+1}</td><td>주전공</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody></table><div class="ch3-required-pass" data-pass-row="required"><span>전공필수 5과목 이수 완료 · 전공영역 18학점 이수</span><b class="pass-y" data-pass="required">Y</b><strong>통과</strong></div><small class="ch3-curriculum-example2026">※ 교육과정년도 2027 · 기계공학부 신입학 기준 적용. 졸업요건: 총 130학점 / 교양 30학점 / SDG 3학점 / 전공 63학점 / 전공영역 15학점 이상.</small></div>`;
+  return `<div class="ch3-result-table-wrap ch3-required-completion-2026"><h4>필수과목 이수정보 <span>이수 ${completed.length}건 · 미이수 0건</span></h4><table class="ch3-result-table"><thead><tr><th>No</th><th>이수구분</th><th>과정구분</th><th>교과목명</th><th>학점</th><th>성적</th></tr></thead><tbody>${completed.map((r,i)=>`<tr><td>${i+1}</td><td>주전공</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody></table><div class="ch3-required-pass" data-pass-row="required"><span>전공필수 5과목 이수 완료 · 전공영역 18학점 이수</span><b class="pass-y" data-pass="required">Y</b><strong>통과</strong></div></div>`;
 }
 
 function c3PortalResultMarkup(tab='overview'){

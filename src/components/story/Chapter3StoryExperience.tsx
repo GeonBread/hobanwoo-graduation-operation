@@ -459,6 +459,27 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
     }
   };
 
+  // The visual credit roll finishes with the last THANK YOU fade at 110 seconds.
+  // A single idempotent completion path is shared by the animationend event and
+  // a timer fallback (e.g. if animations are disabled or a browser drops the event).
+  const finishFinalCredits = () => {
+    if (!finalCreditsActiveRef.current) return;
+    finalCreditsActiveRef.current = false;
+    clearFinalCreditsTimer();
+    setFinalCreditsActive(false);
+    setFullscreenEffect(null);
+    setWaveActive(false);
+    if (isChapter3OwnedBgm(sfx.currentBgmTrack)) sfx.stopBgm();
+    writeChapter3Progress({ index: 0, sectionOrdinal: 0 });
+    if (storyIsTestJump) {
+      // Even a F7 test run should leave the completed credits for the real main menu.
+      onExit?.();
+    } else {
+      // App.onComplete records Chapter 3 cleared, clears the checkpoint and opens MENU.
+      onComplete?.();
+    }
+  };
+
   const beginFinalCredits = () => {
     if (finalCreditsActiveRef.current) return;
     finalCreditsActiveRef.current = true;
@@ -469,20 +490,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
     setFullscreenEffect("chapter-ending");
     sfx.resumeAll();
     sfx.startFinalEndingBgm();
-
-    finalCreditsTimerRef.current = window.setTimeout(() => {
-      finalCreditsTimerRef.current = null;
-      finalCreditsActiveRef.current = false;
-      setFinalCreditsActive(false);
-      setFullscreenEffect(null);
-      if (isChapter3OwnedBgm(sfx.currentBgmTrack)) sfx.stopBgm();
-      if (storyIsTestJump) {
-        returnToSelector();
-        return;
-      }
-      writeChapter3Progress({ index: 0, sectionOrdinal: 0 });
-      onComplete?.();
-    }, FINAL_CREDITS_TOTAL_MS);
+    finalCreditsTimerRef.current = window.setTimeout(finishFinalCredits, FINAL_CREDITS_TOTAL_MS);
   };
 
   const resetStoryFramePresentation = () => {
@@ -734,6 +742,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
         }
 
         if (message.type === "progress-change") {
+          if (finalCreditsActiveRef.current) return;
           const storyIndex = Math.max(0, Math.floor(message.detail?.index ?? 0));
 
           // Scene 1~4: user-supplied Chapter 3 daily BGM. Scene 6 begins by fading it out.
@@ -826,7 +835,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
           setWaveActive(false);
           if (isChapter3OwnedBgm(sfx.currentBgmTrack)) sfx.stopBgm();
           if (storyIsTestJump) {
-            returnToSelector();
+            onExit?.();
           } else {
             writeChapter3Progress({ index: 0, sectionOrdinal: 0 });
             onComplete?.();
@@ -1174,7 +1183,9 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
             </div>
           </div>
 
-          <div className="chapter3FinalCreditsThanks">
+          <div className="chapter3FinalCreditsThanks" onAnimationEnd={(event) => {
+            if (event.target === event.currentTarget && event.animationName === "chapter3FinalThanks") finishFinalCredits();
+          }}>
             <div>
               <p>그리고,</p>
               <strong>이 게임을 끝까지 플레이해 주신<br />당신에게.</strong>

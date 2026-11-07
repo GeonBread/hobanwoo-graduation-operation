@@ -448,224 +448,170 @@
   to { opacity: 1; }
 }
 
-/* v16 · Chapter 1과 같은 강한 경고/셔터 감각을 사용한 Chapter 2 보스전 시작 전용 전체화면 연출 */
+/* CH2 4-second boss gate (2026-11-07): bespoke violet event horizon, no red shutters. */
 .chapter2-fullscreen-boss-intro {
   position: fixed;
   inset: 0;
   z-index: 1120;
   overflow: hidden;
-  display: grid;
-  place-items: center;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(130, 0, 24, .38), transparent 40%),
-    #020204;
+  isolation: isolate;
+  background: #03010a;
   color: #fff;
   font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
-  animation: chapter2BossIntroScreen 3.6s ease both;
+  animation: ch2GravitySurface 4s linear both;
 }
-
-.chapter2-boss-intro-grid {
-  position: absolute;
-  inset: -20%;
-  opacity: .28;
-  background-image:
-    linear-gradient(rgba(255, 50, 70, .2) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 50, 70, .2) 1px, transparent 1px);
-  background-size: 54px 54px;
-  transform: perspective(600px) rotateX(62deg) translateY(18%);
-  animation: chapter2BossIntroGrid 3.6s linear both;
-}
-
-.chapter2-boss-intro-shutter {
-  position: absolute;
-  left: -5%;
-  width: 110%;
-  height: 52%;
+.chapter2-fullscreen-boss-intro > div { pointer-events:none; }
+.ch2-gravity-cosmos {
+  position:absolute; inset:-15%; z-index:0;
   background:
-    repeating-linear-gradient(135deg, rgba(0,0,0,.18) 0 16px, transparent 16px 32px),
-    linear-gradient(90deg, #75000c, #e00019 50%, #75000c);
-  box-shadow: 0 0 70px rgba(255, 0, 34, .58);
+    radial-gradient(ellipse at 53% 47%,rgba(89,21,151,.55) 0,rgba(33,7,65,.47) 21%,transparent 52%),
+    radial-gradient(ellipse at 29% 74%,rgba(53,17,122,.35),transparent 41%),
+    radial-gradient(ellipse at 79% 17%,rgba(98,44,171,.26),transparent 38%),
+    radial-gradient(circle at 52% 51%,#040108 12%,transparent 43%),
+    linear-gradient(141deg,#070210 0%,#0f0623 46%,#020106 100%);
+  animation:ch2GravityCosmos 4s cubic-bezier(.18,.75,.28,1) both;
 }
-
-.chapter2-boss-intro-shutter.top {
-  top: -52%;
-  animation: chapter2BossIntroTopShutter 3.6s cubic-bezier(.76,0,.24,1) both;
+.ch2-gravity-cosmos::after {
+  content:"";position:absolute;inset:0;
+  background-image:
+    radial-gradient(1px 1px at 13% 24%,#e4baff 99%,transparent),
+    radial-gradient(1.6px 1.6px at 76% 15%,#efddff 99%,transparent),
+    radial-gradient(1px 1px at 44% 85%,#a885ed 99%,transparent),
+    radial-gradient(1.4px 1.4px at 91% 62%,#ffe7fc 99%,transparent),
+    radial-gradient(1.3px 1.3px at 27% 53%,#c2a3fa 99%,transparent),
+    radial-gradient(1.5px 1.5px at 58% 8%,#f5e0ff 99%,transparent);
+  background-size:220px 185px,280px 220px,350px 260px,170px 270px,310px 200px,260px 320px;
+  opacity:.42;
 }
-
-.chapter2-boss-intro-shutter.bottom {
-  bottom: -52%;
-  animation: chapter2BossIntroBottomShutter 3.6s cubic-bezier(.76,0,.24,1) both;
+.ch2-gravity-vanish-lines {
+  position:absolute;inset:-30%;z-index:1;opacity:0;
+  background:repeating-conic-gradient(from -1deg at 50% 50%,rgba(214,137,255,.18) 0deg 0.2deg,transparent .3deg 9deg);
+  mask-image:radial-gradient(circle at center,transparent 0 19%,#000 24%,transparent 62%);
+  animation:ch2GravityRays 4s linear both;
 }
-
-.chapter2-boss-intro-slash {
-  position: absolute;
-  width: 170vmax;
-  height: 5px;
-  left: 50%;
-  top: 50%;
-  background: #fff;
-  box-shadow: 0 0 18px #fff, 0 0 54px #ff193b;
-  transform-origin: center;
+.ch2-gravity-horizon {
+  position:absolute;z-index:2;left:50%;top:48%;width:min(118vmin,1000px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,#000 0 16%,rgba(12,3,24,.94) 19%,rgba(60,14,109,.42) 29%,rgba(188,75,252,.16) 33%,transparent 53%);
+  filter:blur(4px);
+  transform:translate(-50%,-50%) scale(.25);
+  animation:ch2GravityHorizon 4s cubic-bezier(.2,.7,.25,1) both;
 }
-
-.chapter2-boss-intro-slash.slash-a {
-  transform: translate(-50%, -50%) rotate(-15deg) scaleX(0);
-  animation: chapter2BossIntroSlashA .62s .58s ease-out forwards;
+.ch2-gravity-outer-ring {
+  position:absolute;z-index:3;left:50%;top:48%;width:min(82vmin,810px);aspect-ratio:1;border-radius:50%;
+  border:2px solid rgba(191,115,255,.36);box-shadow:0 0 28px rgba(175,91,250,.20),inset 0 0 22px rgba(117,44,206,.13);
+  opacity:0;
 }
-
-.chapter2-boss-intro-slash.slash-b {
-  transform: translate(-50%, -50%) rotate(15deg) scaleX(0);
-  animation: chapter2BossIntroSlashB .62s .7s ease-out forwards;
+.ch2-gravity-outer-ring.orbit-a {
+  width:min(95vmin,900px);border-color:rgba(153,68,235,.31);border-style:dashed;
+  animation:ch2GravityOrbitA 4s linear both;
 }
-
-.chapter2-boss-intro-ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(62vw, 620px);
-  aspect-ratio: 1;
-  border: 3px solid rgba(255, 61, 87, .82);
-  border-radius: 50%;
-  box-shadow: 0 0 32px rgba(255, 18, 52, .52), inset 0 0 32px rgba(255, 18, 52, .28);
-  opacity: 0;
+.ch2-gravity-outer-ring.orbit-b {
+  width:min(71vmin,700px);border-color:rgba(230,156,255,.53);
+  animation:ch2GravityOrbitB 4s linear both;
 }
-
-.chapter2-boss-intro-ring.ring-a {
-  animation: chapter2BossIntroRingA 2.1s .78s ease-out both;
+.ch2-gravity-outer-ring.orbit-c {
+  width:min(60vmin,580px);border-color:rgba(127,67,222,.30);border-width:1px;
+  animation:ch2GravityOrbitC 4s linear both;
 }
-
-.chapter2-boss-intro-ring.ring-b {
-  width: min(46vw, 450px);
-  border-style: dashed;
-  animation: chapter2BossIntroRingB 2.2s .9s ease-out both;
+.ch2-gravity-halo {
+  position:absolute;left:50%;top:48%;z-index:4;width:min(86vmin,860px);aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%) scale(.10);opacity:0;mix-blend-mode:screen;
+  background:conic-gradient(from 110deg,transparent 0deg,rgba(124,51,229,.07) 28deg,#bb64ff 71deg,#ffe0fc 81deg,#9d33e6 99deg,transparent 157deg,rgba(141,45,236,.22) 228deg,#7a36d7 286deg,transparent 357deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 26%,#000 35% 46%,transparent 60%);
+  mask:radial-gradient(circle,transparent 0 26%,#000 35% 46%,transparent 60%);
+  filter:blur(4px) drop-shadow(0 0 44px rgba(164,59,240,.62));
+  animation:ch2GravityHalo 4s linear both;
 }
-
-.chapter2-boss-intro-warning {
-  position: absolute;
-  top: 7%;
-  left: 0;
-  width: 100%;
-  padding: 10px 0;
-  border-block: 2px solid rgba(255, 60, 82, .85);
-  background: rgba(50, 0, 8, .86);
-  color: #ffb0bb;
-  text-align: center;
-  font: 1000 clamp(10px, 1.3vw, 15px)/1 "Noto Sans KR", "Malgun Gothic", sans-serif;
-  letter-spacing: .38em;
-  opacity: 0;
-  animation: chapter2BossIntroWarning 2.5s .68s steps(2, end) both;
+.ch2-gravity-accretion {
+  position:absolute;left:50%;top:48%;z-index:5;width:min(81vmin,800px);aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%) scale(.1);opacity:0;
+  background:conic-gradient(from 78deg,transparent 0 22deg,#a64cef 62deg,#efc8ff 72deg,#6224c3 87deg,transparent 144deg,#4a168e 190deg,#a44dff 241deg,#f9dfff 267deg,#8730c9 290deg,transparent 359deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 32%,#000 35% 40%,transparent 48%);
+  mask:radial-gradient(circle,transparent 0 32%,#000 35% 40%,transparent 48%);
+  filter:blur(.65px) drop-shadow(0 0 12px #c16bfa) drop-shadow(0 0 40px rgba(117,44,220,.85));
+  animation:ch2GravityAccretion 4s linear both;
 }
-
-.chapter2-boss-intro-copy {
-  position: relative;
-  z-index: 5;
-  width: min(94vw, 1040px);
-  padding: clamp(26px, 5vw, 48px) clamp(20px, 4vw, 42px);
-  border-block: 4px solid #fff;
-  background: linear-gradient(90deg, transparent, rgba(0,0,0,.84) 14%, rgba(0,0,0,.92) 50%, rgba(0,0,0,.84) 86%, transparent);
-  text-align: center;
-  opacity: 0;
-  transform: none;
-  filter: none;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: geometricPrecision;
-  backface-visibility: hidden;
-  animation: chapter2BossIntroCopy 2.45s .88s cubic-bezier(.2,.82,.2,1) both;
+.ch2-gravity-hole {
+  position:absolute;left:50%;top:48%;z-index:6;width:min(38vmin,360px);aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%) scale(.02);opacity:0;
+  border:2px solid rgba(239,195,255,.36);
+  background:radial-gradient(circle at 50% 50%,#000 0 65%,#0c0319 79%,#471478 93%,rgba(130,58,185,.44) 97%);
+  box-shadow:0 0 14px #e4b0ff,0 0 50px rgba(160,70,243,.87),0 0 110px rgba(92,24,167,.7),inset 0 0 35px #000;
+  animation:ch2GravityHole 4s cubic-bezier(.25,.7,.2,1) both;
 }
-
-.chapter2-boss-intro-copy small {
-  display: block;
-  color: #ff5570;
-  font: 1000 clamp(11px, 1.25vw, 16px)/1.2 "Noto Sans KR", "Malgun Gothic", sans-serif;
-  letter-spacing: .3em;
+.ch2-gravity-hole span {display:block;position:absolute;inset:7%;border-radius:50%;background:#000;box-shadow:0 0 45px #000;}
+.ch2-gravity-debris {position:absolute;inset:0;z-index:7;pointer-events:none;}
+.ch2-gravity-debris > span {
+  position:absolute;left:50%;top:48%;box-sizing:border-box;display:flex;flex-direction:column;
+  width:clamp(94px,13.5vmin,192px);height:clamp(56px,8.8vmin,114px);
+  padding:clamp(7px,1.2vmin,14px);overflow:hidden;
+  border:1px solid rgba(211,177,254,.74);border-left:3px solid #a76aff;
+  background:linear-gradient(130deg,rgba(44,28,78,.97),rgba(12,11,30,.96));
+  box-shadow:0 4px 32px rgba(111,56,178,.45),inset 0 0 18px rgba(179,98,243,.09);
+  color:#ebd7ff;opacity:0;
+  animation:ch2GravityPaperFunnel 3.05s var(--paper-delay) cubic-bezier(.3,.08,.66,.99) both;
 }
-
-.chapter2-boss-intro-copy strong {
-  display: block;
-  margin: 10px 0 8px;
-  color: #fff;
-  font: italic 1000 clamp(48px, 9vw, 130px)/.92 "Noto Sans KR", "Malgun Gothic", sans-serif;
-  letter-spacing: -.055em;
-  text-shadow: 5px 5px 0 #7c0010, 0 0 10px rgba(255, 39, 67, .42);
+.ch2-gravity-debris>span i{font-size:clamp(6px,.85vmin,11px);letter-spacing:.16em;font-style:normal;color:#ad83e9;}
+.ch2-gravity-debris>span b{font-size:clamp(9px,1.25vmin,16px);margin:auto 0;font-weight:950;letter-spacing:-.02em;white-space:nowrap;}
+.ch2-gravity-debris>span em{font-style:normal;color:#704c98;letter-spacing:.11em;font-size:clamp(8px,1.05vmin,13px)}
+.ch2-gravity-starfield {position:absolute;inset:0;z-index:4;pointer-events:none;}
+.ch2-gravity-starfield i {
+  position:absolute;left:50%;top:48%;width:clamp(2px,.35vmin,5px);height:clamp(2px,.35vmin,5px);
+  border-radius:50%;background:#db99ff;box-shadow:0 0 11px #b65dff,0 0 19px rgba(169,75,250,.6);
+  animation:ch2GravityDustFunnel 2.45s var(--dust-delay) ease-in both;opacity:0;
 }
-
-.chapter2-boss-intro-copy h2 {
-  margin: 8px 0 0;
-  color: #ffd9df;
-  font-size: clamp(22px, 3.9vw, 48px);
-  font-weight: 1000;
-  line-height: 1.15;
-  word-break: keep-all;
-  text-shadow: 3px 3px 0 #000;
+.ch2-gravity-boss-title {
+  position:absolute;z-index:11;left:50%;top:72%;width:min(92vw,1040px);
+  padding:clamp(13px,2vmin,24px) 16px 19px;
+  text-align:center;
+  background:radial-gradient(ellipse at 50% 50%,rgba(6,2,15,.88),rgba(6,2,15,.66) 59%,transparent 77%);
+  opacity:0;
+  transform:translate(-50%,25px) scale(.94);
+  animation:ch2GravityTitle 4s ease both;
 }
-
-.chapter2-boss-intro-copy p {
-  margin: 12px 0 0;
-  color: #ff9cab;
-  font-size: clamp(12px, 1.5vw, 18px);
-  font-weight: 900;
-  letter-spacing: .12em;
-  word-break: keep-all;
+.ch2-gravity-boss-title small {display:flex;align-items:center;justify-content:center;gap:13px;color:#c8a8f8;font-size:clamp(9px,1.15vmin,16px);font-weight:800;letter-spacing:.29em;}
+.ch2-gravity-boss-title small i{display:inline-block;width:22px;height:1px;background:#9870ce;}
+.ch2-gravity-boss-title strong {
+  display:block;margin:9px 0 3px;font-size:clamp(30px,6.4vmin,88px);font-weight:1000;
+  letter-spacing:-.045em;line-height:1.2;white-space:nowrap;
+  color:#f8edff;text-shadow:0 3px 3px #020108,0 0 20px rgba(176,81,251,.7),0 0 45px rgba(94,28,179,.52);
+}
+.ch2-gravity-boss-title span {display:block;font-size:clamp(15px,2.6vmin,34px);color:#dfa9ff;font-weight:900;letter-spacing:.02em;}
+.ch2-gravity-boss-title em {display:block;margin-top:12px;font-size:clamp(8px,1.05vmin,14px);color:rgba(195,154,242,.72);font-style:normal;letter-spacing:.22em;}
+.ch2-gravity-collapse-flash {
+  position:absolute;inset:0;z-index:18;opacity:0;mix-blend-mode:screen;
+  background:
+    radial-gradient(circle at 50% 48%,#fff 0,#f9e4ff 4%,rgba(201,107,255,.93) 10%,rgba(97,34,200,.54) 23%,transparent 58%),
+    repeating-conic-gradient(from 0deg at 50% 48%,transparent 0 7deg,rgba(243,199,255,.31) 8deg,transparent 9deg 19deg);
+  animation:ch2GravityImplosion 4s linear both;
+}
+.ch2-gravity-final-black {position:absolute;inset:0;z-index:30;background:#010005;opacity:0;animation:ch2GravityFinalCut 4s linear both;}
+@keyframes ch2GravitySurface {0%{opacity:0}8%,100%{opacity:1}}
+@keyframes ch2GravityCosmos {0%{transform:scale(1.16) rotate(-2deg);opacity:0;filter:brightness(.35)}18%,76%{opacity:1;filter:brightness(1)}100%{transform:scale(1.5) rotate(4deg);filter:brightness(.13)}}
+@keyframes ch2GravityRays {0%,10%{opacity:0;transform:rotate(-16deg) scale(.6)}32%{opacity:.64}77%{opacity:.4}95%,100%{opacity:0;transform:rotate(140deg) scale(1.6)}}
+@keyframes ch2GravityHorizon {0%{opacity:0;transform:translate(-50%,-50%) scale(.18)}24%{opacity:1;transform:translate(-50%,-50%) scale(.78)}72%{opacity:.9;transform:translate(-50%,-50%) scale(1.03)}90%{opacity:.92}100%{opacity:0;transform:translate(-50%,-50%) scale(.18)}}
+@keyframes ch2GravityOrbitA {0%,14%{opacity:0;transform:translate(-50%,-50%) scale(.25) rotate(-55deg)}35%{opacity:.75}83%{opacity:.55}100%{opacity:0;transform:translate(-50%,-50%) scale(.12) rotate(420deg)}}
+@keyframes ch2GravityOrbitB {0%,17%{opacity:0;transform:translate(-50%,-50%) scale(.15) rotate(25deg)}42%{opacity:.9}85%{opacity:.6}100%{opacity:0;transform:translate(-50%,-50%) scale(.1) rotate(-350deg)}}
+@keyframes ch2GravityOrbitC {0%,23%{opacity:0;transform:translate(-50%,-50%) scale(.18) rotate(0deg)}42%{opacity:.55}86%{opacity:.48}100%{opacity:0;transform:translate(-50%,-50%) scale(.08) rotate(600deg)}}
+@keyframes ch2GravityHalo {0%,13%{opacity:0;transform:translate(-50%,-50%) scale(.1) rotate(-120deg)}43%{opacity:.88;transform:translate(-50%,-50%) scale(.88) rotate(130deg)}79%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(385deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(.16) rotate(665deg)}}
+@keyframes ch2GravityAccretion {0%,18%{opacity:0;transform:translate(-50%,-50%) scale(.09) rotate(0)}45%{opacity:.98;transform:translate(-50%,-50%) scale(.82) rotate(160deg)}78%{opacity:.96;transform:translate(-50%,-50%) scale(1.2) rotate(500deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(.04) rotate(1020deg)}}
+@keyframes ch2GravityHole {0%,15%{opacity:0;transform:translate(-50%,-50%) scale(.01)}31%{opacity:1;transform:translate(-50%,-50%) scale(.92)}80%{opacity:1;transform:translate(-50%,-50%) scale(1.18)}100%{opacity:0;transform:translate(-50%,-50%) scale(.02)}}
+@keyframes ch2GravityPaperFunnel {0%{opacity:0;transform:translate(var(--paper-x),var(--paper-y)) rotate(var(--paper-tilt)) scale(.8)}12%{opacity:.94}53%{opacity:1}86%{opacity:.8}100%{opacity:0;transform:translate(0,0) rotate(630deg) scale(.02)}}
+@keyframes ch2GravityDustFunnel {0%{opacity:0;transform:translate(-50%,-50%) rotate(var(--dust-angle)) translateY(calc(-1 * var(--dust-radius))) scale(.45)}19%{opacity:.95}100%{opacity:0;transform:translate(-50%,-50%) rotate(calc(var(--dust-angle) + 420deg)) translateY(-5vmin) scale(.1)}}
+@keyframes ch2GravityTitle {0%,42%{opacity:0;transform:translate(-50%,25px) scale(.94);filter:blur(9px)}56%,80%{opacity:1;transform:translate(-50%,0) scale(1);filter:blur(0)}91%{opacity:1}98%,100%{opacity:0;transform:translate(-50%,-18px) scale(1.07);filter:blur(6px)}}
+@keyframes ch2GravityImplosion {0%,78%{opacity:0;transform:scale(.16)}87%{opacity:.05}90%{opacity:.92;transform:scale(1.15)}94%{opacity:.14;transform:scale(2.4)}100%{opacity:0;transform:scale(3)}}
+@keyframes ch2GravityFinalCut {0%,96%{opacity:0}99%,100%{opacity:1}}
+@media (max-width:650px) {
+  .ch2-gravity-debris>span{width:clamp(74px,14vmin,118px);height:clamp(45px,8vmin,66px)}
+  .ch2-gravity-boss-title{top:75%}
+  .ch2-gravity-boss-title small{letter-spacing:.15em}
+  .ch2-gravity-boss-title em{letter-spacing:.08em}
 }
 
 .chapter2CombatRetryOverlay {
   position: fixed;
   z-index: 1180;
-}
-
-@keyframes chapter2BossIntroScreen {
-  0% { opacity: 0; background-color: #fff; }
-  5%, 88% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-@keyframes chapter2BossIntroGrid {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 0 160px, 160px 0; }
-}
-
-@keyframes chapter2BossIntroTopShutter {
-  0% { top: -52%; }
-  18%, 72% { top: -1%; }
-  100% { top: -58%; }
-}
-
-@keyframes chapter2BossIntroBottomShutter {
-  0% { bottom: -52%; }
-  18%, 72% { bottom: -1%; }
-  100% { bottom: -58%; }
-}
-
-@keyframes chapter2BossIntroSlashA {
-  to { transform: translate(-50%, -50%) rotate(-15deg) scaleX(1); }
-}
-
-@keyframes chapter2BossIntroSlashB {
-  to { transform: translate(-50%, -50%) rotate(15deg) scaleX(1); }
-}
-
-@keyframes chapter2BossIntroRingA {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(.32) rotate(0); }
-  20% { opacity: .9; }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.55) rotate(90deg); }
-}
-
-@keyframes chapter2BossIntroRingB {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(.45) rotate(0); }
-  22% { opacity: .74; }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.8) rotate(-130deg); }
-}
-
-@keyframes chapter2BossIntroWarning {
-  0%, 100% { opacity: 0; }
-  12%, 82% { opacity: 1; }
-}
-
-@keyframes chapter2BossIntroCopy {
-  0% { opacity: 0; filter: none; }
-  10%, 84% { opacity: 1; filter: none; }
-  100% { opacity: 0; filter: none; }
 }
 
 /* v19 · 스토리에서 처음 보스를 마주치는 장면을 게임 프레임이 아닌 브라우저 전체 화면으로 확장 */

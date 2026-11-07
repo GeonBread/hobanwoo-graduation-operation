@@ -103,6 +103,8 @@ interface Chapter2StoryExperienceProps {
 const BRIDGE_CHANNEL = "sky-strike-chapter2-story";
 const STORY_SEGMENT = "chapter2_full";
 const CHAPTER2_WAVE_COUNT = 24;
+const CHAPTER2_BOSS_TRANSITION_MS = 4000;
+const CHAPTER2_BOSS_STORY_FADE_MS = 2700;
 const withRuntimeQuery = (url: string, query: string) => `${url}${url.includes("?") ? "&" : "?"}${query}`;
 // STORY_DATA 기준: "비어 있는 공유 폴더" section-marker가 index 53,
 // 날짜 경과 time-card가 index 54, 빈 공유 폴더 화면 뒤 첫 대사가 index 57,
@@ -283,11 +285,15 @@ export function Chapter2StoryExperience({
   };
 
   useEffect(() => {
-    const inBossBgmPhase = phase === "boss-intro" || phase === "boss" || phase === "boss-blackout";
-    if (inBossBgmPhase) {
-      // The boss engine also requests this track, but normal story progression reaches
-      // the React boss-intro phase before that engine is mounted. Own the interval here
-      // so the dedicated boss music is guaranteed to start during natural progression.
+    if (phase === "boss-intro") {
+      // Do not launch boss BGM under the transition. Keep the current story
+      // preboss track and smoothly fade it away over the first 2.7 seconds.
+      // The remaining 1.3 seconds are intentionally silent before combat begins.
+      sfx.fadeOutBgm(CHAPTER2_BOSS_STORY_FADE_MS);
+      return;
+    }
+    if (phase === "boss" || phase === "boss-blackout") {
+      // Chapter2BossSystem requests this same track when combat actually mounts.
       sfx.startChapter2BossBgm();
       return;
     }
@@ -597,7 +603,7 @@ export function Chapter2StoryExperience({
               bossIntroTimerRef.current = null;
               setPhase("boss");
               setBossRunKey((key) => key + 1);
-            }, 3600);
+            }, CHAPTER2_BOSS_TRANSITION_MS);
           }
           return;
         }
@@ -1012,27 +1018,58 @@ export function Chapter2StoryExperience({
       )}
 
       {phase === "boss-intro" && (
-        <div className="chapter2-fullscreen-boss-intro" aria-label="챕터 2 보스전 시작 연출">
-          <div className="chapter2-boss-intro-grid" />
-          <div className="chapter2-boss-intro-singularity" aria-hidden="true"><i /><i /><i /></div>
-          <div className="chapter2-boss-intro-paperstream" aria-hidden="true">
-            {['과제 독박', '제출 임박', '팀원 잠적', '책임 전가', '연락 없음', '마감 직전'].map((label,index) => (
-              <span key={label} style={{ "--i": index } as React.CSSProperties}>{label}</span>
+        <div className="chapter2-fullscreen-boss-intro" aria-label="챕터 2 · 책임의 블랙홀 중력 붕괴 · 4초 보스전 전환">
+          <div className="ch2-gravity-cosmos" />
+          <div className="ch2-gravity-vanish-lines" />
+          <div className="ch2-gravity-horizon" />
+          <div className="ch2-gravity-outer-ring orbit-a" />
+          <div className="ch2-gravity-outer-ring orbit-b" />
+          <div className="ch2-gravity-outer-ring orbit-c" />
+          <div className="ch2-gravity-halo" />
+          <div className="ch2-gravity-accretion" />
+          <div className="ch2-gravity-hole"><span /></div>
+          <div className="ch2-gravity-debris" aria-hidden="true">
+            {[
+              ["역할 분담표", "-42vw", "-27vh", "-22deg"],
+              ["발표자료.pptx", "36vw", "-33vh", "18deg"],
+              ["보고서_최종.docx", "-34vw", "30vh", "14deg"],
+              ["회의록", "39vw", "23vh", "-18deg"],
+              ["제출 기한", "-12vw", "-43vh", "9deg"],
+              ["미제출", "-43vw", "7vh", "-37deg"],
+              ["팀 프로젝트", "17vw", "-38vh", "17deg"],
+              ["책임 회피", "31vw", "35vh", "24deg"],
+              ["PPT 수정", "-21vw", "37vh", "-8deg"],
+              ["최종 검토", "43vw", "-12vh", "-26deg"],
+            ].map(([label, x, y, tilt], index) => (
+              <span key={`${label}-${index}`} style={{
+                "--paper-x": x,
+                "--paper-y": y,
+                "--paper-tilt": tilt,
+                "--paper-delay": `${0.15 + index * 0.10}s`,
+              } as React.CSSProperties}>
+                <i>04 / TEAM</i>
+                <b>{label}</b>
+                <em>▒▒▒▒▒</em>
+              </span>
             ))}
           </div>
-          <div className="chapter2-boss-intro-shutter top" />
-          <div className="chapter2-boss-intro-shutter bottom" />
-          <div className="chapter2-boss-intro-slash slash-a" />
-          <div className="chapter2-boss-intro-slash slash-b" />
-          <div className="chapter2-boss-intro-ring ring-a" />
-          <div className="chapter2-boss-intro-ring ring-b" />
-          <div className="chapter2-boss-intro-warning">WARNING · TEAMWORK COLLAPSE</div>
-          <div className="chapter2-boss-intro-copy">
-            <small>CHAPTER 2 · BOSS BATTLE</small>
-            <strong>TEAM PROJECT VOID</strong>
-            <h2>팀플 블랙홀 무임승차자</h2>
-            <p>사라진 기여도 · 집중되는 책임 · 블랙홀 중심부 접근</p>
+          <div className="ch2-gravity-starfield" aria-hidden="true">
+            {Array.from({ length: 42 }, (_, index) => (
+              <i key={index} style={{
+                "--dust-angle": `${index * 137.508}deg`,
+                "--dust-radius": `${24 + (index * 17) % 48}vmin`,
+                "--dust-delay": `${(index % 11) * 0.13}s`,
+              } as React.CSSProperties} />
+            ))}
           </div>
+          <div className="ch2-gravity-boss-title">
+            <small>CHAPTER 02 <i /> EVENT HORIZON</small>
+            <strong>책임의 블랙홀</strong>
+            <span>팀플 블랙홀 무임승차자</span>
+            <em>THE GRAVITY OF UNFINISHED RESPONSIBILITY</em>
+          </div>
+          <div className="ch2-gravity-collapse-flash" />
+          <div className="ch2-gravity-final-black" />
         </div>
       )}
 
