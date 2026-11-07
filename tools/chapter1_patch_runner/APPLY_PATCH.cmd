@@ -1,4 +1,4 @@
-@rem ZIP Patch Runner v8
+@rem ZIP Patch Runner v9.2 - safe GitHub auto-sync before patching
 @echo off
 setlocal EnableExtensions
 
@@ -26,6 +26,11 @@ if not exist "%PROJECT_PATH%\.git" (
   exit /b 1
 )
 
+echo.
+echo [INFO] The runner checks GitHub and fast-forwards a clean project before applying the ZIP.
+echo [INFO] Divergent local commits will be protected; unsafe sync stops before patching.
+echo.
+
 if "%ZIP_PATH%"=="" (
   powershell.exe -NoProfile -ExecutionPolicy Bypass -STA -File "%SCRIPT_DIR%APPLY_PATCH.ps1" -ProjectPath "%PROJECT_PATH%"
 ) else (
@@ -35,7 +40,7 @@ if "%ZIP_PATH%"=="" (
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.
 if "%EXIT_CODE%"=="0" (
-  echo Patch processing finished. The validated patch was committed and pushed.
+  echo Patch processing completed. Validated changes, if any, were committed and pushed.
 ) else if "%EXIT_CODE%"=="2" (
   echo Patch was applied and committed, but Git push failed.
   echo The local commit was preserved. No automatic rollback was performed.

@@ -151,7 +151,7 @@ function Get-RelativePathIfInside([string]$ParentPath, [string]$ChildPath) {
     return Normalize-RelativePath $childFull.Substring($parentFull.Length)
 }
 
-# ZIP Patch Runner v9.1: preserve a local npm lockfile and commit npm-generated lock changes.
+# ZIP Patch Runner v9.2: safely auto-sync GitHub before every ZIP patch; preserve local runner/lockfile changes.
 function Get-PatchWorkingTreeStatus([string]$SelectedZipRelativePath) {
     # Do not Trim() the porcelain output: its first two spaces encode Git status.
     $lines = @(& git status --porcelain=v1 --untracked-files=all)
@@ -413,6 +413,10 @@ $reportPath = $null
 $plan = @()
 $mutationStarted = $false
 $preflightPreserved = $false
+$autoSyncBackupBranch = $null
+$remoteTrackingRef = $null
+$remoteCommitBeforePatch = $null
+$syncedPaths = @()
 
 try {
     if ([string]::IsNullOrWhiteSpace($ZipPath)) {
@@ -437,7 +441,7 @@ try {
     Write-Host "Project : $repositoryRoot"
     Write-Host "Branch  : $branchName"
     Write-Host "Baseline: $baselineCommit"
-    Write-Host "Runner  : v9.1 (lockfile preservation)"
+    Write-Host "Runner  : v9.2 (safe GitHub auto-sync + lockfile preservation)"
 
     $selectedZipRelativePath = Get-RelativePathIfInside -ParentPath $repositoryRoot -ChildPath $ZipPath
     $statusLines = @(Get-PatchWorkingTreeStatus -SelectedZipRelativePath $selectedZipRelativePath)
@@ -445,9 +449,11 @@ try {
         Write-WarnMessage "The selected ZIP is inside the repository. It will not be staged or committed: $selectedZipRelativePath"
     }
 
-    # A local lockfile is preserved, never discarded. Permit this runner's own
-    # replacement too, so the user can install this fix before applying a ZIP.
+    # A local lockfile is preserved, never discarded. Permit both runner files
+    # to be replaced before a patch; the runner must not block its own update.
     $runnerRelativePath = Get-RelativePathIfInside -ParentPath $repositoryRoot -ChildPath $PSCommandPath
+    $cmdRunnerPath = Join-Path $PSScriptRoot 'APPLY_PATCH.cmd'
+    $cmdRunnerRelativePath = Get-RelativePathIfInside -ParentPath $repositoryRoot -ChildPath $cmdRunnerPath
     $preservePaths = @()
     $blockedLines = @()
     foreach ($line in $statusLines) {
@@ -455,7 +461,8 @@ try {
         $statusCode = if ($line.Length -ge 2) { $line.Substring(0, 2) } else { '' }
         $isLocalLock = $linePath -eq 'package-lock.json'
         $isThisRunner = -not [string]::IsNullOrWhiteSpace($runnerRelativePath) -and $linePath -eq $runnerRelativePath
-        if (($isLocalLock -or $isThisRunner) -and $statusCode -in @(' M', 'M ', 'MM', '??', 'A ', 'AM') -and (Test-Path -LiteralPath (Join-Path $repositoryRoot $linePath) -PathType Leaf)) {
+        $isCmdRunner = -not [string]::IsNullOrWhiteSpace($cmdRunnerRelativePath) -and $linePath -eq $cmdRunnerRelativePath
+        if (($isLocalLock -or $isThisRunner -or $isCmdRunner) -and $statusCode -in @(' M', 'M ', 'MM', '??', 'A ', 'AM') -and (Test-Path -LiteralPath (Join-Path $repositoryRoot $linePath) -PathType Leaf)) {
             $preservePaths += $linePath
         }
         else { $blockedLines += $line }
@@ -485,20 +492,16 @@ try {
             Invoke-CheckedCommand -Command 'git' -Arguments @('add', '--', $relativePath) -FailureMessage "Could not stage preserved file: $relativePath"
         }
         $stagedPreservePaths = @(& git diff --cached --name-only -- $preservePaths)
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Could not inspect staged preservation changes."
-}
-
-if ($stagedPreservePaths.Count -gt 0) {
-    Invoke-CheckedCommand -Command 'git' -Arguments $preserveArguments -FailureMessage "Could not preserve local changes in a Git commit. Backups were retained."
-    $preflightPreserved = $true
-    $baselineCommit = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', 'HEAD')
-    Write-Ok "Local contents preserved. Updated baseline: $baselineCommit"
-}
-else {
-    Write-Ok "No actual Git content changes to preserve. Skipping empty commit."
-}
+        if ($LASTEXITCODE -ne 0) { throw "Could not inspect staged preservation changes." }
+        if ($stagedPreservePaths.Count -gt 0) {
+            Invoke-CheckedCommand -Command 'git' -Arguments $preserveArguments -FailureMessage "Could not preserve local changes in a Git commit. Backups were retained."
+            $preflightPreserved = $true
+            $baselineCommit = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', 'HEAD')
+            Write-Ok "Local contents preserved. Updated baseline: $baselineCommit"
+        }
+        else {
+            Write-Ok "No actual Git content changes to preserve. Skipping empty commit."
+        }
         Write-Host "Original-file backups: $preserveDirectory"
         $statusLines = @(Get-PatchWorkingTreeStatus -SelectedZipRelativePath $selectedZipRelativePath)
     }
@@ -506,6 +509,116 @@ else {
         throw "Working-tree changes remain after preservation. Review git status before retrying."
     }
     Write-Ok "Working tree is clean"
+
+    # Always synchronize BEFORE inspecting or copying ZIP contents. The network
+    # failure policy is fail-closed: never patch a branch of unknown freshness.
+    Write-Step "Checking GitHub for updates BEFORE applying the ZIP"
+    $expectedUpstream = "origin/$branchName"
+    $actualUpstream = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}')
+    if ($actualUpstream -ne $expectedUpstream) {
+        throw "This branch must track $expectedUpstream for safe automatic updates (actual: $actualUpstream). No patch files were applied."
+    }
+
+    $remoteTrackingRef = "refs/remotes/origin/$branchName"
+    Invoke-CheckedCommand -Command 'git' -Arguments @('fetch', '--no-tags', 'origin') -FailureMessage "Could not check GitHub for updates. No patch files were applied."
+    $remoteCommitBeforePatch = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', '--verify', $remoteTrackingRef)
+    if ([string]::IsNullOrWhiteSpace($remoteCommitBeforePatch)) {
+        throw "Remote branch $expectedUpstream was not found after fetch. No patch files were applied."
+    }
+
+    $remoteOnlyText = Get-CommandOutput -Command 'git' -Arguments @('rev-list', '--count', "HEAD..$remoteTrackingRef")
+    $localOnlyText = Get-CommandOutput -Command 'git' -Arguments @('rev-list', '--count', "$remoteTrackingRef..HEAD")
+    if ($remoteOnlyText -notmatch '^\d+$' -or $localOnlyText -notmatch '^\d+$') {
+        throw "Could not compare local and remote commit histories. No patch files were applied."
+    }
+    $remoteOnly = [int]$remoteOnlyText
+    $localOnly = [int]$localOnlyText
+    $preSyncHead = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', 'HEAD')
+    Write-Host "Remote  : $remoteCommitBeforePatch"
+    Write-Host "Missing : $remoteOnly remote commit(s); local-only: $localOnly commit(s)"
+
+    if ($remoteOnly -gt 0) {
+        # Keep all local commits recoverable before either fast-forward or rebase.
+        $autoSyncBackupBranch = 'backup/before-auto-sync-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff')
+        Invoke-CheckedCommand -Command 'git' -Arguments @('branch', $autoSyncBackupBranch, $preSyncHead) -FailureMessage 'Could not create a pre-sync backup branch.'
+        Write-Ok "Safety branch created: $autoSyncBackupBranch"
+
+        if ($localOnly -eq 0) {
+            Write-Step "Automatically fast-forwarding to $expectedUpstream"
+            Invoke-CheckedCommand -Command 'git' -Arguments @('merge', '--ff-only', $remoteTrackingRef) -FailureMessage 'GitHub fast-forward failed. No patch files were applied.'
+        }
+        else {
+            # Safe special case: if ALL local-only commits modify ONLY this
+            # patch runner and/or package-lock.json, replay those changes onto
+            # GitHub. Never auto-rebase a local story, asset, or game-code commit:
+            # it might be a mistaken ZIP from an outdated project.
+            $safeLocalPaths = @('package-lock.json', $runnerRelativePath, $cmdRunnerRelativePath) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+            $localCommitIds = @(& git rev-list "$remoteTrackingRef..HEAD")
+            if ($LASTEXITCODE -ne 0) { throw 'Could not inspect local-only commits before synchronization.' }
+            $localCommitsAreRunnerOnly = ($localCommitIds.Count -gt 0 -and $localCommitIds.Count -eq $localOnly)
+            foreach ($localCommitId in $localCommitIds) {
+                $parentLine = Get-CommandOutput -Command 'git' -Arguments @('rev-list', '--parents', '-n', '1', $localCommitId)
+                if ([string]::IsNullOrWhiteSpace($parentLine) -or @($parentLine -split '\s+').Count -ne 2) {
+                    $localCommitsAreRunnerOnly = $false
+                    break
+                }
+                $changedPaths = @(& git diff-tree --no-commit-id --name-only --no-renames -r $localCommitId)
+                if ($LASTEXITCODE -ne 0) { throw 'Could not inspect the files changed by a local commit.' }
+                foreach ($changedPath in $changedPaths) {
+                    if ($safeLocalPaths -notcontains $changedPath) {
+                        $localCommitsAreRunnerOnly = $false
+                        break
+                    }
+                }
+                if (-not $localCommitsAreRunnerOnly) { break }
+            }
+            if (-not $localCommitsAreRunnerOnly) {
+                throw "Local and GitHub history have diverged ($localOnly local-only / $remoteOnly remote-only commits). Some local commits modify game files, so auto-rebasing them is unsafe. ZIP was NOT applied; commits are preserved. Safety branch: $autoSyncBackupBranch"
+            }
+
+            Write-Step 'Rebasing local runner/lockfile-only commits onto GitHub'
+            # Windows PowerShell 5.1 can turn native stderr into a terminating
+            # error under Stop. Capture the Git exit code so abort ALWAYS runs.
+            $savedErrorAction = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            try {
+                & git -c 'rebase.autoStash=false' rebase --no-autostash $remoteTrackingRef 2>&1 | Out-Host
+                $rebaseExitCode = $LASTEXITCODE
+            }
+            finally { $ErrorActionPreference = $savedErrorAction }
+            if ($rebaseExitCode -ne 0) {
+                Write-WarnMessage 'Preservation rebase conflicted. Attempting to abort safely.'
+                $ErrorActionPreference = 'Continue'
+                try {
+                    & git rebase --abort 2>&1 | Out-Host
+                    $abortExitCode = $LASTEXITCODE
+                }
+                finally { $ErrorActionPreference = $savedErrorAction }
+                if ($abortExitCode -ne 0) {
+                    throw "Rebase conflicted and automatic abort failed. Do not apply a ZIP; inspect git status. Safety branch: $autoSyncBackupBranch"
+                }
+                throw "Preservation rebase conflicted; the original branch was restored. ZIP was NOT applied. Safety branch: $autoSyncBackupBranch"
+            }
+        }
+        $baselineCommit = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', 'HEAD')
+        Write-Ok "GitHub updates applied. New baseline: $baselineCommit"
+        $syncedPaths = @(& git diff --name-only --no-renames $preSyncHead $baselineCommit)
+        if ($LASTEXITCODE -ne 0) { throw 'Could not inspect changed paths after synchronization.' }
+    }
+    else {
+        Write-Ok 'Already contains the latest GitHub commit. No pull needed.'
+        if ($localOnly -gt 0) { Write-WarnMessage "There are $localOnly local-only commit(s); they will remain intact." }
+    }
+
+    # Fail closed if the branch changed unexpectedly while updating it.
+    $postSyncStatus = @(Get-PatchWorkingTreeStatus -SelectedZipRelativePath $selectedZipRelativePath)
+    if ($postSyncStatus.Count -gt 0) {
+        throw "Working tree is not clean after GitHub synchronization. No ZIP files were applied. Check git status."
+    }
+    & git merge-base --is-ancestor $remoteTrackingRef HEAD
+    if ($LASTEXITCODE -ne 0) {
+        throw 'The local branch does not contain the latest GitHub commit. ZIP was NOT applied.'
+    }
 
     Write-Step "Checking ZIP safety"
     Validate-ZipEntries -ArchivePath $ZipPath
@@ -600,6 +713,8 @@ else {
         "Project: $repositoryRoot",
         "Branch: $branchName",
         "Baseline: $baselineCommit",
+        "Synced GitHub commit: $remoteCommitBeforePatch",
+        "Pre-sync safety branch: $autoSyncBackupBranch",
         "Safety branch: $backupBranch",
         "Patch root: $patchRoot",
         "",
@@ -617,6 +732,23 @@ else {
     $plan | Select-Object Status, Path | Format-Table -AutoSize | Out-Host
     Write-Host "Total changed paths: $($plan.Count)"
     Write-Host "Report: $reportPath"
+
+    # A full-file ZIP can overwrite recent GitHub edits to the same path.
+    # Ask for explicit approval rather than silently discarding those edits.
+    $updatedPathOverlap = @($plan | Where-Object { $syncedPaths -contains $_.Path } | Select-Object -ExpandProperty Path -Unique)
+    if ($updatedPathOverlap.Count -gt 0) {
+        Write-WarnMessage 'These ZIP files ALSO changed in the GitHub update performed just now:'
+        $updatedPathOverlap | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+        Write-WarnMessage 'The ZIP replaces whole files. Its copy could overwrite the latest GitHub edits.'
+        if ($NonInteractive) {
+            throw 'Cannot approve overwriting newly updated files in non-interactive mode. No patch files were applied.'
+        }
+        $overwriteApproval = Read-Host 'Type APPLY to overwrite the listed files and continue (anything else cancels)'
+        if ($overwriteApproval -cne 'APPLY') {
+            throw 'ZIP application cancelled: newly updated files were protected. No patch files were applied.'
+        }
+        Add-Content -LiteralPath $reportPath -Encoding UTF8 -Value @('', 'User approved overwrite of GitHub-updated paths:', ($updatedPathOverlap -join "`n"))
+    }
 
     Write-Step "Applying changed files"
     $mutationStarted = $true
@@ -760,9 +892,9 @@ else {
 
     Write-Host "Default commit message: $CommitMessage" -ForegroundColor DarkCyan
 
-    # v8 default behavior: every validated patch is committed and pushed automatically.
-    # -CommitMessage still overrides the automatic message when supplied.
-    # We intentionally do not auto-rebase or force-push when the remote is ahead.
+    # Default behavior: every validated ZIP patch is committed and pushed.
+    # A remote advance during validation aborts before committing instead
+    # of force-pushing or silently merging an outdated full-file ZIP.
     $shouldCommit = $true
     $shouldPush = $true
 
@@ -770,6 +902,16 @@ else {
     Write-Host "Validation completed successfully." -ForegroundColor Green
     Write-Host "Auto commit message: $CommitMessage" -ForegroundColor Cyan
     Write-Host "Default action: commit and push" -ForegroundColor Cyan
+
+    # Another computer could push while lint/build is running. Check again
+    # BEFORE committing so an obsolete ZIP cannot be uploaded silently.
+    Write-Step 'Checking GitHub again before creating the patch commit'
+    Invoke-CheckedCommand -Command 'git' -Arguments @('fetch', '--no-tags', 'origin') -FailureMessage 'Could not recheck GitHub before committing the patch.'
+    $remoteCommitAfterValidation = Get-CommandOutput -Command 'git' -Arguments @('rev-parse', '--verify', $remoteTrackingRef)
+    if ($remoteCommitAfterValidation -ne $remoteCommitBeforePatch) {
+        throw "GitHub received new commits during ZIP validation. The patch will be rolled back; run the patcher again to auto-sync. Previously checked: $remoteCommitBeforePatch; now: $remoteCommitAfterValidation"
+    }
+    Write-Ok 'Remote branch has not changed since the preflight update'
 
     $commitCreated = $false
     if ($shouldCommit) {
@@ -846,6 +988,7 @@ catch {
         }
     }
 
+    if (-not [string]::IsNullOrWhiteSpace($autoSyncBackupBranch)) { Write-Host "Pre-sync safety branch retained: $autoSyncBackupBranch" }
     if (-not [string]::IsNullOrWhiteSpace($backupBranch)) { Write-Host "Safety branch retained: $backupBranch" }
     if (-not [string]::IsNullOrWhiteSpace($reportPath)) { Write-Host "Report: $reportPath" }
     exit 1
