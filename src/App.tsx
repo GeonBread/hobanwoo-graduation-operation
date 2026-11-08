@@ -1027,7 +1027,17 @@ function Chapter1StoryExperience({
   const startWavePurificationSequence = () => {
     if (purificationTimerRef.current !== null) window.clearTimeout(purificationTimerRef.current);
     setPart(2);
-    setPurificationOrigin(playerPosition);
+    // Convert logical player coordinates into the full-screen overlay's coordinates.
+    // The wave itself uses a centered scaled 922x960 canvas on wide displays.
+    const combatViewport = document.querySelector<HTMLElement>('.chapter1-story-boss-layer > div:first-child');
+    const rect = combatViewport?.getBoundingClientRect();
+    const xPercent = rect && rect.width > 0
+      ? 100 * (rect.left + rect.width * playerPosition.xPercent / 100) / window.innerWidth
+      : playerPosition.xPercent;
+    const yPercent = rect && rect.height > 0
+      ? 100 * (rect.top + rect.height * playerPosition.yPercent / 100) / window.innerHeight
+      : playerPosition.yPercent;
+    setPurificationOrigin({xPercent, yPercent});
     saveStoryCheckpoint({
       version: 1,
       chapter: 1,

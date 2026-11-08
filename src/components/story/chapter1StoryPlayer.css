@@ -535,3 +535,16 @@ body:has(.story-effect-layer.is-fullscreen-effect[data-active-effect="opening-cr
 .chapter1-story-player .dialogue-layer:not(.is-narrator-dialogue) .dialogue-text {
   width:100% !important;min-width:0 !important;padding-right:0 !important;
 }
+
+/* CH1 prologue dialogue: one consistent width and typography before/after the core fractures. */
+.chapter1-story-player .story-stage.has-prologue-v2 .dialogue-layer:not(.is-narrator-dialogue) {
+  width: 93% !important; left: 3.5% !important; right: auto !important;
+}
+.chapter1-story-player .story-stage.has-prologue-v2 .dialogue-layer .dialogue-box {
+  min-height: clamp(142px,18cqw,202px) !important;
+}
+
+.chapter1-story-player .story-stage.has-prologue-v2 .dialogue-layer.is-narrator-dialogue {
+  left: 50% !important; right: auto !important; width: 93% !important;
+  transform: translateX(-50%) !important;
+}

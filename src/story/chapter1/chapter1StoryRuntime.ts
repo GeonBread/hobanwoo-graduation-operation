@@ -316,68 +316,17 @@ function normalizeStoryRuntimeScript(source: string, part: Chapter1StoryPart): s
       throw new Error('Chapter 1 attendance cinematic sound hooks were not found.');
     }
     const upgradedAttendanceSoundBlock = `    if (effectId === 'attendance-escape-run-in') {
-      // 계단을 따라 추격해 오는 드론의 엔진음: 저역 추진음과 가까워지는 기계 펄스를 겹친다.
-      synthTone({ frequency: 42, endFrequency: 58, duration: 5.85, gain: .082, type: 'sawtooth', filterFrequency: 360, attack: .18, release: .5 });
-      synthTone({ frequency: 84, endFrequency: 126, duration: 5.85, gain: .028, type: 'triangle', filterFrequency: 720, attack: .15, release: .45, detune: -8 });
-      [520, 1430, 2250, 2980, 3630, 4190, 4670, 5080].forEach((delay, index) => {
-        scheduleCinematicSound(() => {
-          synthNoise({ duration: .18, gain: .035 + index * .003, filterType: 'bandpass', frequency: 280 + index * 42, endFrequency: 980 + index * 75, q: 1.2, attack: .004, release: .11 });
-          synthTone({ frequency: 72 + index * 5, endFrequency: 54 + index * 3, duration: .16, gain: .032, type: 'sine', filterFrequency: 420, attack: .004, release: .12 });
-        }, delay);
-      });
-      [1150, 2780, 4050, 4930].forEach((delay, index) => {
-        scheduleCinematicSound(() => synthNoise({ duration: .42, gain: .05 + index * .006, filterType: 'bandpass', frequency: 520, endFrequency: 2100 + index * 250, q: .72, attack: .01, release: .24 }), delay);
-      });
-      return;
+      return; // 추격 이동 효과음 제거
     }
-
     if (effectId === 'attendance-drone-charge') {
-      // 값싼 비프음 대신 저역 전원 상승, 락온 펄스, 압축되는 고역 스윕을 단계적으로 쌓는다.
+      // 출석탄 발사 전 기 모으는 효과음만 유지
       synthTone({ frequency: 46, endFrequency: 78, duration: 2.92, gain: .095, type: 'sine', filterFrequency: 420, attack: .08, release: .28 });
       synthTone({ frequency: 88, endFrequency: 188, duration: 2.92, gain: .052, type: 'sawtooth', filterFrequency: 760, attack: .06, release: .24, detune: -5 });
       synthNoise({ duration: 2.78, gain: .034, filterType: 'bandpass', frequency: 240, endFrequency: 2500, q: 1.15, attack: .12, release: .26 });
-      [420, 980, 1450, 1830, 2140, 2380, 2560].forEach((delay, index) => {
-        scheduleCinematicSound(() => {
-          const base = 430 + index * 62;
-          synthTone({ frequency: base, endFrequency: base * 1.42, duration: .105, gain: .026 + index * .0025, type: 'triangle', filterFrequency: 2400, attack: .002, release: .075 });
-          synthNoise({ duration: .07, gain: .022, filterType: 'highpass', frequency: 1800 + index * 120, endFrequency: 4200, q: .8, attack: .001, release: .05 });
-        }, delay);
-      });
-      scheduleCinematicSound(() => {
-        synthTone({ frequency: 138, endFrequency: 420, duration: .48, gain: .065, type: 'sawtooth', filterFrequency: 1500, attack: .004, release: .18 });
-        synthNoise({ duration: .34, gain: .07, filterType: 'bandpass', frequency: 620, endFrequency: 3600, q: .75, attack: .002, release: .2 });
-      }, 2470);
-      scheduleCinematicSound(() => {
-        synthTone({ frequency: 64, endFrequency: 48, duration: .32, gain: .11, type: 'sine', filterFrequency: 360, attack: .002, release: .19 });
-        synthNoise({ duration: .10, gain: .06, filterType: 'highpass', frequency: 2600, endFrequency: 5200, q: .7, attack: .001, release: .07 });
-      }, 2780);
       return;
     }
-
     if (effectId === 'attendance-stamp-flight-blackout') {
-      // 발사 순간의 포격감 + 탄이 화면을 가르는 통과음 + 암전 직전의 저역 충격을 분리한다.
-      playLaunchImpact();
-      synthNoise({ duration: .14, gain: .17, filterType: 'highpass', frequency: 2200, endFrequency: 6200, q: .55, attack: .001, release: .08 });
-      synthTone({ frequency: 920, endFrequency: 180, duration: .22, gain: .055, type: 'sawtooth', filterFrequency: 2400, attack: .001, release: .12 });
-      synthNoise({ duration: 1.55, gain: .12, filterType: 'bandpass', frequency: 520, endFrequency: 5200, q: .58, attack: .008, release: .38 });
-      synthTone({ frequency: 172, endFrequency: 62, duration: 1.42, gain: .052, type: 'sawtooth', filterFrequency: 1050, attack: .006, release: .42 });
-      [280, 610, 930, 1210, 1480].forEach((delay, index) => {
-        scheduleCinematicSound(() => {
-          synthNoise({ duration: .20, gain: .072 - index * .005, filterType: 'highpass', frequency: 980 + index * 340, endFrequency: 5200, q: .48, attack: .001, release: .14 });
-        }, delay);
-      });
-      scheduleCinematicSound(() => {
-        synthNoise({ duration: .55, gain: .11, filterType: 'bandpass', frequency: 1600, endFrequency: 340, q: .65, attack: .002, release: .34 });
-        synthTone({ frequency: 410, endFrequency: 92, duration: .46, gain: .05, type: 'triangle', filterFrequency: 1200, attack: .002, release: .26 });
-      }, 1620);
-      scheduleCinematicSound(() => {
-        synthTone({ frequency: 72, endFrequency: 29, duration: 1.05, gain: .18, type: 'sine', filterFrequency: 340, attack: .002, release: .62 });
-        synthTone({ frequency: 144, endFrequency: 48, duration: .72, gain: .08, type: 'triangle', filterFrequency: 620, attack: .002, release: .42 });
-        synthNoise({ duration: .42, gain: .13, filterType: 'lowpass', frequency: 980, endFrequency: 62, q: .4, attack: .001, release: .3 });
-        synthNoise({ duration: .16, gain: .07, filterType: 'highpass', frequency: 2100, endFrequency: 4800, q: .55, attack: .001, release: .11 });
-      }, 2750);
-      scheduleCinematicSound(() => synthTone({ frequency: 760, endFrequency: 220, duration: .72, gain: .018, type: 'sine', filterFrequency: 1200, attack: .02, release: .58 }), 3060);
-      return;
+      return; // 탄 발사/비행/충돌 효과음 제거
     }
 
 `;
@@ -449,43 +398,9 @@ function normalizeStoryRuntimeScript(source: string, part: Chapter1StoryPart): s
       return;
     }`;
     const firstPurificationSoundUpgrade = `    if (effectId === 'attendance-student-card-purification') {
+      // 정화 빔 발사 전 학생증 기 모으는 효과음만 유지
       synthTone({ frequency: 82, endFrequency: 118, duration: 6.1, gain: .042, type: 'sine', filterFrequency: 520, attack: .12, release: .42 });
       synthTone({ frequency: 164, endFrequency: 320, duration: 6.2, gain: .02, type: 'triangle', filterFrequency: 1250, attack: .12, release: .32 });
-      [2100, 2540, 2970, 3400, 3820, 4250, 4680, 5090].forEach((delay, index) => {
-        scheduleCinematicSound(() => {
-          const base = 390 + index * 48;
-          synthTone({ frequency: base, endFrequency: base * 1.22, duration: .14, gain: .013 + index * .0017, type: 'triangle', filterFrequency: 2900, attack: .002, release: .09 });
-          synthNoise({ duration: .09, gain: .01 + index * .001, filterType: 'highpass', frequency: 1300 + index * 140, endFrequency: 4700, q: .65, attack: .001, release: .055 });
-        }, delay);
-      });
-      scheduleCinematicSound(() => {
-        synthTone({ frequency: 188, endFrequency: 610, duration: 1.24, gain: .058, type: 'sawtooth', filterFrequency: 1800, attack: .006, release: .18 });
-        synthTone({ frequency: 580, endFrequency: 1260, duration: .92, gain: .026, type: 'triangle', filterFrequency: 3300, attack: .004, release: .14 });
-        synthNoise({ duration: .9, gain: .038, filterType: 'bandpass', frequency: 760, endFrequency: 4200, q: .86, attack: .004, release: .22 });
-      }, 5340);
-      scheduleCinematicSound(() => {
-        synthTone({ frequency: 64, endFrequency: 28, duration: .96, gain: .21, type: 'sine', filterFrequency: 360, attack: .001, release: .48 });
-        synthTone({ frequency: 1240, endFrequency: 190, duration: .46, gain: .08, type: 'sawtooth', filterFrequency: 2800, attack: .001, release: .18 });
-        synthNoise({ duration: .46, gain: .16, filterType: 'bandpass', frequency: 1900, endFrequency: 180, q: .54, attack: .001, release: .24 });
-        synthNoise({ duration: .22, gain: .095, filterType: 'highpass', frequency: 2600, endFrequency: 6200, q: .5, attack: .001, release: .1 });
-      }, 5720);
-      scheduleCinematicSound(() => {
-        synthTone({ frequency: 520, endFrequency: 430, duration: 2.7, gain: .034, type: 'sawtooth', filterFrequency: 1800, attack: .01, release: .24 });
-        synthNoise({ duration: 2.72, gain: .06, filterType: 'bandpass', frequency: 980, endFrequency: 2450, q: .74, attack: .01, release: .18 });
-      }, 5880);
-      scheduleCinematicSound(() => {
-        synthTone({ frequency: 980, endFrequency: 410, duration: .48, gain: .03, type: 'triangle', filterFrequency: 2400, attack: .002, release: .22 });
-        synthNoise({ duration: .32, gain: .04, filterType: 'highpass', frequency: 1400, endFrequency: 4200, q: .6, attack: .002, release: .12 });
-      }, 9640);
-      scheduleCinematicSound(() => {
-        synthTone({ frequency: 128, endFrequency: 52, duration: .72, gain: .12, type: 'sine', filterFrequency: 460, attack: .001, release: .36 });
-        synthTone({ frequency: 760, endFrequency: 220, duration: .56, gain: .05, type: 'sawtooth', filterFrequency: 2100, attack: .001, release: .18 });
-        synthNoise({ duration: .36, gain: .11, filterType: 'bandpass', frequency: 1600, endFrequency: 220, q: .48, attack: .001, release: .18 });
-      }, 10120);
-      scheduleCinematicSound(() => {
-        synthTone({ frequency: 680, endFrequency: 420, duration: 1.9, gain: .015, type: 'sine', filterFrequency: 1500, attack: .02, release: .82 });
-        synthTone({ frequency: 980, endFrequency: 620, duration: 1.35, gain: .011, type: 'triangle', filterFrequency: 2300, attack: .03, release: .72 });
-      }, 11120);
       return;
     }`;
     if (!normalized.includes(firstPurificationSoundHook)) {

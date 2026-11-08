@@ -7,7 +7,7 @@ export function renderChapter1ParallaxBackgroundSystem(engine:BackgroundRenderEn
  if(!image?.complete||!image.naturalWidth||!image.naturalHeight)return false;
  const {ctx,canvas}=engine,time=engine.backgroundTime??0;
  ctx.save();ctx.globalAlpha=1;ctx.fillStyle='#02050a';ctx.fillRect(0,0,canvas.width,canvas.height);
- drawScrollingMapDown(ctx,image,canvas.width,canvas.height,time,8);
+ drawScrollingMapDown(ctx,image,canvas.width,canvas.height,time,isBoss ? 8 : 8 * 1.3);
  if(!isBoss)getCombatParallax(engine,'wave12').draw(ctx,canvas.width,canvas.height,time);
  if(isBoss){ctx.fillStyle='rgba(3,7,18,.06)';ctx.fillRect(0,0,canvas.width,canvas.height);}
  ctx.restore();return true;

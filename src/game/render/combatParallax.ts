@@ -9,13 +9,13 @@ const root = '/assets/common/combat/parallax/';
 const asset = (path: string) => root + path;
 export const PARALLAX_PROFILES: Record<ParallaxScene, readonly LaneConfig[]> = {
   wave12: [
-    {id:'large-cloud',assets:[asset('wave12/cloud_large.png')],speed:[14,14],opacity:[.36,.36]},
-    {id:'small-cloud',assets:[asset('wave12/cloud_small_1.png'),asset('wave12/cloud_small_2.png')],speed:[24,24],opacity:[.57,.57]},
+    {id:'large-cloud',assets:[asset('wave12/cloud_large.png')],speed:[14,14],opacity:[.74,.74]},
+    {id:'small-cloud',assets:[asset('wave12/cloud_small_1.png'),asset('wave12/cloud_small_2.png')],speed:[24,24],opacity:[.84,.84]},
     {id:'purification',assets:[asset('wave12/purification_1.png'),asset('wave12/purification_2.png')],speed:[19,43],opacity:[1,1]},
   ],
   wave3: [
-    {id:'night-cloud',assets:[1,2,3].map(n=>asset(`wave3/cloud_${n}.png`)),speed:[14,19],opacity:[.34,.43]},
-    {id:'near-night-cloud',assets:[1,2,3].map(n=>asset(`wave3/cloud_${n}.png`)),speed:[29,40],opacity:[.23,.34],chance:.5,duration:[16,27],gap:[8,17],exclude:'night-cloud'},
+    {id:'night-cloud',assets:[1,2,3].map(n=>asset(`wave3/cloud_${n}.png`)),speed:[14,19],opacity:[.72,.82]},
+    {id:'near-night-cloud',assets:[1,2,3].map(n=>asset(`wave3/cloud_${n}.png`)),speed:[29,40],opacity:[.66,.76],chance:.5,duration:[16,27],gap:[8,17],exclude:'night-cloud'},
     {id:'corruption',assets:[asset('wave3/corruption.png')],speed:[25,46],opacity:[.6,.78],chance:.7,duration:[20,35],gap:[9,19]},
   ],
   boss2: [
@@ -55,7 +55,7 @@ export class CombatParallax {
     const excluded=this.lanes.find(other=>other.config.id===config.exclude)?.asset;
     const choices=config.assets.filter(src=>src!==excluded);
     lane.asset=choices[Math.min(choices.length-1,Math.floor(random()*choices.length))];
-    lane.speed=between(random,config.speed);lane.opacity=between(random,config.opacity);lane.phase=random();
+    lane.speed=between(random,config.speed)*(this.scene === "wave12" || this.scene === "wave3" ? 1.6 : 1);lane.opacity=between(random,config.opacity);lane.phase=random();
     lane.next=config.chance===undefined?Infinity:at+between(random,config.duration!);
   }
   /** Sampling twice at the same timestamp is side-effect free, including during shard rendering. */

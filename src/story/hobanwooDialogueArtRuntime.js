@@ -62,6 +62,15 @@
         if (row && !row.ambiguous) assign(item, row, chapter);
       }
     }
+    // Chapter 1: the card's speech improvement reaction must use normal full-body art.
+    if (chapter === 1 && part === 2) for (const items of Object.values(segments)) {
+      if (!Array.isArray(items)) continue;
+      for (const item of items) {
+        if (item?.speaker === 'hobanwoo' && String(item.text || '').startsWith('어? 너 말 이제 좀 잘한다?')) {
+          assign(item, {id:'CH1-card-speech-reaction',art:'P03'}, chapter);
+        }
+      }
+    }
     // Keep Hobanwoo's most recent assigned pose while another character speaks.
     // Actor sides and the speaking character's own image fields are never changed.
     for (const entries of Object.values(segments)) {
