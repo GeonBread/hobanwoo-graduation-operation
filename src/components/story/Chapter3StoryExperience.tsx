@@ -1,3 +1,4 @@
+import { withRuntimeQuery } from "../../story/runtime/runtimeUrl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chapter3BossBattle, type Chapter3BossLaunch } from "./Chapter3BossBattle";
 import { Shield } from "lucide-react";
@@ -9,7 +10,7 @@ import chapter3StoryUrl from "../../embedded/chapter3Story.html?url";
 import chapter3WaveUrl from "../../embedded/chapter3Wave.html?url";
 import "./chapter3StoryExperience.css";
 
-const withRuntimeQuery = (url: string, query: string) => `${url}${url.includes("?") ? "&" : "?"}${query}`;
+
 
 type Chapter3StoryExperienceProps = {
   onExit?: () => void;

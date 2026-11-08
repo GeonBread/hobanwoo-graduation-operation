@@ -1,3 +1,4 @@
+import { createRuntimeResources } from "../runtime/createRuntimeResources";
 import { chapter1StoryDocument as part1Document } from "./chapter1StoryPart1Document";
 import { chapter1StoryDocument as part2Document } from "./chapter1StoryPart2Document";
 import prologueRuntime from "./prologue/prologueRuntime.js?raw";
@@ -2952,55 +2953,14 @@ export function createChapter1StoryRuntime({
   const htmlAttributeSnapshot = snapshotAttributes(document.documentElement);
   const bodyAttributeSnapshot = snapshotAttributes(document.body);
   const commandHandlers: CommandHandlers = {};
-  const timeoutIds = new Set<number>();
-  const intervalIds = new Set<number>();
-  const animationFrameIds = new Set<number>();
-  const eventListeners: Array<{
-    type: string;
-    listener: EventListenerOrEventListenerObject;
-    options?: boolean | AddEventListenerOptions;
-  }> = [];
   let disposed = false;
-
-  const trackedSetTimeout: typeof window.setTimeout = ((handler: TimerHandler, timeout?: number, ...args: unknown[]) => {
-    const id = window.setTimeout(() => {
-      timeoutIds.delete(id);
-      if (typeof handler === "function") handler(...args);
-      else window.eval(handler);
-    }, timeout);
-    timeoutIds.add(id);
-    return id;
-  }) as typeof window.setTimeout;
-
-  const trackedClearTimeout: typeof window.clearTimeout = ((id?: number) => {
-    if (typeof id === "number") timeoutIds.delete(id);
-    window.clearTimeout(id);
-  }) as typeof window.clearTimeout;
-
-  const trackedSetInterval: typeof window.setInterval = ((handler: TimerHandler, timeout?: number, ...args: unknown[]) => {
-    const id = window.setInterval(handler, timeout, ...args);
-    intervalIds.add(id);
-    return id;
-  }) as typeof window.setInterval;
-
-  const trackedClearInterval: typeof window.clearInterval = ((id?: number) => {
-    if (typeof id === "number") intervalIds.delete(id);
-    window.clearInterval(id);
-  }) as typeof window.clearInterval;
-
-  const trackedRequestAnimationFrame: typeof window.requestAnimationFrame = (callback) => {
-    const id = window.requestAnimationFrame((time) => {
-      animationFrameIds.delete(id);
-      if (!disposed) callback(time);
-    });
-    animationFrameIds.add(id);
-    return id;
-  };
-
-  const trackedCancelAnimationFrame: typeof window.cancelAnimationFrame = (id) => {
-    animationFrameIds.delete(id);
-    window.cancelAnimationFrame(id);
-  };
+  const resources = createRuntimeResources(window);
+  const {
+    setTimeout: trackedSetTimeout, clearTimeout: trackedClearTimeout,
+    setInterval: trackedSetInterval, clearInterval: trackedClearInterval,
+    requestAnimationFrame: trackedRequestAnimationFrame,
+    cancelAnimationFrame: trackedCancelAnimationFrame,
+  } = resources;
 
   // 강한 단발 충격: fixed ratio 스토리 내부가 아닌 최상위 body를 흔들기 때문에
   // 캐릭터/대사창/배경 및 외부 레이어가 함께 반응한다.
@@ -3038,15 +2998,12 @@ export function createChapter1StoryRuntime({
       if (property === "cancelAnimationFrame") return trackedCancelAnimationFrame;
       if (property === "addEventListener") {
         return (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) => {
-          eventListeners.push({ type, listener, options });
-          window.addEventListener(type, listener, options);
+          resources.listen(window, type, listener, options);
         };
       }
       if (property === "removeEventListener") {
         return (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) => {
-          window.removeEventListener(type, listener, options);
-          const index = eventListeners.findIndex((entry) => entry.type === type && entry.listener === listener);
-          if (index >= 0) eventListeners.splice(index, 1);
+          resources.unlisten(window, type, listener, options);
         };
       }
       if (localWindowValues.has(property)) return localWindowValues.get(property);
@@ -3084,9 +3041,8 @@ export function createChapter1StoryRuntime({
     document.documentElement.style.setProperty("--fixed-game-viewport-scale", scale.toFixed(6));
   };
   updateFixedGameViewportScale();
-  window.addEventListener("resize", updateFixedGameViewportScale, { passive: true });
-  window.visualViewport?.addEventListener("resize", updateFixedGameViewportScale, { passive: true });
-  eventListeners.push({ type: "resize", listener: updateFixedGameViewportScale });
+  resources.listen(window, "resize", updateFixedGameViewportScale, { passive: true });
+  if (window.visualViewport) resources.listen(window.visualViewport, "resize", updateFixedGameViewportScale, { passive: true });
 
 
   // Part 1 첫 정화 후반부 전용 레이어. 기존 출석탄/학생증 마크업은 그대로 두고,
@@ -3454,20 +3410,10 @@ export function createChapter1StoryRuntime({
     disposed = true;
     studentCardShockAnimation?.cancel();
     studentCardShockAnimation = null;
-    for (const id of timeoutIds) window.clearTimeout(id);
-    for (const id of intervalIds) window.clearInterval(id);
-    for (const id of animationFrameIds) window.cancelAnimationFrame(id);
-    timeoutIds.clear();
-    intervalIds.clear();
-    animationFrameIds.clear();
-    for (const { type, listener, options } of eventListeners) {
-      window.removeEventListener(type, listener, options);
-    }
-    eventListeners.length = 0;
+    resources.dispose();
     if (locationOverlayTimer !== null) window.clearTimeout(locationOverlayTimer);
     locationOverlayTimer = null;
     locationOverlay.remove();
-    window.visualViewport?.removeEventListener("resize", updateFixedGameViewportScale);
     document.querySelectorAll(
       ".story-effect-layer.is-global-gatekeeper-entrance, .chapter1-core-portal-overlay, .chapter1-core-vision-reveal, .chapter1-boss-map-arrival-fullscreen, .chapter1-boss-map-dialogue-reveal",
     ).forEach((element) => element.remove());

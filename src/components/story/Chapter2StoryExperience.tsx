@@ -1,3 +1,4 @@
+import { withRuntimeQuery } from "../../story/runtime/runtimeUrl";
 import React, { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { sfx } from "../../game/AudioSystem";
 import {
@@ -105,7 +106,7 @@ const STORY_SEGMENT = "chapter2_full";
 const CHAPTER2_WAVE_COUNT = 24;
 const CHAPTER2_BOSS_TRANSITION_MS = 4000;
 const CHAPTER2_BOSS_STORY_FADE_MS = 2700;
-const withRuntimeQuery = (url: string, query: string) => `${url}${url.includes("?") ? "&" : "?"}${query}`;
+
 // STORY_DATA 기준: "비어 있는 공유 폴더" section-marker가 index 53,
 // 날짜 경과 time-card가 index 54, 빈 공유 폴더 화면 뒤 첫 대사가 index 57,
 // Word 자동 저장 실패 직후 "(뭐.. 뭐야!)" 대사가 index 112,

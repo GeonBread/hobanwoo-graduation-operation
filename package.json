@@ -4,37 +4,27 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "node tools/build_combat_parallax.mjs && vite build",
+    "dev": "npm run generate:story && vite --port=3000 --host=0.0.0.0",
+    "build": "npm run generate:story && node scripts/build/combat-parallax.mjs && vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "lint": "tsc --noEmit",
-    "test:chapter3": "node --import tsx --test tests/chapter3/*.test.ts"
+    "generate:story": "node scripts/build/chapter3-effects.mjs"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
-    "@tailwindcss/vite": "^4.1.14",
-    "@vitejs/plugin-react": "^5.0.4",
-    "clsx": "^2.1.1",
-    "dotenv": "^17.2.3",
-    "express": "^4.21.2",
     "lucide-react": "^0.546.0",
-    "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
-    "tailwind-merge": "^3.6.0",
-    "vite": "^6.2.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
-    "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
     "tailwindcss": "^4.1.14",
-    "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "@tailwindcss/vite": "^4.1.14",
+    "@vitejs/plugin-react": "^5.0.4"
   },
   "description": "경북대학교 마스코트 호반우와 함께하는 스토리 기반 슈팅 게임 「호반우의 졸업 대작전」"
 }
