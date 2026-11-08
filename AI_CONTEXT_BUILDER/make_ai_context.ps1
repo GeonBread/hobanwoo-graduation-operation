@@ -15,6 +15,11 @@ $PreferredProjectName = 'hobanwoo-graduation-operation'
 # Set to $true only if you literally want node_modules/dist names too (usually enormous).
 $IncludeGeneratedDirsInTree = $false
 
+# Also record media metadata (filename, size and modified time) without copying
+# the binary assets. SHA256 enables exact duplicate/change comparisons but can
+# add noticeable processing time for projects with large audio/video libraries.
+$IncludeMediaSha256 = $false
+
 # -----------------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------------
@@ -40,6 +45,8 @@ function Get-FilesPruned {
 
     $items = @(Get-ChildItem -LiteralPath $Directory -Force -ErrorAction SilentlyContinue)
     foreach ($item in $items) {
+        # Do not follow junctions / symlinks outside this project.
+        if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) { continue }
         if ($item.PSIsContainer) {
             if ($ExcludedDirectories -contains $item.Name) { continue }
             Get-FilesPruned -Directory $item.FullName -ExcludedDirectories $ExcludedDirectories
@@ -60,6 +67,7 @@ function Add-TreeLines {
     $children = @(
         Get-ChildItem -LiteralPath $Directory -Force -ErrorAction SilentlyContinue |
         Where-Object {
+            if (($_.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) { return $false }
             if ($_.PSIsContainer -and ($ExcludedDirectories -contains $_.Name)) { return $false }
             return $true
         } |
@@ -86,6 +94,9 @@ function Test-IsSecretFile {
     $ext = $File.Extension.ToLowerInvariant()
 
     if ($name -eq '.env' -or $name.StartsWith('.env.')) { return $true }
+    # These may carry tokens or personal credentials even when they are plain text.
+    if ($name -in @('.npmrc', '.yarnrc.yml', '.pypirc', '.netrc',
+                    'id_rsa', 'id_ed25519', 'id_ecdsa')) { return $true }
     if ($ext -in @('.pem', '.key', '.p12', '.pfx', '.cer', '.crt', '.der', '.keystore', '.jks')) { return $true }
     if ($name -match 'credential|credentials|service[-_]?account|private[-_]?key|secret') { return $true }
 
@@ -109,7 +120,7 @@ function Test-IncludeInSourceZip {
     )
 
     $specialNames = @(
-        '.gitignore', '.gitattributes', '.npmrc', '.nvmrc',
+        '.gitignore', '.gitattributes', '.nvmrc',
         'dockerfile', 'makefile', 'procfile', 'license', 'license.txt'
     )
 
@@ -219,7 +230,9 @@ Write-Host ("Tree    : {0}" -f $TreeTxt)
 # -----------------------------------------------------------------------------
 $SourceExcludedDirectories = @(
     '.git', 'node_modules', 'dist', 'build', 'coverage',
-    '.vite', '.cache', '.next', 'out', '__pycache__'
+    '.vite', '.cache', '.next', 'out', '__pycache__',
+    '.temp', '.turbo', '.parcel-cache', '.svelte-kit', '.nuxt', '.output',
+    '.aws', '.ssh', '.gnupg'
 )
 
 if ($IncludeGeneratedDirsInTree) {
@@ -318,9 +331,11 @@ IMPORTANT RULES FOR THE NEXT CHAT:
 2. Binary assets such as PNG/JPG/WebP/audio/video/font files are intentionally NOT included to keep the ZIP small.
 3. The complete project-owned file/folder structure and asset filenames are recorded in 03_PROJECT_FILE_INDEX.txt.
 4. Do not recreate or replace omitted assets just because their binary files are absent from this ZIP. Use the paths/names in the file index as reference.
+4a. 04_MEDIA_MANIFEST.csv records media size/time and optionally SHA256, but not image/audio data.
 5. Preserve all existing changes already present in these source files. Make only the minimum edits required by the new request.
 6. If another parallel chat changes the same shared file after this snapshot was created, create a NEW AI_CONTEXT ZIP before editing that shared file again.
-7. Environment/secrets (.env, private keys, credentials) are intentionally excluded from the ZIP.
+7. Files with known secret filenames (including .env and .npmrc) and temporary metadata folders are excluded from the ZIP.
+8. This tool does not inspect the CONTENTS of included source files for accidentally pasted secrets; review before sharing.
 
 Project: $ProjectName
 Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K')
@@ -359,6 +374,37 @@ Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K')
 
     Copy-Item -LiteralPath $TreeTxt -Destination (Join-Path $ContextDir '03_PROJECT_FILE_INDEX.txt') -Force
 
+    # An index of all relevant media, even though binary contents stay excluded.
+    # This helps distinguish assets with the same filename but different size or
+    # modification time. Turn on $IncludeMediaSha256 for exact hash comparisons.
+    Write-Host '==> Indexing media metadata (no binary contents are copied)' -ForegroundColor Cyan
+    $mediaExtensions = @(
+        '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.avif', '.apng', '.ico', '.svg',
+        '.mp3', '.wav', '.ogg', '.m4a', '.flac', '.aac', '.opus',
+        '.mp4', '.mov', '.webm', '.avi', '.mkv',
+        '.woff', '.woff2', '.ttf', '.otf', '.eot'
+    )
+    $mediaFiles = @($projectFiles | Where-Object { $mediaExtensions -contains $_.Extension.ToLowerInvariant() })
+    $mediaManifestRows = @(foreach ($media in $mediaFiles) {
+        $mediaHash = ''
+        if ($IncludeMediaSha256) {
+            $mediaHash = (Get-FileHash -LiteralPath $media.FullName -Algorithm SHA256).Hash
+        }
+        [pscustomobject]@{
+            relativePath = ((Get-RelativePathText -Root $ProjectRoot -FullPath $media.FullName) -replace '\\', '/')
+            extension = $media.Extension.ToLowerInvariant()
+            sizeBytes = [int64]$media.Length
+            modifiedUtc = $media.LastWriteTimeUtc.ToString('yyyy-MM-ddTHH:mm:ssZ')
+            sha256 = $mediaHash
+        }
+    })
+    $mediaManifestPath = Join-Path $ContextDir '04_MEDIA_MANIFEST.csv'
+    if ($mediaManifestRows.Count -gt 0) {
+        $mediaManifestRows | Sort-Object relativePath | Export-Csv -LiteralPath $mediaManifestPath -NoTypeInformation -Encoding UTF8
+    } else {
+        [System.IO.File]::WriteAllText($mediaManifestPath, '"relativePath","extension","sizeBytes","modifiedUtc","sha256"' + [Environment]::NewLine, (New-Object System.Text.UTF8Encoding($true)))
+    }
+
     $manifest = [ordered]@{
         project = $ProjectName
         generatedAt = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ssK')
@@ -366,8 +412,12 @@ Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K')
         head = $gitHead
         includedSourceFileCount = $includedRelative.Count
         indexedProjectFileCount = $treeRelativeFiles.Count
+        indexedMediaFileCount = $mediaFiles.Count
+        mediaManifestFile = '__CHAT_CONTEXT__/04_MEDIA_MANIFEST.csv'
+        mediaSHA256Computed = $IncludeMediaSha256
         binaryAssetsIncluded = $false
-        secretsIncluded = $false
+        secretFilenameFiltersApplied = $true
+        secretsContentScannerApplied = $false
         sourceExcludedDirectories = $SourceExcludedDirectories
         note = 'Binary assets are represented by path/name in __CHAT_CONTEXT__/03_PROJECT_FILE_INDEX.txt but are not stored in this ZIP.'
     }
@@ -399,9 +449,11 @@ Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss K')
     Write-Host ("Project index    : {0}" -f $TreeTxt)
     Write-Host ("Source files     : {0}" -f $includedRelative.Count)
     Write-Host ("Indexed files    : {0}" -f $treeRelativeFiles.Count)
+    Write-Host ("Media metadata    : {0} entries (SHA256: {1})" -f $mediaFiles.Count, $IncludeMediaSha256)
     Write-Host ("ZIP size         : {0} MB" -f $zipSizeMB)
     Write-Host ''
     Write-Host 'Upload the ZIP and the separate PROJECT_FILE_INDEX txt to the new chat.' -ForegroundColor Yellow
+    Write-Host '[CAUTION] Source file contents are not scanned for passwords or API keys. Review before sharing.' -ForegroundColor Yellow
 } finally {
     if (Test-Path -LiteralPath $TempRoot) {
         Remove-Item -LiteralPath $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
