@@ -8,3 +8,6 @@ coverage/
 .env.local
 !.env.example
 
+
+!/scripts/build/
+!/scripts/build/*.mjs
