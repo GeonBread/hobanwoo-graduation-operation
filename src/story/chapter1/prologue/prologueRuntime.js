@@ -395,7 +395,11 @@
 .prologue-v7-fullscreen .prologue-v2-layer{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;pointer-events:none}
 .prologue-v7-fullscreen .prologue-v2-layer canvas{width:100%!important;height:100%!important;display:block}
 .prologue-v7-fullscreen .prologue-v2-layer::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 40%,rgba(13,12,10,.06) 53%,rgba(10,14,18,.58) 80%,rgba(7,12,17,.84))}
-.prologue-v7-fullscreen #dialogueLayer{position:absolute!important;z-index:300!important;left:50%!important;right:auto!important;bottom:var(--v7-dialogue-bottom,43px)!important;width:858px!important;transform:translateX(-50%) scale(var(--v7-dialogue-scale,1))!important;transform-origin:50% 100%!important;pointer-events:auto}
+.prologue-v7-fullscreen #dialogueLayer{position:absolute!important;z-index:300!important;left:50%!important;right:auto!important;bottom:4.5dvh!important;width:min(89.28dvh,93vw)!important;max-width:none!important;transform:translateX(-50%)!important;transform-origin:50% 100%!important;pointer-events:auto}
+/* Match the 96dvh-wide standard story stage after the fracture, including narrator geometry. */
+.prologue-v7-fullscreen #dialogueLayer .dialogue-box{min-height:clamp(142px,min(17.28dvh,18vw),202px)!important;padding:clamp(30px,min(2.88dvh,3vw),38px) clamp(26px,min(2.88dvh,3vw),42px)!important}
+.prologue-v7-fullscreen #dialogueLayer .dialogue-text{font-size:clamp(18px,min(2.208dvh,2.3vw),31px)!important}
+.prologue-v7-fullscreen #dialogueLayer .dialogue-marker{font-size:clamp(24px,min(2.88dvh,3vw),38px)!important}
 .prologue-v7-fullscreen #dialogueJumpButton,.prologue-v7-fullscreen #previewMenuButton{position:absolute!important;top:18px!important;z-index:340!important;pointer-events:auto}
 .prologue-v7-fullscreen #dialogueJumpButton{right:116px!important}
 .prologue-v7-fullscreen #previewMenuButton{right:18px!important}
