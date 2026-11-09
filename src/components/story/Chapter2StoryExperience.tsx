@@ -127,11 +127,10 @@ const CHAPTER2_CORE_SOURCE_SILENT_INDEX = 202;
 // 화면 표시 기준 스토리 #204 = 내부 index 203의 학생증 첫 대사.
 // 첨부된 핵심 오염원 출현 BGM을 여기서 시작해 책임의 블랙홀 포탈까지 유지한다.
 const CHAPTER2_CORE_SOURCE_BGM_START_INDEX = 203;
-const CHAPTER2_BOSS_PORTAL_DEPARTURE_INDEX = 239;
-const CHAPTER2_PREBOSS_BGM_START_INDEX = 240;
-// STORY_DATA 기준: "발표" section-marker가 index 310 (#311)에서 시작한다.
-// 이 지점부터 Chapter 2 엔딩까지는 발표/엔딩 전용 BGM을 유지한다.
-const CHAPTER2_PRESENTATION_ENDING_BGM_START_INDEX = 310;
+const CHAPTER2_BOSS_PORTAL_DEPARTURE_INDEX = 240;
+const CHAPTER2_PREBOSS_BGM_START_INDEX = 241;
+// #313 (internal index 312): presentation-background-hold. Start ending BGM here, not at #311.
+const CHAPTER2_PRESENTATION_ENDING_BGM_START_INDEX = 312;
 function isChapter2FullscreenStoryEffect(effectId: string | undefined): boolean {
   if (!effectId) return false;
   // 보스 영역 도착 직후의 배경/LOCATION 표시는 스토리 게임 프레임 안에서만 보여준다.
@@ -213,7 +212,7 @@ export function Chapter2StoryExperience({
   const purificationTimerRef = useRef<number | null>(null);
   const waveIntroTimerRef = useRef<number | null>(null);
   const playerPositionRef = useRef({ xPercent: 50, yPercent: 88 });
-  const [phase, setPhase] = useState<"story" | "wave" | "wave-purification-effect" | "wave-purification-exit" | "wave-blackout" | "boss-intro" | "boss" | "boss-blackout">("story");
+  const [phase, setPhase] = useState<"story" | "wave" | "wave-purification-effect" | "wave-purification-exit" | "wave-blackout" | "boss-intro" | "boss" | "boss-blackout" | "boss-return">("story");
   const [waveStartIndex, setWaveStartIndex] = useState(currentWaveIndexRef.current);
   const [currentWaveIndex, setCurrentWaveIndex] = useState(currentWaveIndexRef.current);
   const [waveControlCommand, setWaveControlCommand] = useState<Chapter2WaveControlCommand | null>(null);
@@ -233,6 +232,7 @@ export function Chapter2StoryExperience({
   const [combatRetryPromptVisible, setCombatRetryPromptVisible] = useState(false);
   const [waveRunKey, setWaveRunKey] = useState(0);
   const [bossRunKey, setBossRunKey] = useState(0);
+  const [bossFinalFrame, setBossFinalFrame] = useState<string | null>(null);
 
   const resumeIndex = useMemo(() => {
     if (resumeCheckpoint?.kind !== "story" || resumeCheckpoint.chapter !== 2) return null;
@@ -269,7 +269,7 @@ export function Chapter2StoryExperience({
   };
 
   const persistCurrentLocation = () => {
-    if (phase === "boss" || phase === "boss-intro" || phase === "boss-blackout") {
+    if (phase === "boss" || phase === "boss-intro" || phase === "boss-blackout" || phase === "boss-return") {
       saveStoryCheckpoint(chapter2BossCheckpoint());
       return;
     }
@@ -293,11 +293,17 @@ export function Chapter2StoryExperience({
       sfx.fadeOutBgm(CHAPTER2_BOSS_STORY_FADE_MS);
       return;
     }
-    if (phase === "boss" || phase === "boss-blackout") {
+    if (phase === "wave") {
+      // Story -> wave and F7 TEST -> wave must initialize the same BGM.
+      sfx.startBgmForPhase(2);
+      return;
+    }
+    if (phase === "boss") {
       // Chapter2BossSystem requests this same track when combat actually mounts.
       sfx.startChapter2BossBgm();
       return;
     }
+    if (phase === "boss-blackout") return; // Preserve the 1s ending BGM fade.
     if (sfx.currentBgmTrack === "/assets/audio/chapter2/chapter2-boss-bgm.mp3") sfx.stopBgm();
   }, [phase]);
 
@@ -513,7 +519,7 @@ export function Chapter2StoryExperience({
             sfx.startChapter2PreBossBgm();
           }
 
-          // "발표" 장면(section-marker index 310 / 스토리 #311)이 시작되는 순간부터
+          // 스토리 #313 발표 배경 연출이 시작되는 순간부터
           // Chapter 2 엔딩까지 발표/엔딩 전용 BGM을 유지한다.
           if (
             Number.isInteger(storyIndex)
@@ -644,7 +650,7 @@ export function Chapter2StoryExperience({
 
   useEffect(() => {
     const persistBeforeLeaving = () => {
-      if (phase === "boss" || phase === "boss-intro" || phase === "boss-blackout") {
+      if (phase === "boss" || phase === "boss-intro" || phase === "boss-blackout" || phase === "boss-return") {
         saveStoryCheckpoint(chapter2BossCheckpoint());
       } else if (phase !== "story") {
         persistWaveCheckpoint(currentWaveIndexRef.current);
@@ -825,7 +831,16 @@ export function Chapter2StoryExperience({
     if (purificationTimerRef.current !== null) return;
     setWaveControlCommand(null);
     setShowJumpMenu(false);
-    setPurificationOrigin(playerPositionRef.current);
+    const playerPosition = playerPositionRef.current;
+    const combatCanvas = document.querySelector<HTMLCanvasElement>('.chapter2-story-experience canvas');
+    const rect = combatCanvas?.getBoundingClientRect();
+    const origin = rect && rect.width > 0 && rect.height > 0
+      ? {
+          xPercent: 100 * (rect.left + rect.width * playerPosition.xPercent / 100) / window.innerWidth,
+          yPercent: 100 * (rect.top + rect.height * playerPosition.yPercent / 100) / window.innerHeight,
+        }
+      : playerPosition;
+    setPurificationOrigin(origin);
     sfx.purificationComplete();
     setPhase("wave-purification-effect");
 
@@ -878,14 +893,28 @@ export function Chapter2StoryExperience({
     if (bossTimerRef.current !== null) return;
     setBossControlCommand(null);
     setShowJumpMenu(false);
+    // Hold the final boss canvas underneath the 1-second fade, rather than
+    // exposing a blank/unmounted combat canvas on the transition frame.
+    try {
+      const canvas = document.querySelector<HTMLCanvasElement>('.chapter2-story-experience canvas');
+      setBossFinalFrame(canvas?.toDataURL('image/png') || null);
+    } catch {
+      setBossFinalFrame(null);
+    }
+    // Boss core calls onComplete one second after the body fully exits the viewport.
+    sfx.fadeOutBgm(1000);
     setPhase("boss-blackout");
     bossTimerRef.current = window.setTimeout(() => {
-      postCommand("resumeIntegrationGate");
+      // Keep 2 seconds of full black before revealing the story background.
       bossTimerRef.current = window.setTimeout(() => {
-        bossTimerRef.current = null;
-        setPhase("story");
-      }, 280);
-    }, 520);
+        postCommand("resumeIntegrationGate");
+        setPhase("boss-return");
+        bossTimerRef.current = window.setTimeout(() => {
+          bossTimerRef.current = null;
+          setPhase("story");
+        }, 1000);
+      }, 2000);
+    }, 1000);
   };
 
   const failBossCombat = () => {
@@ -941,7 +970,7 @@ export function Chapter2StoryExperience({
 
   return (
     <div className="chapter2-story-experience">
-      <div className={`chapter2-story-frame-shell${phase !== "story" ? " is-combat-hidden" : ""}${storyFullscreenEffectActive ? " is-story-effect-fullscreen" : ""}`}>
+      <div className={`chapter2-story-frame-shell${phase !== "story" && phase !== "boss-return" ? " is-combat-hidden" : ""}${storyFullscreenEffectActive ? " is-story-effect-fullscreen" : ""}`}>
         <iframe
           ref={iframeRef}
           className="chapter2-story-frame"
@@ -1112,8 +1141,12 @@ export function Chapter2StoryExperience({
         </div>
       )}
 
-      {(phase === "wave-blackout" || phase === "boss-blackout") && (
-        <div className="chapter2-wave-clear-blackout" aria-hidden="true" />
+      {phase === "boss-blackout" && bossFinalFrame && (
+        <img className="chapter2-boss-freeze-frame" src={bossFinalFrame} alt="" aria-hidden="true" />
+      )}
+
+      {(phase === "wave-blackout" || phase === "boss-blackout" || phase === "boss-return") && (
+        <div className={`chapter2-wave-clear-blackout${phase === "boss-blackout" ? " is-boss-blackout" : ""}${phase === "boss-return" ? " is-boss-return" : ""}`} aria-hidden="true" />
       )}
 
       {waveIntroTransitionActive && (

@@ -9,6 +9,7 @@ import { drawScrollingMapDown } from "../render/scrollingMap";
 import { getCombatParallax } from "../render/combatParallax";
 import { sfx } from "../AudioSystem";
 import { spawnChapter1EnemyHitEffectSystem } from "../chapter1/chapter1WaveImpactSystem";
+import { PowerUp } from "../entities";
 
 export type Chapter2WaveEnemyType =
   | "ghost"
@@ -1213,6 +1214,20 @@ function recycleScenarioEnemy(e) {
     // Preserve continuity: an ordinary survivor must visibly fly back instead of being teleported to a fresh random spawn.
     if (e.dead || e.data.galagaSlot != null || e.data.huntSlot != null || e.data.graffitiSlot != null || e.data.starSlot != null) return;
     if (e.data.presentationSlot!=null || e.data.subThirty || e.data.splitSubSlot!=null) { e.dead=true; return; }
+    // Ordinary ghosts, presentation pointers and submarines return from the top.
+    // Special choreography waves 3/10/13/16/24 still dispose of exiting monsters.
+    if (['ghost','pointer','submarine'].includes(e.type)) {
+        if ([2,9,12,15,23].includes(currentWaveIndex)) {e.dead=true;return;}
+        e.x=clamp(e.x,155,W-155);
+        e.y=-Math.max(110,e.r*2.5);
+        e.vx=0;
+        e.vy=170*diff();
+        e.state='enter';
+        e.stateT=0;
+        e.t=0;
+        e.cool=Math.max(0,e.cool);
+        return;
+    }
     if (e.state==='smoothReenter') return;
     e.data.smoothReturnX=clamp(e.x,155,W-155);
     e.data.smoothReturnY=clamp(e.y,185,H-185);
@@ -1755,6 +1770,18 @@ function scenarioGalagaDrone(e,dt) {
     const timeInLoop=e.data.galagaAge%15.0;
     const p=scenarioCatmull(pts,timeInLoop/15*pts.length);
     e.x=p.x;e.y=p.y;
+    if (currentWaveIndex===10) {
+        const fullyOutside=e.x < -e.r || e.x > W+e.r || e.y < -e.r || e.y > H+e.r;
+        if (e.data.galagaHasEntered && fullyOutside) {
+            // Start immediately on the incoming top edge; avoid long off-screen orbit.
+            e.data.galagaAge=1.1;
+            const entry=scenarioCatmull(pts,1.1/15*pts.length);
+            e.x=clamp(entry.x,150,W-150);e.y=Math.max(-e.r+4,Math.min(95,entry.y));
+            e.data.galagaHasEntered=false;
+        } else if (!fullyOutside) {
+            e.data.galagaHasEntered=true;
+        }
+    }
     e.state='galagaFlight';
     e.cool-=dt;
     if(e.cool<=0 && e.x>75 && e.x<W-75 && e.y>80 && e.y<H*.76) {
@@ -4341,6 +4368,16 @@ function destroyEnemy(enemy) {
         if (badge && badge.notice!=='failed') {badge.notice='success';badge.displayTime=1.3;badge.t=0;}
     }
     enemy.dead = true;
+    // Chapter 2 enemies use their own death routine (not generic collision cleanup).
+    // Match the Chapter 1 ordinary enemy drop rate and type distribution.
+    if (activeEngine?.powerups && Math.random()<0.16) {
+        const pickup=new PowerUp();
+        pickup.x=enemy.x*virtualScaleX(activeEngine)-8;
+        pickup.y=enemy.y*virtualScaleY(activeEngine)-8;
+        pickup.width=16;pickup.height=16;pickup.vy=120;
+        pickup.type=Math.random()<0.34?'heal':'power';
+        activeEngine.powerups.push(pickup);
+    }
     if (wasLastSupport) {
         for(const x of currentWaveEnemies()) if(!x.dead && x!==enemy) {
             addEffect('pulse',x.x,x.y,{r:x.r*1.4,life:.55,color:'#9ad5ff'});
@@ -4357,7 +4394,7 @@ function destroyEnemy(enemy) {
         for (const trail of trails) {
             if (trail.kind === "highlightStroke" && trail.batchId === enemy.data.batchId) {
                 trail.fadeStart = trail.t;
-                trail.life = Math.min(trail.life, trail.t + 0.75);
+                trail.life = Math.min(trail.life, trail.t + 1.65);
             }
         }
     }
@@ -4423,6 +4460,7 @@ function checkChapter2PlayerHazards(engine: any) {
   }
   for (const trail of trails) {
     if (trail.kind === "highlightStroke") {
+      if (trail.fadeStart !== null && trail.fadeStart !== undefined) continue;
       const vx = trail.x2 - trail.x1;
       const vy = trail.y2 - trail.y1;
       const wx = player.x - trail.x1;
