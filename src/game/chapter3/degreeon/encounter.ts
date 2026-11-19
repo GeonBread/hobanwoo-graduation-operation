@@ -4,7 +4,7 @@ import {AWAKEN_SECONDS,AWAKEN_REVEAL} from './awakeningCinema';
 import {ARRIVAL_SECONDS,CLEAR_SECONDS,DEFEAT_SECONDS} from './bossCinema';
 import {freshContinuity} from './continuity';
 import {resetBossSupport} from './bossSupport';
-import {rollSupportMix,installSupportMix} from './supportMix';
+import {rollSupportMix,installSupportMix,minimumSupportCueTime} from './supportMix';
 import type {Engine} from './engine';
 import {BASE_FIELD_W,BASE_FIELD_H,MAX_HP,MAX_BOMBS,clamp} from './core';
 export type StoryPreview='arrival'|'phase-clear'|'awakening'|'victory'|'complete';
@@ -134,7 +134,8 @@ export function encounterCueExpired(e:Engine){
  // Ordinary phase-2 patterns should not dwell for 10+ seconds or replay a motif.
  const singlePhaseTwoNormal=s.phase===2&&!s.trainingOnly&&e.pattern.category==='normal';
  const duration=singlePhaseTwoNormal?Math.min(c.seconds,7.8):c.seconds/s.learning.stages.length;
- return e.t>=duration;
+ if(c.id==='graduation-gate')return false; // The lock timer decides success or the full 5-second explosion.
+ return e.t>=Math.max(duration,minimumSupportCueTime(e));
 }
 
 export function startCuePractice(e:Engine,phase:1|2,index:number,mode:'first'|'expert'='first'){

@@ -1,7 +1,7 @@
 import { Vec, clamp, distance } from './core';
 export type TimeZone=Vec&{w:number;h:number;scale:number;color:string;clock:number};
 export function makeTimeZones(w:number,h:number,full:boolean,previous:TimeZone[]=[]):TimeZone[]{
- const rows=full?2:1,colors=['#6495ff','#7bacfb','#7ee0d1','#d0b1ed','#e1a0ef','#ffa576'];
+ const rows=full?2:1,colors=['#2979ff','#21c6f3','#00c896','#ffb21e','#fa679d','#b460f0'];
  return Array.from({length:3*rows},(_,i)=>({x:-w/2+(i%3+.5)*w/3,y:-h/2+(Math.floor(i/3)+.5)*h/rows,w:w/3,h:h/rows,scale:full?Number((.5+i*.3).toFixed(1)):[.5,1,2][i],color:colors[i*(full?1:2)],clock:previous[i]?.clock??0}));
 }
 export function zoneAt(zones:TimeZone[],p:Vec,direction:Vec={x:0,y:0}):TimeZone|undefined{

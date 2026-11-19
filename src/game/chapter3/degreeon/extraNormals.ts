@@ -6,7 +6,7 @@ export type ExtraNormalState={chains:TailChain[];sequence:number};
 export const freshExtraNormal=():ExtraNormalState=>({chains:[],sequence:0});
 /** Each salvo has two independent comets. There is no wait for the previous salvo. */
 function spawnTailSalvo(e:Engine){
- const s=e.extraNormal,n=6+Math.floor(e.stage/2),center=Math.sin(s.sequence*.91)*e.fieldW*.27,spread=Math.min(142,e.fieldW*.18),speed=310+e.stage*18;
+ const s=e.extraNormal,n=5+Math.floor(e.stage/2),center=Math.sin(s.sequence*.91)*e.fieldW*.27,spread=Math.min(142,e.fieldW*.18),speed=265+e.stage*14;
  for(const side of [-1,1]){const aimed=(s.sequence+(side>0?1:0))%2===0,x=clamp(center+side*spread,-e.fieldW/2+65,e.fieldW/2-65),head=e.add({x,y:-e.fieldH/2+140,r:26,visual:'core',vx:side*20,vy:speed,warn:.42,life:6,color:aimed?'#ef9fdb':'#b99aff',tag:'꼬리 분리 대형탄'}),tails:Entity[]=[];
   for(let i=0;i<n;i++)tails.push(e.add({x:x+Math.sin(i*.65+s.sequence)*7,y:head.y-(i+1)*23,r:8,visual:i%3===2?'needle':'drop',vx:side*20,vy:speed,warn:.42,life:6,color:i%2?'#ffd995':'#dc9cff',tag:'꼬리를 벗는 소형탄'}));
   s.chains.push({age:0,head,tails,released:0,detached:false,target:{...e.localPlayer()},releaseClocks:Array(n).fill(0),side,aimed,fan:(s.sequence%3-1)*.16});
@@ -17,17 +17,17 @@ export function tailLaunchDirection(chain:TailChain,i:number):Vec{
  const p=chain.tails[i],dx=chain.target.x-p.x,dy=chain.target.y-p.y,d=Math.hypot(dx,dy)||1;return{x:dx/d,y:dy/d};
 }
 function tailUpdate(e:Engine,dt:number){
- const s=e.extraNormal;if(e.emitting&&e.beat<=0){e.beat=.64-e.stage*.06;spawnTailSalvo(e);}
+ const s=e.extraNormal;if(e.emitting&&e.beat<=0){e.beat=.89-e.stage*.065;spawnTailSalvo(e);}
  const alive=new Set(e.hazards.map(h=>h.id));
  for(const chain of s.chains){chain.age+=dt*e.localTime(chain.head);
-  if(!chain.detached&&chain.age>=1.55){chain.detached=true;chain.target={...e.localPlayer()};chain.head.vx=chain.side*(450+e.stage*24);chain.head.vy=70;
+  if(!chain.detached&&chain.age>=1.55){chain.detached=true;chain.target={...e.localPlayer()};chain.head.vx=chain.side*(390+e.stage*20);chain.head.vy=70;
    for(const p of chain.tails){p.vx=0;p.vy=0;}if(alive.has(chain.head.id))e.fx(chain.head,'ring',42,chain.head.color,.25);
   }
   if(!chain.detached)continue;
   for(let i=chain.released;i<chain.tails.length;i++){
    const p=chain.tails[i];chain.releaseClocks[i]+=dt*e.localTime(p);if(chain.releaseClocks[i]<.38+i*.065)continue;
    // Only release the next visible projectile, never recreate one cleared by a bomb.
-   if(i!==chain.released)break;const d=tailLaunchDirection(chain,i),sp=210+e.stage*16+(i%3)*12;p.vx=d.x*sp;p.vy=d.y*sp;chain.released++;if(alive.has(p.id))e.fx(p,'ring',18,p.color,.17);
+   if(i!==chain.released)break;const d=tailLaunchDirection(chain,i),sp=178+e.stage*14+(i%3)*10;p.vx=d.x*sp;p.vy=d.y*sp;chain.released++;if(alive.has(p.id))e.fx(p,'ring',18,p.color,.17);
   }
  }
  s.chains=s.chains.filter(c=>c.age<6.5&&(alive.has(c.head.id)||c.tails.some(p=>alive.has(p.id))));

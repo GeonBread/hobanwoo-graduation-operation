@@ -2,9 +2,10 @@ import type {Engine} from './engine';
 import type {Entity,Pattern,Vec} from './core';
 import {clamp,distance,smooth,pointInPolygon,polygonCentroid} from './core';
 import {bombReaches} from './bomb';
+import {advanceRecycleSupport} from './supportMix';
 export type RecycleEdge='left'|'right'|'top'|'bottom';
 export type RecycleCrystal={edge:RecycleEdge;u:number;age:number;warnAge:number;vx:number;vy:number;kind:Entity['kind'];visual:Entity['visual'];r:number;w:number;h:number;color:string;};
-export type RecycleState={phase:'collect'|'warn'|'rest';age:number;bank:RecycleCrystal[];collected:number;returned:number;waves:number;};
+export type RecycleState={phase:'collect'|'warn'|'done';age:number;bank:RecycleCrystal[];collected:number;returned:number;waves:number;};
 export const RECYCLE_COLLECT_TIME=5.2,RECYCLE_WARN_TIME=1.05;
 export const freshRecycle=():RecycleState=>({phase:'collect',age:0,bank:[],collected:0,returned:0,waves:0});
 export function recycleAnchor(e:Engine,b:RecycleCrystal,launch=false):Vec{
@@ -41,12 +42,12 @@ export function updateRecycle(e:Engine,dt:number){
   for(const b of s.bank){const p=recycleAnchor(e,b,true),speed=clamp(Math.hypot(b.vx,b.vy),140,300+e.stage*25),d=Math.hypot(b.vx,b.vy)||1;
    e.add({...p,kind:b.kind,visual:b.visual??(b.kind==='orb'?'shard':undefined),r:b.r,w:b.w,h:b.h,vx:b.vx/d*speed,vy:b.vy/d*speed,warn:0,life:Math.hypot(e.fieldW,e.fieldH)/speed+2,color:b.color,recycled:true,tag:'재활용된 회피탄'});s.returned++;e.fx(recycleAnchor(e,b),'ring',25,'#ffc075',.3);
   }
-  s.waves++;s.bank=[];s.phase='rest';s.age=0;e.log('회수된 탄 일제 역발사 · 돌아온 탄은 재회수하지 않습니다.');
- }else if(s.phase==='rest'&&s.age>=1.15){s.phase='collect';s.age=0;}
+  s.waves++;s.bank=[];s.phase='done';s.age=0;e.log('회수된 탄 일제 역발사 · 다른 보조 공격으로 전환');advanceRecycleSupport(e);
+ }
 }
 export function clearRecycleByBomb(e:Engine){
  if(!e.recycleEnabled)return;e.recycle.bank=e.recycle.bank.filter(b=>!bombReaches(e,recycleAnchor(e,b),12));
- if(e.recycle.phase==='warn'&&!e.recycle.bank.length){e.recycle.phase='rest';e.recycle.age=0;}
+ if(e.recycle.phase==='warn'&&!e.recycle.bank.length){e.recycle.phase='done';e.recycle.age=0;}
 }
 export function drawRecycle(e:Engine,c:CanvasRenderingContext2D){
  if(!e.recycleEnabled||e.phase!=='active')return;const s=e.recycle;

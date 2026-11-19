@@ -1,5 +1,6 @@
 import type {Engine} from './engine';
 import {phaseOneScore,phaseTwoScore} from './encounter';
+import {swordHomeDuration} from './sword';
 import {clamp,smooth,BASE_FIELD_H} from './core';
 import type {Vec} from './core';
 
@@ -28,7 +29,7 @@ export function attackSettled(e:Engine){
   case 'tail-shed':return e.extraNormal.chains.every(c=>c.detached&&c.released===c.tails.length);
   case 'graduation-stamp':return e.graduationStamp.phase==='rest'&&!e.graduationStamp.lingering.length&&!e.graduationStamp.imprints.length;
   case 'link':return e.linkFinishing||!e.hazards.some(h=>h.group!==undefined);
-  case 'hp-sword':return e.advanced.sword.state==='home'&&e.advanced.sword.time>=.9;
+  case 'hp-sword':return e.advanced.sword.state==='home'&&e.advanced.sword.time>=swordHomeDuration(e.stage);
   case 'split8':return e.tileState==='recover'||e.tileState==='idle';
   case 'tile-stream':return !e.tileStream.batches.length;
   case 'path-fold':return e.pathFold.phase==='rest'&&e.pathFold.age>=.5;
@@ -37,9 +38,9 @@ export function attackSettled(e:Engine){
   case 'pause-storm':return e.pauseStorm.phase==='done';
   case 'menu-deception':return e.menuDeception.phase==='drain'&&!e.menuDeception.projectiles.length;
   case 'menu-deception-mobs':return e.menuDeception.spawned===e.menuDeception.spawnTarget&&e.menuDeception.spawns.every(s=>s.done)&&(e.menuDeception.wave?.count??0)===0&&(e.menuDeception.wave?.bulletCount??0)===0&&(e.menuDeception.guests?.count??0)===0&&(e.menuDeception.guests?.bulletCount??0)===0;
-  case 'fluid':return e.fluidFill<.005;
+  case 'fluid':return e.fluidFill<.005&&!e.hazards.some(h=>h.tag==='유체 오염탄');
   case 'flight':case 'rhythm':return !e.hazards.length;
-  case 'graduation-gate':return e.unseen.gate.phase==='expose'&&e.unseen.gate.phaseAge>=3.4||e.unseen.gate.phase==='locks'&&e.unseen.gate.age>=29;
+  case 'graduation-gate':return e.unseen.gate.phase==='expose'&&e.unseen.gate.phaseAge>=3.4||e.unseen.gate.phase==='overload'&&e.unseen.gate.phaseAge>=6.2;
   default:return !e.volley.events.length;
  }
 }

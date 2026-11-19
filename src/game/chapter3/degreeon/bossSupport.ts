@@ -87,9 +87,9 @@ export function updateBossSupportActor(e:Engine,a:WorldActor,dt:number){
   a.fireTimer=.78+e.random()*.22;
   const player=e.localPlayer(),dx=player.x-a.x,dy=player.y-a.y;
   const mag=Math.hypot(dx,dy)||1;
-  const speed=390; // Chapter 2 boss support bullet speed.
+  const speed=280; // More readable and dodgeable than the original 390px/s.
   e.add({kind:'orb',x:a.x,y:a.y+21,vx:dx/mag*speed,vy:dy/mag*speed,
-    r:7,warn:0,life:4.5,color:a.color,
+    r:12,warn:0,life:5.8,color:a.color,
     visual:a.supportKind==='carrier'?'shard':'core',
     tag:a.supportKind==='carrier'?'결재 파일 캐리어 탄':'졸업 검수 아이 탄'});
 }

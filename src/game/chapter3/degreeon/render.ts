@@ -173,13 +173,13 @@ function drawExiledArena(e:Engine,c:CanvasRenderingContext2D){
   rounded(c,295,6,332,32,14);c.fillStyle='rgba(5,16,44,.88)';c.fill();c.lineWidth=4;c.strokeStyle='#0a0a0d';c.stroke();c.fillStyle='#f4f0f6';c.font=`900 18px ${font}`;c.textAlign='center';c.textBaseline='middle';c.fillText('미졸업의 군주 디그리온',CANVAS_CX,22);
   c.translate(CANVAS_CX,62);drawHpBar(c,e.bossHp/e.bossHpMax,e.stage);c.restore();
 }
-/** An unmistakable screen-DOWN gravity cue during the flight quarter-turn.
- * This overlay is drawn AFTER the world transform has been restored, so its
- * arrows must stay in screen-space and must never inherit field rotation.
+/** Only after the arena's physical rotation ends, warn for two seconds.
+ * Screen-DOWN is exactly where the player falls after the quarter-turn.
+ * The overlay is outside the world transformation, so its direction is exact.
  */
 export function drawFlightGravityCue(e:Engine,c:CanvasRenderingContext2D){
- if(e.pattern.id!=='flight'||e.phase!=='intro')return;
- const t=e.phaseTime,alpha=smooth((t-.33)/.42)*(1-smooth((t-1.68)/.48));
+ if(e.pattern.id!=='flight'||e.rotation>0||e.continuity.bridge||e.flightGravityCueAge>=2)return;
+ const t=e.flightGravityCueAge,alpha=smooth(t/.22)*(1-smooth((t-1.62)/.38));
  if(alpha<=.005)return;
  c.save();c.globalAlpha=alpha;
  const cx=e.canvas.width/2,cy=e.canvas.height/2,w=560,h=330,x=cx-w/2,y=cy-h/2;
@@ -192,7 +192,9 @@ export function drawFlightGravityCue(e:Engine,c:CanvasRenderingContext2D){
   c.strokeStyle='#fff2a5';c.lineWidth=11;c.stroke();
   c.beginPath();c.moveTo(xx-27,bottom-41);c.lineTo(xx,bottom);c.lineTo(xx+27,bottom-41);c.strokeStyle='#0a0614';c.lineWidth=19;c.stroke();c.strokeStyle='#fff2a5';c.lineWidth=10;c.stroke();
  }
- c.shadowBlur=0;c.restore();
+ c.shadowBlur=0;c.font='900 21px "Noto Sans KR",sans-serif';c.lineWidth=5;c.strokeStyle='#080714';c.fillStyle='#fff4c5';
+ c.strokeText(`중력 적용까지 ${(2-t).toFixed(1)}초`,cx,cy+154);c.fillText(`중력 적용까지 ${(2-t).toFixed(1)}초`,cx,cy+154);
+ c.restore();
 }
 export function drawScene(e:Engine){
   const c=e.ctx;c.clearRect(0,0,e.canvas.width,e.canvas.height);c.fillStyle='#080b17';c.fillRect(0,0,e.canvas.width,e.canvas.height);
@@ -226,7 +228,7 @@ export function drawScene(e:Engine){
   c.strokeStyle='#ac92e412';c.lineWidth=1;const drift=e.bossAnimClock*20%40;for(let x=-e.fieldW/2;x<e.fieldW/2;x+=40)line(c,{x,y:-e.fieldH/2},{x,y:e.fieldH/2});for(let y=-e.fieldH/2+drift;y<e.fieldH/2;y+=40)line(c,{x:-e.fieldW/2,y},{x:e.fieldW/2,y});
   c.save();if(e.phase==='outro'&&e.pattern.id!=='split8')c.globalAlpha=1-smooth(e.phaseTime/1.6);if(e.phase!=='bombard'&&e.phase!=='restore'){if(e.pattern.category==='support')e.combatPattern.render(e,c);c.save();if(e.encounter.enabled&&['inspection','graduation-gate','split8','path-fold'].includes(e.pattern.id))c.globalAlpha*=1-smooth(e.continuity.settledAge/.5);e.pattern.render(e,c);c.restore();if(e.phase==='active'||e.encounter.enabled&&e.continuity.bridge)drawAdvanced(e,c);}c.restore();
   for(const link of e.links){const [a,b]=linkEndpoints(link.a,link.b,link.strength);c.save();c.strokeStyle=link.active?'#d2afff':'#da91ff';c.shadowColor='#ba73ff';c.shadowBlur=link.active?16:0;c.lineWidth=link.active?3:1.5;if(!link.active)c.setLineDash([7,7]);line(c,a,b);if(link.active){c.strokeStyle='#f4dfff';c.lineWidth=1;c.beginPath();const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;for(let i=0;i<=18;i++){const f=i/18,j=i===0||i===18?0:Math.sin(i*2.4+link.age*52)*3;const x=a.x+dx*f-dy/len*j,y=a.y+dy*f+dx/len*j;i?c.lineTo(x,y):c.moveTo(x,y);}c.stroke();}if(e.hitboxes&&link.active){c.shadowBlur=0;c.strokeStyle='#fff6';c.lineWidth=6;line(c,a,b);}c.restore();}
-  for(const h of e.hazards){const warning=h.age<h.warn;c.save();c.strokeStyle=h.color;c.fillStyle=h.color;c.shadowColor=h.color;c.shadowBlur=warning?0:15;c.lineWidth=2;
+  for(const h of e.hazards){const warning=h.age<h.warn;c.save();if(h.floodFadeAge!==undefined)c.globalAlpha*=1-smooth(h.floodFadeAge/1.15);c.strokeStyle=h.color;c.fillStyle=h.color;c.shadowColor=h.color;c.shadowBlur=warning?0:15;c.lineWidth=2;
     if(h.motion?.kind==='spear'&&warning){const m=h.motion;if(m.anchor&&m.target){c.setLineDash([10,8]);c.globalAlpha=.25+.5*h.age/h.warn;c.lineWidth=14;line(c,m.anchor,m.target);c.lineWidth=2;c.strokeStyle='#ffe1ff';line(c,m.anchor,m.target);ring(c,m.target,22);}c.restore();continue;}
     if(h.motion?.kind==='edge-burst'&&h.motion.stage===1){c.translate(Math.sin(h.age*70)*3,Math.cos(h.age*65)*3);}
     if(h.visual){drawBulletVisual(c,h,e.hitboxes);c.restore();continue;}

@@ -87,7 +87,7 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit,storyPau
  const e=engine.current;
  // Match Chapter 2: complete the 1.35s blackout before showing yes/no.
  useEffect(()=>{
-  const defeated=!!engine.current?.gameOver&&!tests&&!storyPaused;
+  const defeated=!!engine.current&&engine.current.hp<=0&&!tests&&!storyPaused;
   if(!defeated){
    if(bossRetryTimerRef.current!==null){window.clearTimeout(bossRetryTimerRef.current);bossRetryTimerRef.current=null;}
    if(bossDeathFadeStarted)setBossDeathFadeStarted(false);
@@ -131,12 +131,12 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit,storyPau
   </div>}
   {e&&!tests&&!storyPaused&&<EncounterOverlay e={e} onNext={()=>act(advanceStoryDialogue)} onSkip={()=>act(e=>e.skip())} onRestart={retryBoss} onPractice={()=>openTests(true)} onContinue={e.encounter.preview?undefined:()=>callbacks.current.onComplete()}/>}
   {bossDeathFadeStarted&&!tests&&!storyPaused&&(
-   <div className="c3boss-death-overlay" role="presentation">
+   <div className="c3boss-death-overlay chapter1-combat-death-overlay" role="presentation">
     {bossRetryVisible&&<div className="chapterGamePauseOverlay chapterCombatRetryOverlay">
-     <section className="chapterGamePauseDialog chapter3WaveRetryDialog" role="dialog" aria-modal="true" aria-label="챕터 3 보스 전투 재도전 확인">
+     <section className="chapterGamePauseDialog" role="dialog" aria-modal="true" aria-label="전투 재도전 확인">
       <small>BOSS BATTLE</small>
       <h2>다시 도전하시겠습니까?</h2>
-      <p>보스 1페이즈의 처음부터 다시 시작합니다.</p>
+      <p>보스 1페이즈 진입부터 다시 시작합니다.</p>
       <div className="chapterGamePauseActions isConfirm">
        <button type="button" className="secondary" onClick={()=>callbacks.current.onExit()}>아니오</button>
        <button type="button" className="primary" onClick={retryBoss}>예</button>

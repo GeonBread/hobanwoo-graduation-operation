@@ -19,7 +19,7 @@ export type Entity = Vec & {
   age: number; warn: number; life: number; color: string; tag: string;
   trail: Vec[]; lane: number; hold: number; fired: boolean;
   hp?:number;petals?:number;rotation?:number;petalIndex?:number;petalTimer?:number;group?:number;vertex?:number;vertices?:number;origin?:Vec;seedFrom?:Vec;seedTarget?:Vec;
-  recycled?:boolean;edgeSeen?:boolean;portalCooldown?:number;
+  recycled?:boolean;edgeSeen?:boolean;portalCooldown?:number;floodFadeAge?:number;
   motion?:BulletMotion;
   visual?:'drop'|'shard'|'core'|'needle'|'spear';
 };

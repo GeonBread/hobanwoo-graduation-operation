@@ -4,6 +4,9 @@ import { drawHpBar, HP_BAR_WIDTH, HP_BAR_HEIGHT } from './hpBar';
 export type SwordPose=Vec&{angle:number};
 /** Maximum completed swings during one HP sword pattern. */
 export const swordStrikeLimit=(stage:number)=>stage>=3?6:stage>=2?5:4;
+export const swordHomeDuration=(stage:number)=>stage>=3?.58:stage>=2?.70:.9;
+export const swordTravelDuration=(stage:number)=>stage>=3?.53:stage>=2?.68:.9;
+export const swordAttackDuration=(stage:number,kind:number)=>kind===4?(stage>=3?.63:stage>=2?.78:1):(stage>=3?.43:stage>=2?.52:.72-stage*.045);
 export type Sword={a:Vec;b:Vec;angle:number;age:number;cycle:number;anchor:Vec;pose:SwordPose;from:SwordPose;state:'spawn'|'travel'|'warn'|'attack'|'recover'|'home';time:number;kind:number;preview:SwordPose[];trail:(SwordPose&{age:number})[]};
 export function freshSword():Sword{
  const pose={x:0,y:-418,angle:0};return {a:{x:-283,y:-418},b:{x:283,y:-418},angle:0,age:0,cycle:-1,anchor:{x:0,y:0},pose,from:{...pose},state:'spawn',time:0,kind:0,preview:[],trail:[]};
@@ -42,25 +45,25 @@ export function updateSword(e:Engine,dt:number){
   s.pose={x:0,y:-e.fieldH/2+62+115*smooth(s.time/1.1),angle:-.12*smooth(s.time/1.1)};
   if(s.time>=1.1)prepare(e);
  }else if(s.state==='travel'){
-  const to=swordPose(s,0),u=smooth(s.time/.9);let da=to.angle-s.from.angle;while(da>Math.PI)da-=Math.PI*2;while(da< -Math.PI)da+=Math.PI*2;
+  const to=swordPose(s,0),travel=swordTravelDuration(e.stage),u=smooth(s.time/travel);let da=to.angle-s.from.angle;while(da>Math.PI)da-=Math.PI*2;while(da< -Math.PI)da+=Math.PI*2;
   s.pose={x:s.from.x+(to.x-s.from.x)*u,y:s.from.y+(to.y-s.from.y)*u,angle:s.from.angle+da*u};
-  if(s.time>=.9){s.pose=to;s.state='warn';s.time=0;}
+  if(s.time>=travel){s.pose=to;s.state='warn';s.time=0;}
  }else if(s.state==='warn'){
-  if(s.time>=.85-e.stage*.06){s.state='attack';s.time=0;}
+  if(s.time>=(e.stage>=3?.36:e.stage>=2?.51:.85-e.stage*.06)){s.state='attack';s.time=0;}
  }else if(s.state==='attack'){
-  const duration=s.kind===4?1:.72-e.stage*.045,k=clamp(s.time/duration,0,1);s.pose=swordPose(s,k);
+  const duration=swordAttackDuration(e.stage,s.kind),k=clamp(s.time/duration,0,1);s.pose=swordPose(s,k);
   // Swept poses cover the actual movement even at a low frame rate.
   const delta=Math.abs(s.pose.angle-previous.angle),count=Math.max(1,Math.ceil((distance(s.pose,previous)+delta*285)/3));
   for(const body of e.bodies())for(let i=0;i<=count;i++){const u=i/count,pose={x:previous.x+(s.pose.x-previous.x)*u,y:previous.y+(s.pose.y-previous.y)*u,angle:previous.angle+(s.pose.angle-previous.angle)*u};if(swordContains(e.local(body),pose)){e.hit('디그리온 HP 검술',body);break;}}
   s.trail.push({...s.pose,age:0});e.shake=Math.max(e.shake,.025);
   if(k>=1){s.state='recover';s.time=0;}
  }else if(s.state==='home'){
-  const k=smooth(s.time/.9);let da=-s.from.angle;while(da>Math.PI)da-=Math.PI*2;while(da< -Math.PI)da+=Math.PI*2;
+  const k=smooth(s.time/swordHomeDuration(e.stage));let da=-s.from.angle;while(da>Math.PI)da-=Math.PI*2;while(da< -Math.PI)da+=Math.PI*2;
   s.pose={x:s.from.x*(1-k),y:s.from.y+(-418-s.from.y)*k,angle:s.from.angle+da*k};
   // Do not restart after the requested 4-6 attacks; hand the boss cue off
   // only after the visible HP bar has returned to its original position.
-  if(s.time>=.9&&s.cycle+1>=swordStrikeLimit(e.stage)&&e.phase==='active'&&!e.continuity.closing)e.finish();
- }else if(s.time>=.28){
+  if(s.time>=swordHomeDuration(e.stage)&&s.cycle+1>=swordStrikeLimit(e.stage)&&e.phase==='active'&&!e.continuity.closing)e.finish();
+ }else if(s.time>=(e.stage>=3?.16:e.stage>=2?.21:.28)){
   if(e.emitting&&s.cycle+1<swordStrikeLimit(e.stage))prepare(e);
   else{s.state='home';s.from={...s.pose};s.time=0;}
  }

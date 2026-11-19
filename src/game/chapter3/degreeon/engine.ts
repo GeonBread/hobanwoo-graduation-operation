@@ -1,7 +1,7 @@
 import {freshNativeWeapon,emitNativeShots,nativeFireInterval,nativeCanFire,moveNativeShot,shotDamage,isNativeBeam} from './nativeWeapon';
 import {bossMapSpeed,type BossMapStage} from '../../render/bossMapScroll';
 import {freshContinuity,requestHandoff,tickHandoff,beginBridge,tickBridge,bossTarget,tickBossPresence,playerFireAllowed} from './continuity';
-import {updateSupportMix,type SupportMixState} from './supportMix';
+import {updateSupportMix,minimumSupportCueTime,type SupportMixState} from './supportMix';
 import {freshEncounter,startEncounter,startStoryPreview,leaveEncounter,updateEncounter,storyCinematic,advanceEncounterCue,encounterDamage,encounterCueExpired,skipStoryScene} from './encounter';
 import type {StorySound} from './encounter';
 import {drawEncounterScene} from './encounterView';
@@ -32,7 +32,7 @@ export class Engine {
   nativeWeapon=freshNativeWeapon();linkFinishing=false;
   continuity=freshContinuity();bossVisibility=1;bossVisualSize=268;
   flightPresence=freshFlightPresence();
-  get emitting(){return !this.encounter.enabled||!this.continuity.closing;}
+  get emitting(){return !this.fluidDrainRequested&&(!this.encounter.enabled||!this.continuity.closing);}
   encounter=freshEncounter();supportMix:SupportMixState|null=null;supportLabSolo=false;playStorySound:(kind:StorySound)=>void=()=>{};
   onItemPickup:()=>void=()=>{};bossSupportTimer=6.5;bossSupportWaveSerial=0;
   startEncounter(practice=false){startEncounter(this,practice);}
@@ -66,7 +66,7 @@ export class Engine {
   autoFire=false; autoplay=false; speed=1; paused=false; hits=0; deaths=0; bossHits=0; cooldown=1;
   hp=MAX_HP; bombs=MAX_BOMBS; bossHpMax=240; bossHp=240; damageFlash=0; gameOver=false;
   smartBombActive=false; smartBombRadius=0; smartBombLimit=0; smartBombWorldOrigin:Vec={x:0,y:404};smartBombHitBoss=false;smartBombOrigin:Vec={x:CANVAS_CX,y:884}; bombParticles:BombParticle[]=[];
-  dead=0; split=0; flightV=0; lane=2; laneCooldown=0; shotTimer=0; bombCooldown=0; shake=0;
+  dead=0; split=0; flightV=0; flightGravityCueAge=0; fluidDrainRequested=false; lane=2; laneCooldown=0; shotTimer=0; bombCooldown=0; shake=0;
   cutPolygon:Vec[]=[];cutPieces:CutPiece[]=[];cutTelegraph:CutTelegraph|null=null;cutCount=0;cutLimit=0;cutTimer=0;
   tileDanger:number[]=[];tileSafe:number[]=[];tileRound=0;tileState:'idle'|'warning'|'blast'|'recover'='idle';tileTimer=0;
   bodyAnimClocks=[0,0,0];cloneShotTimers=[0,0];playerFacing=0;playerAnimClock=0;bossAnimClock=0;fluidWet=false;
@@ -116,7 +116,7 @@ export class Engine {
     this.continuity=freshContinuity();
     if(this.pattern?.id==='inspection'&&this.unseen.inspection.eyes.length)this.inspectionMemory={eyes:this.unseen.inspection.eyes.map(eye=>({angle:eye.angle,direction:eye.direction}))};
     this.pattern?.exit(this);this.index=i;this.pattern=this.patterns[i];this.stage=stage;this.supportMix=null;this.supportLabSolo=false;
-    this.flightPresence=freshFlightPresence(this.pattern.id==='flight');
+    this.flightPresence=freshFlightPresence(this.pattern.id==='flight');this.flightGravityCueAge=this.pattern.id==='flight'?0:2;this.fluidDrainRequested=false;
     this.finalStand=freshFinalStand();
     this.corridor=freshCorridor();this.fieldWarp=freshFieldWarp();
     this.pauseStorm=freshPauseStorm();this.menuDeception=freshMenuDeception();
@@ -156,7 +156,11 @@ export class Engine {
     if(this.attackLocked)return;
     if(this.phase==='outro'||this.phase==='restore')return;
     if(this.phase==='bombard'){this.log('폭격 완료 후 이동 예약');return;}
-    if(this.encounter.enabled&&this.phase==='active'&&!this.finalStand.started){requestHandoff(this);return;}
+    if(this.encounter.enabled&&this.phase==='active'&&!this.finalStand.started){if(this.t<minimumSupportCueTime(this))return;requestHandoff(this);return;}
+    if(this.pattern.id==='fluid'&&this.phase==='active'){
+      if(!this.fluidDrainRequested){this.fluidDrainRequested=true;this.log('오염액체 배수 시작 · 탄막 잔상 소멸');}
+      return;
+    }
     if(this.pattern.id==='pause-storm'&&this.phase==='active'){beginStormReturn(this);return;}
     if(isMenuDeception(this)&&this.phase==='active'){beginMenuReturn(this);return;}
     this.phase='outro';this.phaseTime=0;this.clearAttack();
@@ -276,6 +280,7 @@ export class Engine {
   }
   move(dt:number){
     if(this.storyInputLocked||this.dead>0)return;
+    if(this.pattern.id==='flight'&&this.flightGravityCueAge<2){this.flightV=0;return;}
     const dx=Number(this.keys.has('ArrowRight')||this.keys.has('d'))-Number(this.keys.has('ArrowLeft')||this.keys.has('a'));
     // Screen y increases downward. W/up must always move toward screen top.
     const screenY=Number(this.keys.has('ArrowDown')||this.keys.has('s'))-Number(this.keys.has('ArrowUp')||this.keys.has('w'));
@@ -413,6 +418,7 @@ export class Engine {
   }
   updateEntities(dt:number){
     for(const h of [...this.hazards]){
+      if(h.floodFadeAge!==undefined)h.floodFadeAge+=dt;
       let moveDt=dt,hd=0;
       // Warnings and flight have separate clocks; only the remaining real time moves the body.
       if(h.age<h.warn){
@@ -445,7 +451,7 @@ export class Engine {
             this.add({x:h.x,y:h.y,vx:Math.cos(a)*(90+this.random()*50),vy:Math.sin(a)*(90+this.random()*50),r:5,warn:0,life:3.5,tag:'오염 파편'});}
         }continue;
       }
-      if(bulletHarmless(h))continue;
+      if(bulletHarmless(h)||h.floodFadeAge!==undefined)continue;
       for(const b of this.bodies()){
         const p=this.local(b);
         const touch=h.motion?.kind==='spear'?segmentDistance(p,{x:h.x-(h.motion.direction?.x??0)*37,y:h.y-(h.motion.direction?.y??1)*37},{x:h.x+(h.motion.direction?.x??0)*37,y:h.y+(h.motion.direction?.y??1)*37})<h.r+PLAYER_HIT_RADIUS:h.kind==='rect'||h.kind==='rocket'?circleRect(p,PLAYER_HIT_RADIUS,h):h.kind==='spike'?this.spikeHit(p,h):distance(p,h)<h.r+PLAYER_HIT_RADIUS;
@@ -453,7 +459,7 @@ export class Engine {
       }
     }
     collectRecycledBullets(this);
-    this.hazards=this.hazards.filter(h=>h.age<h.warn+h.life&&Math.abs(h.x)<this.fieldW/2+180&&(h.group!==undefined?h.y<this.fieldH/2+250:Math.abs(h.y)<this.fieldH/2+200));
+    this.hazards=this.hazards.filter(h=>(h.floodFadeAge===undefined||h.floodFadeAge<1.15)&&h.age<h.warn+h.life&&Math.abs(h.x)<this.fieldW/2+180&&(h.group!==undefined?h.y<this.fieldH/2+250:Math.abs(h.y)<this.fieldH/2+200));
   }
   spikeHit(p:Vec,h:Entity){
     // Triangle tip follows sign(vx): use exact interior plus the 4px player-core edge distance.
@@ -514,6 +520,8 @@ export class Engine {
     const rotationAnchor=this.localPlayer();
     this.updateRotation(dt);
     this.player=this.screen(rotationAnchor);
+    // Start the full two-second gravity warning only after all rotation/bridge motion is over.
+    if(this.pattern.id==='flight'&&!this.rotation&&!this.continuity.bridge&&['intro','active'].includes(this.phase))this.flightGravityCueAge=Math.min(2,this.flightGravityCueAge+dt);
     if(this.fieldWarpEnabled&&!this.continuity.bridge){updateFieldWarp(this,dt);this.syncTimeZones();}
     if(this.dead>0){this.dead=Math.max(0,this.dead-playerDt);if(!this.dead&&this.hp<=0){this.gameOver=true;this.keys.clear();this.clearAttack();this.log('GAME OVER · R 또는 재시작 버튼으로 재도전');this.resolveSmartBomb();return;}}
     if(this.phase==='outro'&&this.pattern.id==='pause-storm')updateStormReturn(this,dt);
@@ -527,7 +535,7 @@ export class Engine {
     if(this.phase==='intro'&&this.encounter.enabled){this.updateEntities(dt);this.updateShots(dt);this.updateWorldActors(dt);updateSupports(this,dt);}
     if(this.phase==='intro'&&this.phaseTime>2.2&&!this.rotation&&!this.continuity.bridge){this.phase='active';this.phaseTime=0;this.player=this.pattern.id==='rhythm'?this.point(.5,1-100/this.fieldH):this.pattern.id==='flight'?this.screen({x:0,y:this.fieldH/6}):this.player;this.log('공격 개시 · 빗나간 탄은 폭격 자원으로 누적');}
     else if(this.phase==='active'&&(!this.rotation||this.rotationLive)){
-      this.t+=dt;this.beat-=bossDt;this.missTimer+=dt;updateSupportMix(this);
+      this.t+=this.pattern.id==='flight'&&this.flightGravityCueAge<2?0:dt;this.beat-=bossDt;this.missTimer+=dt;updateSupportMix(this);
       if(this.debtEnabled&&this.missTimer>=30&&!this.pendingBombard){this.pendingBombard=true;this.log('30초 경과 · 패턴 종료 후 폭격 예약');}
       if(!this.encounter.enabled&&['split8','tile-stream'].includes(this.pattern.id)){this.boss.x=0;this.boss.y=-this.fieldH/2+140;}
       else if(!this.encounter.enabled&&!isMenuDeception(this)&&!(this.combatPattern.id==='mirror'&&this.lasers.some(l=>l.age>=1.6)))this.boss.x+=(Math.sin(this.bossAnimClock*.65)*(this.pattern.id==='miss'?165:65)-this.boss.x)*(1-Math.exp(-bossDt*5));
@@ -537,6 +545,9 @@ export class Engine {
       if(this.pattern.id!=='exile'){this.updateShots(dt);this.updateEntities(dt);this.updateWorldActors(dt);}
       if(this.t>=this.pattern.duration||encounterCueExpired(this))this.finish();
       tickHandoff(this,dt);
+      if(this.pattern.id==='fluid'&&this.fluidDrainRequested&&this.fluidFill<.008&&!this.hazards.some(h=>h.tag==='유체 오염탄')){
+        this.phase='outro';this.phaseTime=0;this.clearAttack();this.log('배수 및 탄막 소멸 완료');
+      }
     }else if(this.phase==='active'&&this.rotation>0&&!this.rotationLive){
       // Boss attack clock may pause for orientation changes, but player Space
       // must keep firing during the visible live arena (unless explicitly locked).

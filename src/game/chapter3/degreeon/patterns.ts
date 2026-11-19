@@ -129,7 +129,7 @@ export const patterns:Pattern[]=[
     c.strokeStyle=mint;c.lineWidth=2;c.setLineDash([6,6]);c.beginPath();c.moveTo(-e.fieldW/2,e.fieldH/2-100);c.lineTo(e.fieldW/2,e.fieldH/2-100);c.stroke();c.setLineDash([]);
   }),
   make('flight','지오메트리 비행','GRAVITY FLIGHT','SPACE를 누르면 상승, 떼면 하강합니다. 천장과 바닥도 위험합니다.',1,['부드러운 상승 / 하강','가속 증가','오염 장애물 교차','가시와 좁은 통로'],28,e=>{
-    if(!e.emitting||e.beat>0)return;e.beat=2.35-e.stage*.12;
+    if(!e.emitting||e.flightGravityCueAge<2||e.beat>0)return;e.beat=2.35-e.stage*.12;
     const gap=135-e.stage*10,center=Math.sin(e.counter*.95)*115;
     // Local x is screen y after the quarter turn; local y advances right → left.
     const upper=-e.fieldW/2,lower=e.fieldW/2;
@@ -180,10 +180,10 @@ export const patterns:Pattern[]=[
     e.links=e.links.filter(l=>l.strength>0||l.age<.1);
   }),
   make('rockets','외곽 로켓','PERIMETER ROCKETS','대형 로켓이 쉬지 않고 연속 발사됩니다. 외곽 예고선과 교차 탄도를 확인하세요.',0,['한 방향 로켓','반대편 로켓','수평 / 수직 교차','외곽 교대 공격'],28,e=>{
-    if(!e.emitting||e.beat>0)return;e.beat=.32-e.stage*.04;
+    if(!e.emitting||e.beat>0)return;e.beat=e.stage>=2?(e.stage===3?.70:.78):.32-e.stage*.04;
     const side=e.stage===0?0:e.counter%4;
     const limit=side%2===0?e.fieldW:e.fieldH;rocket(e,side,(e.random()-.5)*(limit-90));
-    if(e.stage>=2){const s=(side+2)%4;rocket(e,s,(e.random()-.5)*(limit-90));}e.counter++;
+    if(e.stage>=2&&e.counter%3===0){const s=(side+2)%4;rocket(e,s,(e.random()-.5)*(limit-90));}e.counter++;
   }),
   make('mirror','거울 레이저','MIRROR REFLECTION','점선 전체가 발사 경로입니다. 레이저는 보스 쪽부터 순서대로 사라집니다.',0,['레이저 1개 / 반사','레이저 2개 / 부채꼴','레이저 3개 / 부채꼴','세 갈래 반사 회피'],30,(e,dt)=>{
     if(e.emitting&&e.beat<=0){e.beat=7.5;e.lasers.push({age:0,aim:0,paths:[],count:Math.min(3,e.stage+1),fired:false,lastReflect:0,reflections:[],headTime:0,tailTime:0});e.log(`거울 조준 · ${Math.min(3,e.stage+1)}개 / 최대 5회 반사`);}
@@ -213,6 +213,8 @@ export const patterns:Pattern[]=[
   },drawTilePattern,e=>{const size=e.gridSize();e.fieldW=size.w;e.fieldH=size.h;e.tileCols=Math.max(3,Math.round(e.fieldW/280));e.tileRows=Math.max(3,Math.round(e.fieldH/280));if(!e.encounter.enabled)e.boss={x:0,y:-e.fieldH/2+140};e.tileRound=0;e.tileState='recover';e.tileTimer=.85;e.tileDanger=[];e.tileSafe=[];}),
   make('fluid','오염 액체 범람','CORRUPTION FLUID','차오르는 오염 액체로 떨어집니다. 입수 후 방향키로 몸을 돌려 헤엄치세요.',0,['액체 상승 / 저항 학습','기울기와 흐름 변화','360° 회전 유체','양방향 회전 / 정지 / 사방 탄막'],34,(e,dt)=>{
     const full=Math.min(1,.9+e.stage*.015),target=e.emitting?clamp(.08+e.t*.135,.08,full):0;e.fluidFill+=(target-e.fluidFill)*Math.min(1,dt*3.9);
+    // Only when the water starts to drain, fade every flood projectile as a group.
+    if(!e.emitting&&e.fluidFill<full-.025)for(const h of e.hazards){if(h.tag==='유체 오염탄'&&h.floodFadeAge===undefined)h.floodFadeAge=0;}
     const rotationAnchor=e.localPlayer();
     if(e.emitting)e.angle=fluidRotationAt(e.t,e.stage);
     e.player=e.screen(rotationAnchor);
@@ -236,7 +238,7 @@ export const patterns:Pattern[]=[
       for(let i=0;i<count;i++){const side=(e.counter+i%4)%4;spawn(side,(i-(count-1)/2)*.075);}
       e.counter++;
     }
-    if(e.fluidAttackStarted&&e.fluidAttackAge>=e.fluidAttackGoal)e.finish();
+    if(e.fluidAttackStarted&&e.fluidAttackAge>=e.fluidAttackGoal&&e.emitting)e.finish();
   },drawFluid,e=>{e.fieldW=CANVAS_W;e.fieldH=CANVAS_H;e.fluidFill=.05;e.fluidPlayerV={x:0,y:0};e.fluidHeading=0;e.fluidThrottle=0;e.fluidFlow={x:0,y:25};e.fluidAttackStarted=false;e.fluidAttackAge=0;e.fluidAttackGoal=10;e.boss={x:0,y:-230};})
   ,...advancedPatterns,...menuDeceptionPatterns,...normalBulletPatterns,...corridorPatterns,finalStandPattern,pauseStormPattern,graduationStampPattern,pathFoldPattern,recyclePattern,...unseenPatterns,...fieldTrickPatterns,...extraNormalPatterns,tileStreamPattern
 ];

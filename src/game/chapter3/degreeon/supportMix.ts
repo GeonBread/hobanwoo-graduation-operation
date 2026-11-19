@@ -63,6 +63,8 @@ export function rollSupportMix(random:()=>number,phase:MixPhase,normalId:string,
   entries[1].at=0;entries[0].at=1.55+random()*1.65;
   entries.sort((x,y)=>x.at-y.at);
  }
+ // Give the spatial effects at least five seconds before cue handoff.
+ for(const entry of entries)if(['time','magnet','portals'].includes(entry.id))entry.at=Math.min(entry.at,1.65);
  return {phase,normalId,entries,required:[...required]};
 }
 
@@ -75,12 +77,38 @@ export function activateSupport(e:Engine,id:string){
  e.log(`랜덤 보조 공격 발동 · ${id} + ${e.pattern.name}`);
 }
 
+/** On the first returned salvo, switch to another compatible support; never recycle twice. */
+export function advanceRecycleSupport(e:Engine){
+ if(e.pattern.id==='recycle'){
+  const next=e.patterns.findIndex(p=>p.id==='portals'&&p.category==='support');
+  if(next>=0){e.queuedIndex=next;e.queuedStage=e.stage;}
+  e.finish();return;
+ }
+ e.selectedSupports.delete('recycle');
+ if(e.supportMix){
+  e.supportMix.required=e.supportMix.required.filter(id=>id!=='recycle');
+  e.supportMix.entries=e.supportMix.entries.filter(entry=>entry.id!=='recycle');
+ }
+ const chosen=new Set(e.selectedSupports);
+ const options=compatibleSupports(e.encounter.enabled?e.encounter.phase:2,e.pattern.id).filter(id=>id!=='recycle'&&!chosen.has(id));
+ if(!options.length)return;
+ const next=options[Math.floor(e.random()*options.length)];activateSupport(e,next);
+ if(e.supportMix)e.supportMix.entries.push({id:next,at:e.t,active:true});
+ e.log(`재활용 종료 · 다음 보조 공격 ${next}`);
+}
+
 /** Install after Engine.begin(), which resets the arena and the support state. */
 export function installSupportMix(e:Engine,plan:SupportMixState){
  e.supportMix=plan;
  for(const entry of plan.entries){if(entry.at>0)continue;activateSupport(e,entry.id);entry.active=true;}
  const chosen=[...plan.required,...plan.entries.map(x=>x.id)];
  e.log(`일반 공격 무작위 보조 조합 · ${plan.normalId} + ${chosen.length?chosen.join(' / '):'없음'}`);
+}
+
+export function minimumSupportCueTime(e:Engine){
+ const entries=e.supportMix?.entries??[];
+ const timed=[...entries.filter(x=>['time','magnet','portals'].includes(x.id)).map(x=>x.at+5.25),...(Array.from(e.supportMix?.required??[]).filter(x=>['time','magnet','portals'].includes(x)).map(()=>5.25))];
+ return Math.max(0,...timed);
 }
 
 /** The second helper joins a running normal attack at its randomized offset. */

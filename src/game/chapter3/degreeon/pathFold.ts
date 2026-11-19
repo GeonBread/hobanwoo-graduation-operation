@@ -61,7 +61,7 @@ export function renderPathFold(e:Engine,c:CanvasRenderingContext2D){
    c.strokeStyle=s.phase==='warn'?'#ffe9ad':'#bff8ff';c.lineWidth=3.2;for(const side of [-1,1])line(c,{x:a.x+n.x*TRACE_HALF_WIDTH*side,y:a.y+n.y*TRACE_HALF_WIDTH*side},{x:b.x+n.x*TRACE_HALF_WIDTH*side,y:b.y+n.y*TRACE_HALF_WIDTH*side});c.setLineDash([]);
    if(s.phase==='warn'&&!cleared){const k=clamp(s.age/TRACE_WARN_TIME,0,1),zig=6+10*k;for(const side of [-1,1]){c.beginPath();const steps=Math.max(3,Math.ceil(len/22));for(let j=0;j<=steps;j++){const t=j/steps,px=a.x+dx*t+n.x*TRACE_HALF_WIDTH*side,py=a.y+dy*t+n.y*TRACE_HALF_WIDTH*side,offset=(j%2?1:-1)*zig*(1-k);j?c.lineTo(px+n.x*offset,py+n.y*offset):c.moveTo(px+n.x*offset,py+n.y*offset);}c.strokeStyle='#f8d7ff';c.lineWidth=1.6;c.stroke();}}continue;
   }
-  const opacity=s.phase==='rest'?1-smooth(s.age/.5):1-smooth((age-.18)/.58);if(opacity<=0)continue;c.globalAlpha=opacity*(cleared?.14:1);
+  const opacity=(1-smooth((age-.18)/.58))*(s.phase==='rest'?1-smooth(s.age/.5):1);if(opacity<=0)continue;c.globalAlpha=opacity*(cleared?.14:1);
   const close=smooth(age/.16),gap=TRACE_HALF_WIDTH*(1-close);
   for(const side of [-1,1]){
    const inner=gap*side,outer=(TRACE_HALF_WIDTH+18)*side;
