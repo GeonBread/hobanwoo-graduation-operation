@@ -1434,7 +1434,7 @@ function scenarioHitsPlayer(engine) {
         return;
     for (const o of scenarioObjects) {
         if (!o.alive) continue;
-        if (o.kind==='paintMark' && o.t>=o.warn && o.t<o.life) {
+        if (o.kind==='paintMark' && o.fadeStart==null && o.t>=o.warn && o.t<o.life) {
             if (scenarioPolylineHit(scenarioVisiblePaintPoints(o),player.x,player.y,o.width/2 + player.r*.48)) {
                 damageChapter2Player(engine);return;
             }
@@ -1771,14 +1771,20 @@ function scenarioGalagaDrone(e,dt) {
     const p=scenarioCatmull(pts,timeInLoop/15*pts.length);
     e.x=p.x;e.y=p.y;
     if (currentWaveIndex===10) {
-        const fullyOutside=e.x < -e.r || e.x > W+e.r || e.y < -e.r || e.y > H+e.r;
-        if (e.data.galagaHasEntered && fullyOutside) {
-            // Start immediately on the incoming top edge; avoid long off-screen orbit.
-            e.data.galagaAge=1.1;
-            const entry=scenarioCatmull(pts,1.1/15*pts.length);
-            e.x=clamp(entry.x,150,W-150);e.y=Math.max(-e.r+4,Math.min(95,entry.y));
+        // Detect the WHOLE sprite leaving, not just its small collision circle.
+        const [spriteW,spriteH]=monsterBox('drone');
+        const scale=e.data.visualScale||1;
+        const fullyOutside=e.x<-(spriteW*scale/2+10) || e.x>W+spriteW*scale/2+10
+            || e.y<-(spriteH*scale/2+10) || e.y>H+spriteH*scale/2+10;
+        if(e.data.galagaHasEntered && fullyOutside) {
+            // The old restart at 1.1 s placed the drone *inside* the screen
+            // and visibly teleported it. Rejoin the same spline at an entirely
+            // off-screen point (~0.35 s), only ~0.5 s from the visible entry.
+            e.data.galagaAge=.35;
+            const entry=scenarioCatmull(pts,.35/15*pts.length);
+            e.x=entry.x;e.y=entry.y;
             e.data.galagaHasEntered=false;
-        } else if (!fullyOutside) {
+        } else if(!fullyOutside) {
             e.data.galagaHasEntered=true;
         }
     }
@@ -2082,7 +2088,7 @@ function scenarioHybridLineHighlighter(e, dt) {
         e.data.bodyAngle = l.angle;
         const segLen = Math.hypot(e.x - prevX, e.y - prevY);
         if (segLen > 1)
-            trails.push({ kind: 'highlightStroke', batchId: e.data.batchId, x1: prevX, y1: prevY, x2: e.x, y2: e.y, t: 0, life: 999, fadeStart: null, r: 20 + rnd(-2.5, 2.5), alpha: .76, seed: Math.random() * 10 });
+            trails.push({ kind: 'highlightStroke', owner: e, batchId: e.data.batchId, x1: prevX, y1: prevY, x2: e.x, y2: e.y, t: 0, life: 999, fadeStart: null, r: 20 + rnd(-2.5, 2.5), alpha: .76, seed: Math.random() * 10 });
         if (e.data.progress >= l.len) {
             e.data.stroke = (e.data.stroke || 0) + 1;
             if (e.data.stroke >= 3) {
@@ -2162,13 +2168,16 @@ function scenarioMakeShapeRushPath(e) {
 function scenarioDrawShapeRush(o) {
     const phase = o.phase || 'drawing';
     let pts = [];
-    if (phase === 'drawing')
+    if (phase === 'fade')
+        pts = o.fadePoints || scenarioVisiblePaintPoints(o);
+    else if (phase === 'drawing')
         pts = scenarioVisiblePaintPoints(o);
     else
         pts = scenarioShiftPoints(o.points, o.moveX || 0, o.moveY || 0);
     if (!pts || pts.length < 2)
         return;
     const alpha = phase === 'charge' ? .95 : phase === 'armed' ? .86 : .76;
+    const fade = o.fadeStart == null ? 1 : clamp(1-(o.t-o.fadeStart)/(o.fadeDuration||1.4),0,1);
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -2179,7 +2188,7 @@ function scenarioDrawShapeRush(o) {
     if (phase === 'drawing') {
         ctx.lineWidth = o.width + 8;
         ctx.strokeStyle = '#fff2ad';
-        ctx.globalAlpha = .18;
+        ctx.globalAlpha = fade * .18;
         ctx.setLineDash([10, 14]);
         ctx.stroke();
         ctx.setLineDash([]);
@@ -2192,7 +2201,7 @@ function scenarioDrawShapeRush(o) {
         const pulse = .74 + .26 * Math.sin(time * 12 + o.id);
         ctx.lineWidth = o.width * 1.72;
         ctx.strokeStyle = o.color;
-        ctx.globalAlpha = .16 * pulse;
+        ctx.globalAlpha = fade * .16 * pulse;
         ctx.stroke();
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
@@ -2201,7 +2210,7 @@ function scenarioDrawShapeRush(o) {
         ctx.lineWidth = Math.max(4, o.width * .17);
         ctx.strokeStyle = '#fff6cc';
         ctx.setLineDash([14, 10]);
-        ctx.globalAlpha = .75 * pulse;
+        ctx.globalAlpha = fade * .75 * pulse;
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.beginPath();
@@ -2212,7 +2221,7 @@ function scenarioDrawShapeRush(o) {
     if (phase === 'charge') {
         ctx.lineWidth = o.width * 1.65;
         ctx.strokeStyle = o.color;
-        ctx.globalAlpha = .20;
+        ctx.globalAlpha = fade * .20;
         ctx.stroke();
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
@@ -2221,7 +2230,7 @@ function scenarioDrawShapeRush(o) {
     }
     ctx.lineWidth = o.width;
     ctx.strokeStyle = o.color;
-    ctx.globalAlpha = alpha;
+    ctx.globalAlpha = fade * alpha;
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
@@ -2229,7 +2238,7 @@ function scenarioDrawShapeRush(o) {
         ctx.lineTo(pts[i].x, pts[i].y);
     ctx.lineWidth = Math.max(2.4, o.width * .12);
     ctx.strokeStyle = '#fffef3';
-    ctx.globalAlpha = .24 + (phase === 'armed' ? .18 : 0);
+    ctx.globalAlpha = fade * (.24 + (phase === 'armed' ? .18 : 0));
     ctx.stroke();
     ctx.restore();
 }
@@ -2855,7 +2864,7 @@ function scenarioLineGridHighlighter(e, dt) {
         e.y = baseY + ny * wobble;
         e.data.bodyAngle = line.angle;
         if (Math.hypot(e.x - prevX, e.y - prevY) > 1) {
-            trails.push({ kind: 'highlightStroke', batchId: e.data.batchId,
+            trails.push({ kind: 'highlightStroke', owner: e, batchId: e.data.batchId,
                 x1: prevX, y1: prevY, x2: e.x, y2: e.y, t: 0, life: 999,
                 fadeStart: null, r: 20 + rnd(-2.5, 2.5), alpha: .76,
                 seed: Math.random() * 10 });
@@ -3089,6 +3098,10 @@ function scenarioUpdateNewObject(o,dt) {
         return true;
     }
     if(o.kind==='shapeRush') {
+        if(o.phase==='fade') {
+            if(o.t>=o.life)o.alive=false;
+            return true;
+        }
         if(o.phase==='armed') {
             o.hold=Math.max(0,(o.hold||0)-dt);
             if(o.hold<=0) {
@@ -3132,14 +3145,16 @@ function scenarioDrawPaint(o) {
     const warning=o.t<o.warn;
     const partial=warning && !o.splitBarrier ? o.points : scenarioVisiblePaintPoints(o);
     if(partial.length<2)return;
-    const alpha=o.finished?clamp((o.life-o.t)/.55,0,1):1;
+    const alpha=o.fadeStart!=null
+        ? clamp(1-(o.t-o.fadeStart)/(o.fadeDuration||1.4),0,1)
+        : (o.finished?clamp((o.life-o.t)/.55,0,1):1);
     ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
     ctx.beginPath();ctx.moveTo(partial[0].x,partial[0].y);
     for(let i=1;i<partial.length;i++)ctx.lineTo(partial[i].x,partial[i].y);
     if(warning) {
         // A low-opacity PREVIEW only: damage and colored paint come afterwards.
         ctx.lineWidth=o.width+7;ctx.strokeStyle='#ffe8a1';
-        ctx.globalAlpha=.16+.16*Math.abs(Math.sin(o.t*13));
+        ctx.globalAlpha=alpha*(.16+.16*Math.abs(Math.sin(o.t*13)));
         ctx.setLineDash([10,15]);ctx.stroke();ctx.setLineDash([]);
     } else {
         ctx.lineWidth=o.width*1.55;ctx.strokeStyle=o.color;ctx.globalAlpha=alpha*.15;ctx.stroke();
@@ -3785,7 +3800,7 @@ function updateEnemy(e, dt) {
             e.data.bodyAngle = l.angle;
             const segLen = Math.hypot(e.x - prevX, e.y - prevY);
             if (segLen > 1) {
-                trails.push({ kind: "highlightStroke", batchId: e.data.batchId, x1: prevX, y1: prevY, x2: e.x, y2: e.y, t: 0, life: 999, fadeStart: null, r: 20 + rnd(-2.5, 2.5), alpha: .76, seed: Math.random() * 10 });
+                trails.push({ kind: "highlightStroke", owner: e, batchId: e.data.batchId, x1: prevX, y1: prevY, x2: e.x, y2: e.y, t: 0, life: 999, fadeStart: null, r: 20 + rnd(-2.5, 2.5), alpha: .76, seed: Math.random() * 10 });
             }
             if (e.data.progress >= l.len) {
                 e.data.stroke++;
@@ -4391,12 +4406,31 @@ function destroyEnemy(enemy) {
     addEffect("pulse", enemy.x, enemy.y, { life: 0.48, r: enemy.r * 0.75, color });
     shake = Math.max(shake, enemy.clearTarget ? 9 : 5);
     if (enemy.type === "highlighter") {
+        // Freehand strokes and the scene-object paint marks are separate systems.
+        // Fade ALL strokes painted by this monster, not only its newest batch.
         for (const trail of trails) {
-            if (trail.kind === "highlightStroke" && trail.batchId === enemy.data.batchId) {
-                trail.fadeStart = trail.t;
-                trail.life = Math.min(trail.life, trail.t + 1.65);
+            if (trail.kind !== "highlightStroke" ||
+                (trail.owner !== enemy && trail.batchId !== enemy.data.batchId)) continue;
+            if (trail.fadeStart == null) trail.fadeStart = trail.t;
+            trail.life = Math.min(trail.life, trail.t + 1.4);
+        }
+        for (const mark of scenarioObjects) {
+            if (!mark.alive || mark.owner !== enemy ||
+                (mark.kind !== 'paintMark' && mark.kind !== 'shapeRush')) continue;
+            if (mark.fadeStart != null) continue;
+            mark.fadeStart = mark.t;
+            mark.fadeDuration = 1.4;
+            mark.life = Math.min(mark.life, mark.t + mark.fadeDuration);
+            if (mark.kind === 'paintMark') mark.finished = true;
+            else {
+                // Preserve the exact visible segment/charge position when killed.
+                mark.fadePoints = mark.phase === 'drawing'
+                    ? scenarioVisiblePaintPoints(mark)
+                    : scenarioShiftPoints(mark.points, mark.moveX || 0, mark.moveY || 0);
+                mark.phase = 'fade';
             }
         }
+        enemy.data.paintRef = null;
     }
 }
 function damageChapter2Player(engine: any) {

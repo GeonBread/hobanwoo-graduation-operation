@@ -98,7 +98,7 @@ export function updatePlayerMovementRespawnAndSatelliteSystem(engine: PlayerRunt
   if (engine.storyPurificationExitActive) {
     // 정화 이펙트는 React 오버레이 단계에서 끝까지 재생한 뒤 이 상태를 시작한다.
     const holdDuration = 0.0;
-    const riseDuration = 1.25;
+    const riseDuration = engine.storyPurificationExitDuration || 1.25;
     engine.storyPurificationExitElapsed += dt;
     engine.input.up = false;
     engine.input.down = false;
@@ -122,6 +122,10 @@ export function updatePlayerMovementRespawnAndSatelliteSystem(engine: PlayerRunt
     }
     return;
   }
+
+  // Once the victory sprite has fully left, do not run regular movement,
+  // which would clamp its off-screen Y coordinate to zero on the next frame.
+  if (engine.storyPlayerHidden) return;
 
   if (engine.state === "BOSSPHASE2CUTSCENE" || engine.state === "BOSSPHASE3CUTSCENE") {
     engine.player.invulnTimer = 1.0; // Stay completely shielded (can still move and control since we don't return early!)

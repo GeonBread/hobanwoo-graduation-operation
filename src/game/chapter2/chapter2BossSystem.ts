@@ -82,10 +82,9 @@ function clearCombatObjects(engine: any): void {
 function completeBoss(engine: any, runtime: Chapter2BossRuntime): void {
   if (!runtime.active || runtime.completeNotified) return;
   runtime.completeNotified = true;
-  runtime.active = false;
-  engine.bossActive = false;
-  engine.bossEntity = null;
-  engine.bossPhase2Active = false;
+  // Keep the cleared boss runtime/render loop alive under the first second
+  // of blackout. Disposing it here replaced the scrolling field with a still.
+  // React unmounts the boss canvas only after full black is reached.
   clearCombatObjects(engine);
   engine.state = "PLAYING";
   if (typeof engine.awardScore === "function") engine.awardScore(12000);
@@ -129,6 +128,8 @@ function syncBossEntity(engine: any, runtime: Chapter2BossRuntime): void {
 }
 
 function clampPlayerToBossViewport(engine: any, runtime: Chapter2BossRuntime): void {
+  // The victory fly-out intentionally passes above y=0; do not clamp it back.
+  if (engine.storyPurificationExitActive || engine.storyPlayerHidden) return;
   const core = runtime.core;
   if (!core) return;
   const projection = getChapter2BossViewportProjection(engine.canvas);
@@ -395,6 +396,11 @@ export function updateChapter2BossSystem(engine: any, dt: number): void {
   runtime.core.update(dt);
   if (!runtime.active) return;
   const nextHud = runtime.core.getHudState() as Chapter2BossHudState;
+  if (nextHud.clearStage === "clear" && previousHud.clearStage !== "clear") {
+    // Boss body is now completely outside; the player follows it upward
+    // during the existing one-second clear stage, before the fade begins.
+    engine.beginChapter1PurificationExit(0.92);
+  }
   if ((!previousHud.cinematic && !!nextHud.cinematic) || (!previousHud.clearStage && !!nextHud.clearStage)) {
     clearChapter2BossSupportObjects(engine);
   }

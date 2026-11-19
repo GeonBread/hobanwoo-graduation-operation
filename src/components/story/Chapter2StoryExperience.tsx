@@ -232,7 +232,6 @@ export function Chapter2StoryExperience({
   const [combatRetryPromptVisible, setCombatRetryPromptVisible] = useState(false);
   const [waveRunKey, setWaveRunKey] = useState(0);
   const [bossRunKey, setBossRunKey] = useState(0);
-  const [bossFinalFrame, setBossFinalFrame] = useState<string | null>(null);
 
   const resumeIndex = useMemo(() => {
     if (resumeCheckpoint?.kind !== "story" || resumeCheckpoint.chapter !== 2) return null;
@@ -893,15 +892,9 @@ export function Chapter2StoryExperience({
     if (bossTimerRef.current !== null) return;
     setBossControlCommand(null);
     setShowJumpMenu(false);
-    // Hold the final boss canvas underneath the 1-second fade, rather than
-    // exposing a blank/unmounted combat canvas on the transition frame.
-    try {
-      const canvas = document.querySelector<HTMLCanvasElement>('.chapter2-story-experience canvas');
-      setBossFinalFrame(canvas?.toDataURL('image/png') || null);
-    } catch {
-      setBossFinalFrame(null);
-    }
-    // Boss core calls onComplete one second after the body fully exits the viewport.
+    // The boss core signals completion after its one-second player exit.
+    // Keep the live combat canvas mounted through the opacity animation;
+    // a toDataURL freeze would stop the scrolling map during blackout.
     sfx.fadeOutBgm(1000);
     setPhase("boss-blackout");
     bossTimerRef.current = window.setTimeout(() => {
@@ -1002,12 +995,12 @@ export function Chapter2StoryExperience({
         </React.Fragment>
       )}
 
-      {phase === "boss" && (
+      {(phase === "boss" || phase === "boss-blackout") && (
         <React.Fragment key={`chapter2-boss-run-${bossRunKey}`}>
           {renderBossCombat?.({
             startPatternId: bossStartPatternId,
             controlCommand: bossControlCommand,
-            inputEnabled: !combatFailure,
+            inputEnabled: phase === "boss" && !combatFailure,
             onComplete: finishBossCombat,
             onFailed: failBossCombat,
             onExitToMenu: exitBossCombat,
@@ -1139,10 +1132,6 @@ export function Chapter2StoryExperience({
           <div className="chapter1-wave-purification-ring ring-b" />
           <div className="chapter1-wave-purification-core" />
         </div>
-      )}
-
-      {phase === "boss-blackout" && bossFinalFrame && (
-        <img className="chapter2-boss-freeze-frame" src={bossFinalFrame} alt="" aria-hidden="true" />
       )}
 
       {(phase === "wave-blackout" || phase === "boss-blackout" || phase === "boss-return") && (

@@ -244,6 +244,7 @@ export class GameEngine implements GameEngineRuntimeContext {
   storyPurificationExitActive: boolean = false;
   storyPurificationExitElapsed: number = 0;
   storyPurificationExitStartY: number = 0;
+  storyPurificationExitDuration: number = 1.25;
   storyPlayerHidden: boolean = false;
   private storyAdjustedBullets: WeakSet<Bullet> = new WeakSet();
   private storyAdjustedEnemies: WeakSet<Enemy> = new WeakSet();
@@ -576,8 +577,9 @@ export class GameEngine implements GameEngineRuntimeContext {
    * 챕터 1 정화 완료 연출에서 현재 호반우 위치를 시작점으로 상승 이탈 상태를 시작한다.
    * 실제 이동은 플레이어 업데이트 시스템이 담당하며, 연출 중에는 조작과 사격을 차단한다.
    */
-  public beginChapter1PurificationExit() {
+  public beginChapter1PurificationExit(riseDuration = 1.25) {
     this.storyPurificationExitActive = true;
+    this.storyPurificationExitDuration = riseDuration;
     this.storyPurificationExitElapsed = 0;
     this.storyPurificationExitStartY = this.player.y;
     this.storyPlayerHidden = false;
