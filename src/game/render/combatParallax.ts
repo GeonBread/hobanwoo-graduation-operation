@@ -14,9 +14,9 @@ export const PARALLAX_PROFILES: Record<ParallaxScene, readonly LaneConfig[]> = {
     {id:'purification',assets:[asset('wave12/purification_1.png'),asset('wave12/purification_2.png')],speed:[19,43],opacity:[1,1]},
   ],
   wave3: [
-    {id:'night-cloud',assets:[1,2,3].map(n=>asset(`wave3/cloud_${n}.png`)),speed:[14,19],opacity:[.72,.82]},
-    {id:'near-night-cloud',assets:[1,2,3].map(n=>asset(`wave3/cloud_${n}.png`)),speed:[29,40],opacity:[.66,.76],chance:.5,duration:[16,27],gap:[8,17],exclude:'night-cloud'},
-    {id:'corruption',assets:[asset('wave3/corruption.png')],speed:[25,46],opacity:[.6,.78],chance:.7,duration:[20,35],gap:[9,19]},
+    {id:'night-cloud',assets:[1,2,3].map(n=>asset(`wave3/cloud_${n}.png`)),speed:[14,14],opacity:[.72,.82]},
+    {id:'near-night-cloud',assets:[1,2,3].map(n=>asset(`wave3/cloud_${n}.png`)),speed:[24,24],opacity:[.66,.76],chance:.5,duration:[16,27],gap:[8,17],exclude:'night-cloud'},
+    {id:'corruption',assets:[asset('wave3/corruption.png')],speed:[19,43],opacity:[.6,.78],chance:.7,duration:[20,35],gap:[9,19]},
   ],
   boss2: [
     {id:'boss-cloud',assets:[asset('boss2/cloud_1.png'),asset('boss2/cloud_2.png')],speed:[133,164],opacity:[.68,.82],chance:.8,duration:[18,32],gap:[7,15]},

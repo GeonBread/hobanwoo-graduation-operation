@@ -26,6 +26,8 @@ type Chapter3BridgeMessage = {
     segmentId?: string;
     waveIndex?: number;
     totalWaves?: number;
+    purificationExit?: boolean;
+    single?: boolean;
     hp?: number;
     maxHp?: number;
     bombs?: number;
@@ -316,6 +318,10 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
   const [waveFailed, setWaveFailed] = useState(false);
   const [waveRetryPromptVisible, setWaveRetryPromptVisible] = useState(false);
   const waveRetryPromptTimerRef = useRef<number | null>(null);
+  const [waveExitPhase, setWaveExitPhase] = useState<"fade-in" | "hold" | "fade-out" | null>(null);
+  const waveExitTimersRef = useRef<number[]>([]);
+  const waveExitRunningRef = useRef(false);
+  const waveExitWaitingForReadyRef = useRef(false);
   const finalCreditsTimerRef = useRef<number | null>(null);
   const finalCreditsActiveRef = useRef(false);
   const [finalCreditsActive, setFinalCreditsActive] = useState(false);
@@ -356,6 +362,9 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
       finalCreditsTimerRef.current = null;
     }
     finalCreditsActiveRef.current = false;
+    waveExitTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    waveExitTimersRef.current = [];
+    waveExitRunningRef.current = false;
   }, []);
 
   useEffect(() => {
@@ -521,7 +530,32 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
     resetStoryFramePresentation();
   };
 
-  const returnToSelector = () => {
+  const clearWaveExitTransition = () => {
+    waveExitTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    waveExitTimersRef.current = [];
+    waveExitRunningRef.current = false;
+    waveExitWaitingForReadyRef.current = false;
+    setWaveExitPhase(null);
+  };
+  const finishWaveExitFadeOut = () => {
+    if (!waveExitRunningRef.current) return;
+    waveExitWaitingForReadyRef.current = false;
+    setWaveExitPhase("fade-out");
+    waveExitTimersRef.current.push(window.setTimeout(() => {
+      waveExitRunningRef.current = false;
+      waveExitTimersRef.current = [];
+      setWaveExitPhase(null);
+    }, 1000));
+  };
+
+  // Keep an already-loaded story scene underneath the fade. On checkpoint resume,
+  // wait until the newly mounted story iframe reports ready before revealing it.
+  useEffect(() => {
+    if (waveExitPhase === "hold" && waveExitWaitingForReadyRef.current &&
+        screen === "story" && ready) finishWaveExitFadeOut();
+  }, [waveExitPhase, screen, ready]);
+
+  const returnToSelectorCore = () => {
     restoreStoryFrameForStory();
 
     if (isChapter3OwnedBgm(sfx.currentBgmTrack)) sfx.stopBgm();
@@ -542,7 +576,13 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
     setShowJumpMenu(true);
   };
 
-  const prepareStoryLaunch = (launch: StoryLaunch, testJump = true) => {
+  const returnToSelector = () => {
+    clearWaveExitTransition();
+    returnToSelectorCore();
+  };
+
+  const prepareStoryLaunch = (launch: StoryLaunch, testJump = true, preserveWaveExit = false) => {
+    if (!preserveWaveExit) clearWaveExitTransition();
     restoreStoryFrameForStory();
     clearFinalCreditsTimer();
     finalCreditsActiveRef.current = false;
@@ -569,6 +609,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
   const launchBossFlow = () => prepareStoryLaunch({ kind: "continue-from-section", ordinal: 13 }, true);
 
   const launchWave = (index: number, single: boolean, origin: WaveOrigin = "selector") => {
+    clearWaveExitTransition();
     const safeIndex = Math.max(0, Math.min(WAVES.length - 1, Math.floor(index)));
     // Hide the story iframe immediately before React commits the wave state. This
     // prevents the old left-side story panel from lingering during direct TEST jumps.
@@ -602,6 +643,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
   },[waveActive,waveReady,waveRunKey]);
 
   const launchBoss = (origin: "story" | "selector" = "selector", tests = false) => {
+    clearWaveExitTransition();
     hideStoryFrameForWave();
     setWaveActive(false);setFullscreenEffect(null);setShowJumpMenu(false);setExitConfirmMode(null);
     bossOriginRef.current=origin;setBossLaunch({tests});setBossRunKey(key=>key+1);setScreen("boss");
@@ -951,35 +993,55 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
         }
 
         if (message.type === "wave-complete") {
+          if (waveExitRunningRef.current) return;
           clearWaveRetryPromptTimer();
           setWaveRetryPromptVisible(false);
           setWaveFailed(false);
           setExitConfirmMode(null);
           setWavePaused(false);
-          setWaveActive(false);
-          if (waveOrigin === "story") {
-            if (resumedWaveCheckpointRef.current) {
-              // A page/session resumed directly inside combat, so the hidden story iframe
-              // was never paused at its original battle gate. Continue from the first
-              // post-wave story item explicitly instead of sending a resume signal to
-              // an iframe that has no paused gate state.
-              resumedWaveCheckpointRef.current = false;
-              const postWaveIndex = CH3_POST_WAVE_STRANGE_BGM_START_INDEX;
-              const postWaveOrdinal = 11;
-              writeChapter3Progress({ index: postWaveIndex, sectionOrdinal: postWaveOrdinal });
-              saveStoryCheckpoint(chapter3StoryCheckpoint(postWaveIndex));
-              prepareStoryLaunch({ kind: "resume", index: postWaveIndex, ordinal: postWaveOrdinal }, false);
+
+          // The full 100% purification is the only beat that uses the new exit
+          // cinematic. Single-wave developer tests keep their old fast return.
+          const fullRunPurification = message.detail?.purificationExit === true && !message.detail?.single;
+          const checkpointResume = resumedWaveCheckpointRef.current;
+          const finishWaveReturn = () => {
+            setWaveActive(false);
+            if (waveOrigin === "story") {
+              if (checkpointResume) {
+                resumedWaveCheckpointRef.current = false;
+                const postWaveIndex = CH3_POST_WAVE_STRANGE_BGM_START_INDEX;
+                const postWaveOrdinal = 11;
+                writeChapter3Progress({ index: postWaveIndex, sectionOrdinal: postWaveOrdinal });
+                saveStoryCheckpoint(chapter3StoryCheckpoint(postWaveIndex));
+                prepareStoryLaunch({ kind: "resume", index: postWaveIndex, ordinal: postWaveOrdinal }, false, fullRunPurification);
+              } else {
+                restoreStoryFrameForStory();
+                setScreen("story");
+                frameRef.current?.contentWindow?.postMessage(
+                  { channel: "sky-strike-chapter3-host", type: "wave-complete" },
+                  window.location.origin,
+                );
+              }
             } else {
-              restoreStoryFrameForStory();
-              setScreen("story");
-              frameRef.current?.contentWindow?.postMessage(
-                { channel: "sky-strike-chapter3-host", type: "wave-complete" },
-                window.location.origin,
-              );
+              if (fullRunPurification) returnToSelectorCore();
+              else returnToSelector();
             }
-          } else {
-            returnToSelector();
+          };
+
+          if (!fullRunPurification) {
+            finishWaveReturn();
+            return;
           }
+          waveExitRunningRef.current = true;
+          setWaveExitPhase("fade-in");
+          waveExitTimersRef.current.push(window.setTimeout(() => setWaveExitPhase("hold"), 1000));
+          waveExitTimersRef.current.push(window.setTimeout(() => {
+            // The live game canvas is still mounted until this point: 1s fade
+            // + 2s fully black. Only now replace it with the story/selector.
+            waveExitWaitingForReadyRef.current = waveOrigin === "story" && checkpointResume;
+            finishWaveReturn();
+            if (!waveExitWaitingForReadyRef.current) finishWaveExitFadeOut();
+          }, 3000));
           return;
         }
 
@@ -1000,7 +1062,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
 
   useEffect(() => {
     const handleHostKeyboard = (event: KeyboardEvent) => {
-      if (finalCreditsActiveRef.current || screen === "boss") return;
+      if (finalCreditsActiveRef.current || screen === "boss" || waveExitRunningRef.current) return;
       if (event.code === "Escape") {
         if (exitConfirmMode) {
           event.preventDefault();
@@ -1199,7 +1261,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
         </div>
       )}
 
-      {screen !== "boss" && ready && !exitConfirmMode && !waveFailed && !finalCreditsActive && (
+      {screen !== "boss" && ready && !exitConfirmMode && !waveFailed && !finalCreditsActive && !waveExitPhase && (
         <div className="chapter2-story-test-navigation chapter3-story-test-navigation" aria-label="챕터 3 진행 테스트 이동">
           <div className="chapter2-story-test-toolbar">
             <button type="button" className="chapter2-story-test-skip" onClick={skipCurrentContext}>
@@ -1273,7 +1335,7 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
         </div>
       )}
 
-      {screen === "boss" && <Chapter3BossBattle key={`boss-${bossRunKey}`} launch={bossLaunch} power={waveHud.powerLevel} onComplete={completeBossBattle} onExit={returnToSelector} storyPaused={exitConfirmMode === "story"} onStoryPauseRequest={() => openExitConfirm("story")} onStoryPauseClose={closeExitConfirm} />}
+      {screen === "boss" && <Chapter3BossBattle key={`boss-${bossRunKey}`} launch={bossLaunch} power={waveHud.powerLevel} onComplete={completeBossBattle} onExit={() => { if (bossOriginRef.current === "story") { if (!storyIsTestJump) saveStoryCheckpoint({ version: 1, chapter: 3, kind: "boss", savedAt: Date.now() }); onExit?.(); } else returnToSelector(); }} storyPaused={exitConfirmMode === "story"} onStoryPauseRequest={() => openExitConfirm("story")} onStoryPauseClose={closeExitConfirm} />}
 
       {waveActive && (
         <div className="chapter3WaveStage" aria-label="챕터 3 일반 몬스터 웨이브">
@@ -1345,6 +1407,10 @@ export function Chapter3StoryExperience({ onExit, onComplete, resumeCheckpoint }
             </div>
           )}
         </div>
+      )}
+
+      {waveExitPhase && (
+        <div className={`chapter3WaveExitBlackout is-${waveExitPhase}`} role="presentation" aria-hidden="true" />
       )}
 
       {screen === "story" && !ready && <div className="chapter3StoryLoading" aria-live="polite">CHAPTER 3 STORY LOADING</div>}

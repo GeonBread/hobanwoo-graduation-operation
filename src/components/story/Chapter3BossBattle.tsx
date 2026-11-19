@@ -17,12 +17,14 @@ type Props={key?:string;launch?:Chapter3BossLaunch;power?:number;onComplete:()=>
 export function Chapter3BossBattle({launch={},power=1,onComplete,onExit,storyPaused=false,onStoryPauseRequest,onStoryPauseClose}:Props){
  const canvas=useRef<HTMLCanvasElement>(null),engine=useRef<Engine|null>(null),audio=useRef<EncounterAudio|null>(null);
  const [revision,refresh]=useState(0),[tests,setTests]=useState(!!launch.tests),[tab,setTab]=useState<1|2|3|4>(launch.phase??1),[learning,setLearning]=useState<'first'|'expert'>('first');
+ const [bossDeathFadeStarted,setBossDeathFadeStarted]=useState(false),[bossRetryVisible,setBossRetryVisible]=useState(false);
+ const bossRetryTimerRef=useRef<number|null>(null);
  const [mixPhase,setMixPhase]=useState<1|2>(2),[mixNormal,setMixNormal]=useState('volley-cross'),[mixPrimary,setMixPrimary]=useState('path-fold'),[mixSecondary,setMixSecondary]=useState('');
  const testsRef=useRef(tests),pausedBeforeTests=useRef(false),initial=useRef({launch,power});
  const pauseRef=useRef({active:false,wasPaused:false}),storyPausedRef=useRef(storyPaused);storyPausedRef.current=storyPaused;
  const callbacks=useRef({onComplete,onExit,onStoryPauseRequest,onStoryPauseClose});callbacks.current={onComplete,onExit,onStoryPauseRequest,onStoryPauseClose};
  const focus=()=>canvas.current?.focus({preventScroll:true});
- const openTests=(open:boolean)=>{const e=engine.current;if(!e||storyPausedRef.current)return;if(open&&!testsRef.current)pausedBeforeTests.current=e.paused;testsRef.current=open;setTests(open);e.keys.clear();e.paused=open?true:pausedBeforeTests.current;if(!open)focus();};
+ const openTests=(open:boolean)=>{const e=engine.current;if(!e||storyPausedRef.current||(e.gameOver&&!testsRef.current))return;if(open&&!testsRef.current)pausedBeforeTests.current=e.paused;testsRef.current=open;setTests(open);e.keys.clear();e.paused=open?true:pausedBeforeTests.current;if(!open)focus();};
  const act=(fn:(e:Engine)=>void,resume=false)=>{const e=engine.current;if(!e)return;audio.current?.unlock();fn(e);e.keys.clear();if(resume){testsRef.current=false;setTests(false);pausedBeforeTests.current=false;e.paused=false;focus();}e.notify();};
  // Story host owns the one and only ESC dialog. Save/restore the boss engine's
  // pause state so no separate simulator exit screen or lost Space input remains.
@@ -44,6 +46,7 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit,storyPau
    const k=keyName(v);if(['F6','F7','F8','Escape'].includes(k))v.preventDefault();
    if(k==='F7'&&!v.repeat){openTests(!testsRef.current);return;}
    if(testsRef.current){if(k==='Escape')openTests(false);return;}
+   if(e.gameOver){v.preventDefault();return;}
    if(k==='Escape'&&!v.repeat){if(storyPausedRef.current){callbacks.current.onStoryPauseClose();}else requestStoryPause();return;}
    if(storyPausedRef.current||pauseRef.current.active)return;
    const bombKey=k==='Shift'||v.code==='ShiftLeft'||v.code==='ShiftRight'||k==='x'||k==='b';
@@ -82,6 +85,27 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit,storyPau
  },[revision,tests,storyPaused]);
  useEffect(()=>{if(tests)document.querySelector<HTMLElement>('.c3boss-modal button')?.focus();},[tests]);
  const e=engine.current;
+ // Match Chapter 2: complete the 1.35s blackout before showing yes/no.
+ useEffect(()=>{
+  const defeated=!!engine.current?.gameOver&&!tests&&!storyPaused;
+  if(!defeated){
+   if(bossRetryTimerRef.current!==null){window.clearTimeout(bossRetryTimerRef.current);bossRetryTimerRef.current=null;}
+   if(bossDeathFadeStarted)setBossDeathFadeStarted(false);
+   if(bossRetryVisible)setBossRetryVisible(false);
+  }else if(!bossDeathFadeStarted){
+   setBossDeathFadeStarted(true);
+   bossRetryTimerRef.current=window.setTimeout(()=>{bossRetryTimerRef.current=null;setBossRetryVisible(true);},1350);
+  }
+ },[revision,tests,storyPaused,bossDeathFadeStarted,bossRetryVisible]);
+ useEffect(()=>()=>{
+  if(bossRetryTimerRef.current!==null)window.clearTimeout(bossRetryTimerRef.current);
+ },[]);
+ const retryBoss=()=>{
+  if(bossRetryTimerRef.current!==null){window.clearTimeout(bossRetryTimerRef.current);bossRetryTimerRef.current=null;}
+  setBossRetryVisible(false);
+  setBossDeathFadeStarted(false);
+  act(e=>e.restart(),true);
+ };
  const begin=(phase:1|2)=>act(e=>e.startEncounter(phase===2),true);
  const preview=(scene:StoryPreview)=>act(e=>startStoryPreview(e,scene),true);
  const phaseIds=(phase:1|2)=>new Set((phase===1?phaseOneScore:phaseTwoScore).flatMap(c=>[c.id,...c.supports]));
@@ -105,8 +129,22 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit,storyPau
    <span>{e.supportLabSolo?'보조공격 단독 실험':e.pattern.name}</span>
    <small>{e.supportMix?[...e.supportMix.required.map(id=>supportOptions.find(o=>o.id===id)?.name??id),...e.supportMix.entries.map(x=>`${supportOptions.find(o=>o.id===x.id)?.name??x.id}${x.active?'':' (대기)'}`)].join(' + ')||'보조 없이 진행':Array.from(e.selectedSupports).map(id=>supportOptions.find(o=>o.id===id)?.name??id).join(' + ')}</small>
   </div>}
-  {e&&!tests&&!storyPaused&&<EncounterOverlay e={e} onNext={()=>act(advanceStoryDialogue)} onSkip={()=>act(e=>e.skip())} onRestart={()=>act(e=>e.restart(),true)} onPractice={()=>openTests(true)} onContinue={e.encounter.preview?undefined:()=>callbacks.current.onComplete()}/>}
-  {e?.gameOver&&!tests&&!storyPaused&&<div className="c3boss-retry"><button onClick={()=>act(e=>e.restart(),true)}>다시 도전 · R</button><button onClick={leave}>챕터 선택으로</button></div>}
+  {e&&!tests&&!storyPaused&&<EncounterOverlay e={e} onNext={()=>act(advanceStoryDialogue)} onSkip={()=>act(e=>e.skip())} onRestart={retryBoss} onPractice={()=>openTests(true)} onContinue={e.encounter.preview?undefined:()=>callbacks.current.onComplete()}/>}
+  {bossDeathFadeStarted&&!tests&&!storyPaused&&(
+   <div className="c3boss-death-overlay" role="presentation">
+    {bossRetryVisible&&<div className="chapterGamePauseOverlay chapterCombatRetryOverlay">
+     <section className="chapterGamePauseDialog chapter3WaveRetryDialog" role="dialog" aria-modal="true" aria-label="챕터 3 보스 전투 재도전 확인">
+      <small>BOSS BATTLE</small>
+      <h2>다시 도전하시겠습니까?</h2>
+      <p>보스 1페이즈의 처음부터 다시 시작합니다.</p>
+      <div className="chapterGamePauseActions isConfirm">
+       <button type="button" className="secondary" onClick={()=>callbacks.current.onExit()}>아니오</button>
+       <button type="button" className="primary" onClick={retryBoss}>예</button>
+      </div>
+     </section>
+    </div>}
+   </div>
+  )}
   {tests&&e&&!storyPaused&&<div className="c3boss-dim c3boss-test-dim"><section className="c3boss-modal chapter2-story-test-panel" role="dialog" aria-modal="true" aria-label="디그리온 패턴 테스트" onKeyDown={trap}>
    <header><div><small>CHAPTER 03 / DEVELOPER TEST</small><h2>디그리온 전투 테스트</h2><p>테스트 창이 열린 동안 전투와 연출은 정지합니다.</p></div><button onClick={()=>openTests(false)}>닫기 · F7 / ESC</button></header>
    <div className="c3boss-test-actions"><button onClick={()=>begin(1)}>전체 보스전 시작</button><button onClick={()=>begin(2)}>2페이즈부터 시작</button><button onClick={()=>act(skipEncounterPattern,true)}>다음 패턴 · F6</button><button onClick={()=>act(skipEncounterPhase,true)}>현재 페이즈 클리어 · F8</button><button onClick={leave}>챕터 선택으로</button></div>

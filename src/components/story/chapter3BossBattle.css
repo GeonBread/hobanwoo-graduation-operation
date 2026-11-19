@@ -54,3 +54,28 @@
  .c3boss-root .c3boss-test-dim{padding:55px 7px 8px;}
  .c3boss-root .c3boss-test-dim .c3boss-modal.chapter2-story-test-panel{width:min(100%,95vw);max-height:calc(100dvh - 64px);padding:10px;}
 }
+/* The final boss shares Chapter 2's death fade and retry confirmation. */
+.c3boss-root > .c3boss-death-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(0,0,0,0);
+  animation: chapter1CombatDeathFade 1.35s ease-in forwards;
+  pointer-events: auto;
+}
+.c3boss-death-overlay > .chapterGamePauseOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+}
+.c3boss-death-overlay .chapterGamePauseDialog { pointer-events: auto; }
+@keyframes chapter1CombatDeathFade {
+  from { background: rgba(0,0,0,0); }
+  to { background: #000; }
+}

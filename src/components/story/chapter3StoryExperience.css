@@ -534,8 +534,8 @@
 .chapter3WaveHudBottomRight .combat-hud-bomb-icon{
   position:relative;
   display:block;
-  width:38px;
-  height:38px;
+  width:42px;
+  height:42px;
   flex:none;
   box-sizing:border-box;
   border:4px solid #050506;
@@ -570,7 +570,7 @@
   box-shadow:0 4px 0 rgba(0,0,0,.52),0 0 12px rgba(255,205,71,.46);
 }
 @media(max-width:560px){
-  .chapter3WaveHudBottomRight .combat-hud-bomb-icon{width:34px;height:34px}
+  .chapter3WaveHudBottomRight .combat-hud-bomb-icon{width:38px;height:38px}
 }
 
 
@@ -981,3 +981,18 @@
 }
 
 .chapter3WaveBootError{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#070611ed;color:#f2e4ff;font:15px/1.6 system-ui,sans-serif}.chapter3WaveBootError button{border:1px solid #ab86c7;border-radius:6px;padding:11px 18px;background:#2b1b3e;color:#fff;cursor:pointer}
+/* Chapter 3 full-run 100% completion: keep the live battle rendering beneath
+   the 1s blackout, hold black 2s, then reveal the resumed story over 1s. */
+.chapter3WaveExitBlackout {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: #000;
+  opacity: 1;
+  pointer-events: auto;
+}
+.chapter3WaveExitBlackout.is-fade-in { animation: chapter3WaveFadeToBlack 1s linear both; }
+.chapter3WaveExitBlackout.is-hold { opacity: 1; }
+.chapter3WaveExitBlackout.is-fade-out { animation: chapter3WaveFadeFromBlack 1s linear both; }
+@keyframes chapter3WaveFadeToBlack { from {opacity:0;} to {opacity:1;} }
+@keyframes chapter3WaveFadeFromBlack { from {opacity:1;} to {opacity:0;} }
