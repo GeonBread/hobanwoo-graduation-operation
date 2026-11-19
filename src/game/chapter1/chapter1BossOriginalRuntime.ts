@@ -73,15 +73,15 @@ function getBossBackgroundProfile() {
   const cinematicDestroy = state.cinematicMode === "destroy";
   const stageState = state.bossStageState;
   if (cinematicDestroy || stageState === "defeated") {
-    return { baseSpeed: 94, overlay2Speed: 142, overlay3Speed: 188, overlay2Alpha: .26, overlay3Alpha: .40, redTint: .08, cyanTint: 0 };
+    return { baseSpeed: 94, overlay2Speed: 142, overlay3Speed: 188, overlay2Alpha: .68, overlay3Alpha: .76, redTint: .08, cyanTint: 0 };
   }
   if (stageState === "awakening") {
-    return { baseSpeed: 112, overlay2Speed: 172, overlay3Speed: 218, overlay2Alpha: .36, overlay3Alpha: .34, redTint: .18, cyanTint: 0 };
+    return { baseSpeed: 112, overlay2Speed: 172, overlay3Speed: 218, overlay2Alpha: .74, overlay3Alpha: .78, redTint: .18, cyanTint: 0 };
   }
   if (stageState === "stage2") {
-    return { baseSpeed: 122, overlay2Speed: 184, overlay3Speed: 236, overlay2Alpha: .42, overlay3Alpha: .40, redTint: .20, cyanTint: 0 };
+    return { baseSpeed: 122, overlay2Speed: 184, overlay3Speed: 236, overlay2Alpha: .82, overlay3Alpha: .86, redTint: .20, cyanTint: 0 };
   }
-  return { baseSpeed: 86, overlay2Speed: 128, overlay3Speed: 172, overlay2Alpha: .22, overlay3Alpha: .18, redTint: .12, cyanTint: 0 };
+  return { baseSpeed: 86, overlay2Speed: 128, overlay3Speed: 172, overlay2Alpha: .68, overlay3Alpha: .74, redTint: .12, cyanTint: 0 };
 }
 
 function drawRepeatingVerticalMap(image, scrollAmount, alpha = 1, drawWidth = 900, xJitter = 0) {
