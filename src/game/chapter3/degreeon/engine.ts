@@ -502,8 +502,22 @@ export class Engine {
     this.updateEntities(dt);
     if(this.bombSpawned>=this.bombTotal&&this.hazards.length===0){this.phase='restore';this.phaseTime=0;this.miss=0;this.missTimer=0;this.pendingBombard=false;this.log('폭격 종료 · 전장 복구');}
   }
+  /** Final victory is cinematic-only: keep the player's live screen position and movement. */
+  moveVictoryPlayer(dt:number){
+    const dx=Number(this.keys.has('ArrowRight')||this.keys.has('d'))-Number(this.keys.has('ArrowLeft')||this.keys.has('a'));
+    const dy=Number(this.keys.has('ArrowDown')||this.keys.has('s'))-Number(this.keys.has('ArrowUp')||this.keys.has('w'));
+    const mag=Math.hypot(dx,dy);if(!mag)return;
+    const scale=PLAYER_MOVE_SPEED*dt/mag,margin=24;
+    // No initial clamp: the hero may be off-centre after a rotating/wide-field attack.
+    // Allow a position outside the standard frame to return smoothly without teleporting.
+    const confine=(old:number,next:number,low:number,high:number)=>old<low?Math.max(old,Math.min(next,high)):old>high?Math.min(old,Math.max(next,low)):clamp(next,low,high);
+    this.player.x=confine(this.player.x,this.player.x+dx*scale,margin,CANVAS_W-margin);
+    this.player.y=confine(this.player.y,this.player.y+dy*scale,margin,CANVAS_H-margin);
+  }
   step(dt:number){
-    if(this.paused)return;this.bossMapScroll+=dt*bossMapSpeed(this.bossMapStage);if(updateEncounter(this,dt)){this.clock+=dt;this.playerAnimClock+=dt;for(let i=0;i<3;i++)this.bodyAnimClocks[i]+=dt;return;}tickBridge(this,dt);if(this.encounter.enabled)updateBossSupportSchedule(this,dt);this.syncTimeZones();const playerDt=dt*this.localTime(this.localPlayer()),bossDt=dt*this.localTime(this.boss);this.playerAnimClock+=playerDt;for(const [i,b] of this.bodies().entries())this.bodyAnimClocks[this.bodies().length===3?i:1]+=dt*this.localTime(this.local(b));this.bossAnimClock+=bossDt;this.clock+=dt;this.phaseTime+=dt;this.cooldown=Math.max(0,this.cooldown-playerDt);this.bombCooldown=Math.max(0,this.bombCooldown-playerDt);this.damageFlash=Math.max(0,this.damageFlash-playerDt);this.laneCooldown-=playerDt;this.shake=Math.max(0,this.shake-dt);for(const z of this.advanced.zones)z.clock+=dt*z.scale;
+    if(this.paused)return;this.bossMapScroll+=dt*bossMapSpeed(this.bossMapStage);if(updateEncounter(this,dt)){this.clock+=dt;this.playerAnimClock+=dt;for(let i=0;i<3;i++)this.bodyAnimClocks[i]+=dt;
+      if(this.encounter.mode==='victory')this.moveVictoryPlayer(dt);
+      return;}tickBridge(this,dt);if(this.encounter.enabled)updateBossSupportSchedule(this,dt);this.syncTimeZones();const playerDt=dt*this.localTime(this.localPlayer()),bossDt=dt*this.localTime(this.boss);this.playerAnimClock+=playerDt;for(const [i,b] of this.bodies().entries())this.bodyAnimClocks[this.bodies().length===3?i:1]+=dt*this.localTime(this.local(b));this.bossAnimClock+=bossDt;this.clock+=dt;this.phaseTime+=dt;this.cooldown=Math.max(0,this.cooldown-playerDt);this.bombCooldown=Math.max(0,this.bombCooldown-playerDt);this.damageFlash=Math.max(0,this.damageFlash-playerDt);this.laneCooldown-=playerDt;this.shake=Math.max(0,this.shake-dt);for(const z of this.advanced.zones)z.clock+=dt*z.scale;
     this.updateSmartBomb(dt);
     if(this.purification>=0){this.purification+=dt;this.resolveSmartBomb();return;}
     if(!this.encounter.enabled&&!this.finalStand.started&&this.bossForm===2&&this.phase==='active'&&(this.finalStand.pending||this.bossHp<=Math.max(1,this.bossHpMax*.01)))this.startFinalStand();

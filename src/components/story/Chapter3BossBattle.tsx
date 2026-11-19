@@ -122,14 +122,14 @@ export function Chapter3BossBattle({launch={},power=1,onComplete,onExit,storyPau
  return <div className="c3boss-root" data-revision={revision}>
   <div className="c3boss-stage"><div className="c3boss-plane"><canvas ref={canvas} width={922} height={960} tabIndex={0} aria-label="챕터 3 디그리온 최종 보스 전투"/></div></div>
   <div className="chapter2-story-test-navigation chapter3-story-test-navigation c3boss-story-test-nav" aria-label="챕터 3 통합 테스트 이동">
-   <div className="chapter2-story-test-toolbar"><button className="chapter2-story-test-skip" onClick={()=>act(skipEncounterPattern)}>SKIP · F6</button><button className="chapter2-story-test-toggle" onClick={()=>openTests(true)}>TEST 이동 · F7</button></div>
+   <div className="chapter2-story-test-toolbar">{!e?.storyInputLocked&&<button className="chapter2-story-test-skip" onClick={()=>act(skipEncounterPattern)}>SKIP · F6</button>}<button className="chapter2-story-test-toggle" onClick={()=>openTests(true)}>TEST 이동 · F7</button></div>
   </div>
   {e&&!tests&&!storyPaused&&e.pattern.category==='normal'&&(e.supportMix||e.selectedSupports.size>0)&&<div className="c3boss-mix-hud" role="status">
    <strong>SUPPORT MIX · {e.encounter.enabled?`${e.encounter.phase}페이즈`:'테스트'}</strong>
    <span>{e.supportLabSolo?'보조공격 단독 실험':e.pattern.name}</span>
    <small>{e.supportMix?[...e.supportMix.required.map(id=>supportOptions.find(o=>o.id===id)?.name??id),...e.supportMix.entries.map(x=>`${supportOptions.find(o=>o.id===x.id)?.name??x.id}${x.active?'':' (대기)'}`)].join(' + ')||'보조 없이 진행':Array.from(e.selectedSupports).map(id=>supportOptions.find(o=>o.id===id)?.name??id).join(' + ')}</small>
   </div>}
-  {e&&!tests&&!storyPaused&&<EncounterOverlay e={e} onNext={()=>act(advanceStoryDialogue)} onSkip={()=>act(e=>e.skip())} onRestart={retryBoss} onPractice={()=>openTests(true)} onContinue={e.encounter.preview?undefined:()=>callbacks.current.onComplete()}/>}
+  {e&&!tests&&!storyPaused&&<EncounterOverlay e={e} onNext={()=>act(advanceStoryDialogue)} onRestart={retryBoss} onPractice={()=>openTests(true)} onContinue={e.encounter.preview?undefined:()=>callbacks.current.onComplete()}/>}
   {bossDeathFadeStarted&&!tests&&!storyPaused&&(
    <div className="c3boss-death-overlay chapter1-combat-death-overlay" role="presentation">
     {bossRetryVisible&&<div className="chapterGamePauseOverlay chapterCombatRetryOverlay">

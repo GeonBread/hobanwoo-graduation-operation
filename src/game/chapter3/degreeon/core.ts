@@ -21,7 +21,7 @@ export type Entity = Vec & {
   hp?:number;petals?:number;rotation?:number;petalIndex?:number;petalTimer?:number;group?:number;vertex?:number;vertices?:number;origin?:Vec;seedFrom?:Vec;seedTarget?:Vec;
   recycled?:boolean;edgeSeen?:boolean;portalCooldown?:number;floodFadeAge?:number;
   motion?:BulletMotion;
-  visual?:'drop'|'shard'|'core'|'needle'|'spear';
+  visual?:'drop'|'shard'|'core'|'needle'|'spear'|'waveInspectionOrb'|'waveCarrierBoomerang';
 };
 export type BulletMotion={kind:'jump'|'stop'|'fork'|'curve'|'edge-burst'|'cross'|'contract'|'slide'|'twins'|'spear';stage?:number;timer?:number;trigger?:number;speed?:number;direction?:Vec;anchor?:Vec;target?:Vec;side?:number;offset?:number;};
 export type Shot = Vec & { native?: import('../../entities').Bullet; beamNextHit?:number; heading?:number; vx?: number; vy: number; age: number; phase?: number;portalCooldown?:number };

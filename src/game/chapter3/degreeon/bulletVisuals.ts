@@ -1,4 +1,5 @@
 import type { Entity } from './core';
+import {sprite} from './resources';
 
 const TAU=Math.PI*2;
 type Art=NonNullable<Entity['visual']>;
@@ -73,8 +74,28 @@ function art(h:Entity){
  c.scale(2,2);c.translate(canvas.width/4,canvas.height/4);spriteArt(c,h.visual!,h.r,h.color);
  const value={canvas,extent:canvas.width/4};if(cache.size>=128)cache.delete(cache.keys().next().value!);cache.set(key,value);return value;
 }
+/** Exact projectile sprites and dimensions from chapter3Wave.html's FX_SPRITES/drawBullets. */
+function drawChapter3WaveProjectile(c:CanvasRenderingContext2D,h:Entity,hitboxes:boolean){
+ const inspection=h.visual==='waveInspectionOrb';
+ const width=inspection?31*2:54*2,height=inspection?31*2:28*2;
+ c.save();c.translate(h.x,h.y);
+ // The wave eye orb stays upright; the carrier's paper boomerang spins at 7 rad/s.
+ if(!inspection)c.rotate(h.age*7);
+ c.shadowColor=inspection?'#79e3ff':'#ffe2a4';c.shadowBlur=7;
+ const loaded=sprite(c,inspection?'waveInspectionOrb':'waveCarrierBoomerang',0,0,width,height);
+ if(!loaded){
+  // Only a temporary hitbox outline while the original image loads, never a replacement design.
+  c.shadowBlur=0;c.strokeStyle=inspection?'#79e3ff':'#ffe2a4';c.lineWidth=2;
+  c.beginPath();c.arc(0,0,h.r,0,Math.PI*2);c.stroke();
+ }
+ if(hitboxes){c.shadowBlur=0;c.strokeStyle='#fff';c.lineWidth=1;c.beginPath();c.arc(0,0,h.r,0,Math.PI*2);c.stroke();}
+ c.restore();
+}
 export function drawBulletVisual(c:CanvasRenderingContext2D,h:Entity,hitboxes=false){
  if(!h.visual)return;
+ if(h.visual==='waveInspectionOrb'||h.visual==='waveCarrierBoomerang'){
+  drawChapter3WaveProjectile(c,h,hitboxes);return;
+ }
  const warning=h.age<h.warn,stopped=Math.hypot(h.vx,h.vy)<1;
  const angle=stopped?Math.atan2(h.motion?.direction?.y??1,h.motion?.direction?.x??0):Math.atan2(h.vy,h.vx);
  c.save();c.translate(h.x,h.y);c.rotate(angle);c.setLineDash([]);c.shadowBlur=0;

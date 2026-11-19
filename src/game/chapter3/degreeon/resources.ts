@@ -12,6 +12,9 @@ export const assetPaths={
  pure:'assets/chapter3/story/backgrounds/graduation_core_purified.png',
  bossSupportEye:'assets/chapter3/combat/waves/enemies/inspection_eye.png',
  bossSupportCarrier:'assets/chapter3/combat/waves/enemies/file_carrier.png',
+ // The original Chapter 3 wave projectile PNGs are shared with boss support mobs.
+ waveInspectionOrb:'assets/chapter3/combat/waves/fx/fx_blue_orb.png',
+ waveCarrierBoomerang:'assets/chapter3/combat/waves/fx/fx_paper_boomerang.png',
 };
 export const images:Partial<Record<keyof typeof assetPaths,HTMLImageElement>>={};
 if(typeof Image!=='undefined')for(const [id,path] of Object.entries(assetPaths)){const im=new Image();im.src=root+path;images[id as keyof typeof assetPaths]=im;}

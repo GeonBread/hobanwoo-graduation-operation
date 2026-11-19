@@ -45,7 +45,7 @@ export const storyCinematic=(e:Engine)=>e.encounter.enabled&&e.encounter.mode!==
 export const currentStoryCue=(e:Engine)=>(e.encounter.phase===1?phaseOneScore:phaseTwoScore)[e.encounter.cue];
 function scene(e:Engine,mode:StoryMode){const s=e.encounter,p=e.localPlayer();s.sceneFrom={w:e.fieldW,h:e.fieldH,angle:e.angle,x:p.x,y:p.y};s.mode=mode;s.age=0;s.line=0;s.lineAge=0;s.revealed=false;s.weighted=false;s.glyphs=0;
  if(mode==='threat'){s.phase=2;e.bossForm=2;e.bossHpMax=PHASE_HP[2];e.bossHp=e.bossHpMax;}
- resetBossSupport(e);e.continuity=freshContinuity();e.clearAttack();e.enemies=[];e.items=[];e.effects=[];e.advanced.zones=[];e.smartBombActive=false;e.bombParticles=[];e.keys.clear();e.rotation=0;e.pendingBombard=false;e.queuedIndex=null;e.miss=0;e.missTimer=0;e.playerFacing=0;e.playStorySound(mode==='false-clear'?'resolve':mode==='awakening'?'charge':mode==='victory'?'victory':'weight');e.log(`보스전 연출 · ${mode}`);e.notify();}
+ resetBossSupport(e);e.continuity=freshContinuity();e.clearAttack();e.enemies=[];e.items=[];e.effects=[];e.advanced.zones=[];e.smartBombActive=false;e.bombParticles=[];if(mode!=='victory')e.keys.clear();e.rotation=0;e.pendingBombard=false;e.queuedIndex=null;e.miss=0;e.missTimer=0;if(mode!=='victory')e.playerFacing=0;e.playStorySound(mode==='false-clear'?'resolve':mode==='awakening'?'charge':mode==='victory'?'victory':'weight');e.log(`보스전 연출 · ${mode}`);e.notify();}
 export function startEncounter(e:Engine,practice=false){
  e.bossMapScroll=0;getCombatParallax(e,"boss3").reset(e.clock);
  const old=e.encounter,lab=old.enabled?old.lab:{index:e.index,stage:e.stage,supports:[...e.selectedSupports],full:e.fullField,expert:e.expert,autoplay:e.autoplay,missCap:e.missCap};

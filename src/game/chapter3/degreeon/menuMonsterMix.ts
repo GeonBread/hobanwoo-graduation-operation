@@ -44,7 +44,7 @@ export function randomizedMenuRoster(random:()=>number,expert:boolean){
  return shuffle(picked);
 }
 export type MenuGuest={spec:MenuMonsterSpec;pos:Vec;home:Vec;age:number;hp:number;shoot:number;phase:number;scale:number};
-export type MenuGuestBullet=Vec&{vx:number;vy:number;age:number;life:number;r:number;chapter:1|2|3;kind:'orb'|'dart'|'shard';spin:number};
+export type MenuGuestBullet=Vec&{vx:number;vy:number;age:number;life:number;r:number;chapter:1|2|3;kind:'orb'|'dart'|'shard'|'paperChip';spin:number};
 const imageCache=new Map<string,HTMLImageElement>();
 function sprite(path:string){if(!path||typeof Image==='undefined')return null;let im=imageCache.get(path);if(!im){im=new Image();im.src=path;imageCache.set(path,im);}return im;}
 export class MenuGuestRuntime{
@@ -59,9 +59,14 @@ export class MenuGuestRuntime{
    g.pos.x=g.home.x+Math.sin(g.age*(.7+g.spec.chapter*.13)+g.phase)*Math.min(50,w*.052);
    g.pos.y=g.home.y+Math.sin(g.age*.9+g.phase)*Math.min(35,h*.037);
    g.shoot-=dt;
-   if(g.shoot<=0){const dx=p.x-g.pos.x,dy=p.y-g.pos.y,d=Math.hypot(dx,dy)||1,speed=132+g.spec.chapter*18+e.stage*11;
-    const kind=g.spec.chapter===1?'orb':g.spec.chapter===2?'dart':'shard';
-    this.bullets.push({x:g.pos.x,y:g.pos.y,vx:dx/d*speed,vy:dy/d*speed,age:0,life:7.8,r:g.spec.chapter===1?12:g.spec.chapter===2?10:11,chapter:g.spec.chapter,kind,spin:this.random()*Math.PI*2});
+   if(g.shoot<=0){
+    // These three CH3 guest types use the original chapter's attacks, not a fabricated shard.
+    // Snake fires paper chips; tractor and gravity monsters do not shoot projectiles.
+    const canShoot=g.spec.chapter!==3||g.spec.type==='snake';
+    if(canShoot){const dx=p.x-g.pos.x,dy=p.y-g.pos.y,d=Math.hypot(dx,dy)||1,speed=132+g.spec.chapter*18+e.stage*11;
+     const kind=g.spec.chapter===1?'orb':g.spec.chapter===2?'dart':'paperChip';
+     this.bullets.push({x:g.pos.x,y:g.pos.y,vx:dx/d*speed,vy:dy/d*speed,age:0,life:7.8,r:g.spec.chapter===1?12:g.spec.chapter===2?10:11,chapter:g.spec.chapter,kind,spin:this.random()*Math.PI*2});
+    }
     g.shoot=1.4+this.random()*1.1;
    }
    if(distance(g.pos,p)<PLAYER_HIT_RADIUS+56)e.hit(`메인 화면 사기 ${g.spec.name}`);
@@ -81,7 +86,16 @@ export class MenuGuestRuntime{
    if(im?.complete&&im.naturalWidth)c.drawImage(im,-w/2,-h/2,w,h);
    else{c.beginPath();for(let i=0;i<7;i++){const a=-Math.PI/2+i*Math.PI*2/7,r=(i%2?23:34)*scale*.95;i?c.lineTo(Math.cos(a)*r,Math.sin(a)*r):c.moveTo(Math.cos(a)*r,Math.sin(a)*r);}c.closePath();c.fill();c.stroke();c.fillStyle='#050811';c.fillRect(-15*scale,-4*scale,10*scale,9*scale);c.fillRect(6*scale,-4*scale,10*scale,9*scale);}
    c.restore();}
-  for(const b of this.bullets){c.save();c.translate(b.x,b.y);c.rotate(Math.atan2(b.vy,b.vx)+Math.PI/2+b.spin*.12);c.shadowColor=b.chapter===1?'#ffe59d':b.chapter===2?'#8ee9ff':'#d9a8ff';c.shadowBlur=14;c.fillStyle=b.chapter===1?'#ffe2a2':b.chapter===2?'#83f5ff':'#f5b5ff';c.strokeStyle='#080b14';c.lineWidth=3;
+  for(const b of this.bullets){
+   if(b.kind==='paperChip'){
+    // Original Chapter 3 snake projectile: fx_paper_boomerang at 62 x 32, 4 rad/s.
+    const im=sprite('/assets/chapter3/combat/waves/fx/fx_paper_boomerang.png');
+    c.save();c.translate(b.x,b.y);c.rotate(b.age*4);c.shadowColor='#ffe2a8';c.shadowBlur=7;
+    if(im?.complete&&im.naturalWidth)c.drawImage(im,-31,-16,62,32);
+    else{c.shadowBlur=0;c.strokeStyle='#ffe2a8';c.lineWidth=2;c.beginPath();c.arc(0,0,b.r,0,Math.PI*2);c.stroke();}
+    c.restore();continue;
+   }
+   c.save();c.translate(b.x,b.y);c.rotate(Math.atan2(b.vy,b.vx)+Math.PI/2+b.spin*.12);c.shadowColor=b.chapter===1?'#ffe59d':b.chapter===2?'#8ee9ff':'#d9a8ff';c.shadowBlur=14;c.fillStyle=b.chapter===1?'#ffe2a2':b.chapter===2?'#83f5ff':'#f5b5ff';c.strokeStyle='#080b14';c.lineWidth=3;
    if(b.kind==='dart'){c.beginPath();c.moveTo(0,-b.r*1.7);c.lineTo(b.r*.85,b.r*1.05);c.lineTo(0,b.r*.45);c.lineTo(-b.r*.85,b.r*1.05);c.closePath();c.fill();c.stroke();c.fillStyle='#fff7d5';c.beginPath();c.moveTo(0,-b.r*1.05);c.lineTo(b.r*.34,b.r*.36);c.lineTo(-b.r*.34,b.r*.36);c.closePath();c.fill();}
    else if(b.kind==='shard'){c.beginPath();c.moveTo(0,-b.r*1.85);c.lineTo(b.r*.92,-b.r*.18);c.lineTo(b.r*.38,b.r*1.18);c.lineTo(-b.r*.46,b.r*1.55);c.lineTo(-b.r*.92,-b.r*.08);c.closePath();c.fill();c.stroke();c.fillStyle='#fff0ff';c.beginPath();c.moveTo(0,-b.r*1.1);c.lineTo(b.r*.25,b.r*.08);c.lineTo(-b.r*.18,b.r*.72);c.closePath();c.fill();}
    else{c.beginPath();c.arc(0,0,b.r,0,Math.PI*2);c.fill();c.stroke();c.strokeStyle='rgba(255,255,255,.62)';c.lineWidth=1.4;c.beginPath();c.arc(-b.r*.22,-b.r*.25,b.r*.52,-2.4,.5);c.stroke();}
