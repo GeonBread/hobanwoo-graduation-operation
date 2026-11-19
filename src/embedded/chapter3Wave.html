@@ -1402,7 +1402,7 @@ function beginSurvivalExit(){
 function finishSurvivalExit(dt){
  const left=enemies.some(e=>e.survivalHazard&&!e.dead);
  if(!left&&!specialState.restoreStarted){specialState.restoreStarted=true;movementMode='free';animateCombatView(FULL_COMBAT_VIEW,1.15);}
- if(specialState.restoreStarted){clampPlayerToCombatView(false);if(combatViewNear(FULL_COMBAT_VIEW)&&bullets.length===0){playerFireEnabled=true;specialState.survivalFinished=true;syncAttackDisabledStatus073(false);}}
+ if(specialState.restoreStarted){clampPlayerToCombatView(false);if(combatViewNear(FULL_COMBAT_VIEW)&&bullets.every(b=>b.carryAcrossWaves)){playerFireEnabled=true;specialState.survivalFinished=true;syncAttackDisabledStatus073(false);}}
 }
 function updateSurvivalEnemy(e,dt){
  if(specialState.survivalExiting||e.state==='survivalExit'){
@@ -1639,8 +1639,23 @@ function updateSurvivalWave(dt){
 }
 
 function resetPlayerRun(){player.x=W/2;player.y=H-140;player.hp=player.maxHp;player.bombs=3;player.powerLevel=INITIAL_POWER_LEVEL;player.hitTimer=0;player.fire=0;player.drag=false;player.dead=false;player.respawnTimer=0;bombActive=false;bombRadius=0;bombOriginX=W/2;bombOriginY=H-140;bombMaxRadius=Math.hypot(W,H)+80;gameOver=false;waveFailureSent=false;waveRunCompleteSent=false;finalPurification={active:false,t:0,originX:W/2,originY:H-140,sent:false,hidden:false,overlayDone:false};if(chapter1PurificationOverlay070){chapter1PurificationOverlay070.classList.remove('is-active');chapter1PurificationOverlay070.style.display='none';}}
-function startWave(i,resetRun=false){
- waveIndex=clamp(i,0,waves.length-1);enemies=[];bullets=[];playerBullets=[];effects=[];links=[];tractorPairs=[];boomerangs=[];survivalBeams=[];if(resetRun)powerups=[];snakeState=null;waveTime=0;waveClearTimer=0;finalePhase=0;finaleNext=1;specialState={};purificationWaveProgress069=0;movementMode='free';playerFireEnabled=true;finalPurification={active:false,t:0,originX:player.x,originY:player.y,sent:false,hidden:false,overlayDone:false};if(chapter1PurificationOverlay070){chapter1PurificationOverlay070.classList.remove('is-active');chapter1PurificationOverlay070.style.display='none';}setCombatViewImmediate(FULL_COMBAT_VIEW);if(resetRun)resetPlayerRun();else clampPlayerToCombatView(false);
+// Auto-advancing a wave does not erase the previous wave's enemy projectiles.
+// Manual wave jumps and fresh runs still reset them normally.
+function startWave(i,resetRun=false,carryEnemyProjectiles=false){
+ if(carryEnemyProjectiles){
+  for(const b of bullets)b.carryAcrossWaves=true;
+  for(const b of boomerangs){
+   b.carryAcrossWaves=true;
+   // The previous owner is gone: keep the boomerang travelling along its
+   // current tangent rather than snapping back toward an invisible enemy.
+   if(b.state==='return'&&b.path&&b.pathIndex<b.path.length-1){
+    const next=b.path[b.pathIndex+1],dir=norm(next.x-b.x,next.y-b.y);
+    b.vx=dir.x*b.speed;b.vy=dir.y*b.speed;
+   }
+   b.state='orphanExit';b.path=null;b.pathIndex=0;b.orphaned=true;
+  }
+ }else{bullets=[];boomerangs=[];}
+ waveIndex=clamp(i,0,waves.length-1);enemies=[];playerBullets=[];effects=[];links=[];tractorPairs=[];survivalBeams=[];if(resetRun)powerups=[];snakeState=null;waveTime=0;waveClearTimer=0;finalePhase=0;finaleNext=1;specialState={};purificationWaveProgress069=0;movementMode='free';playerFireEnabled=true;finalPurification={active:false,t:0,originX:player.x,originY:player.y,sent:false,hidden:false,overlayDone:false};if(chapter1PurificationOverlay070){chapter1PurificationOverlay070.classList.remove('is-active');chapter1PurificationOverlay070.style.display='none';}setCombatViewImmediate(FULL_COMBAT_VIEW);if(resetRun)resetPlayerRun();else clampPlayerToCombatView(false);
  const w=waves[waveIndex],sp=w.special;
  if(sp==='droneBasic')spawnDroneBasic();
  else if(sp==='droneSides')spawnDroneSides();
@@ -2138,7 +2153,9 @@ function updateBoomerangs(dt){
   }
   if(Math.hypot(player.x-b.x,player.y-b.y)<player.r+b.r)damagePlayer();
  }
- boomerangs=boomerangs.filter(b=>b.life>0);
+ boomerangs=boomerangs.filter(b=>b.carryAcrossWaves
+  ?b.x>-80&&b.x<W+80&&b.y>-80&&b.y<H+80
+  :b.life>0);
 }
 
 function separateMovingLinkers(){
@@ -2210,7 +2227,22 @@ function updateSmartBomb(dt){
  }
  if(bombRadius>=bombMaxRadius){bombActive=false;bombRadius=0;}
 }
-function updateBullets(dt){for(const b of bullets){b.t=(b.t||0)+dt;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.kind==='deadlineShard'){const drag=Math.pow(b.drag||.992,dt*60);b.vx*=drag;b.vy*=drag;}/* suicideShard intentionally has no drag: it flies straight at its launch speed until off-screen. */b.life-=dt;if(!player.dead&&Math.hypot(player.x-b.x,player.y-b.y)<player.r+b.r)damagePlayer();}bullets=bullets.filter(b=>b.life>0&&b.x>-80&&b.x<W+80&&b.y>-80&&b.y<H+80);
+function updateBullets(dt){for(const b of bullets){
+ b.t=(b.t||0)+dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
+ if(b.kind==='deadlineShard'){
+  if(b.carryAcrossWaves){
+   // Dragged mine debris must still move off-screen instead of stopping forever.
+   // Accelerate gently along its existing direction, never teleport or despawn.
+   const speed=Math.hypot(b.vx,b.vy);
+   if(speed>0&&speed<80){const scale=Math.min(80,speed+120*dt)/speed;b.vx*=scale;b.vy*=scale;}
+  }else{const drag=Math.pow(b.drag||.992,dt*60);b.vx*=drag;b.vy*=drag;}
+ }
+ /* suicideShard keeps flying straight at its existing velocity. */
+ b.life-=dt;
+ if(!player.dead&&Math.hypot(player.x-b.x,player.y-b.y)<player.r+b.r)damagePlayer();
+ }
+ // Old enemy shots from earlier waves survive until actually outside the screen.
+ bullets=bullets.filter(b=>(b.carryAcrossWaves||b.life>0)&&b.x>-80&&b.x<W+80&&b.y>-80&&b.y<H+80);
  for(const b of playerBullets){b.x+=(b.vx||0)*dt;b.y+=b.vy*dt;b.life-=dt;for(const e of enemies){if(e.dead||e.attackable===false)continue;if(Math.hypot(e.x-b.x,e.y-b.y)<e.r+b.r){e.hp-=b.damage??18;e.hitFlash=1;e.hurtPulse=.22;b.life=0;emitWave('sfx-enemy-hit');spawnChapter1LikeEnemyHit(b.x,b.y);if(e.hp<=0)killEnemy(e,true,true);break;}}}playerBullets=playerBullets.filter(b=>b.life>0&&b.y>-40&&b.x>-40&&b.x<W+40);
 }
 function damagePlayer(force=false){if(gameOver||player.dead)return;if(invincible&&!force)return;if(player.hitTimer>0&&!force)return;player.hp--;emitWave('sfx-player-hit');if(player.powerLevel>1)player.powerLevel--;player.dead=true;player.respawnTimer=.55;player.drag=false;addEffect({kind:'ring',x:player.x,y:player.y,life:.45,color:'#ffffff'});if(player.hp<=0&&EMBEDDED){/* failure is emitted after the short death beat */}}
@@ -2385,7 +2417,7 @@ function update(dt){
    const isFinalWave=waveIndex===waves.length-1;
    if(isFinalWave)beginFinalPurification();
    else if(SINGLE_WAVE){if(!waveRunCompleteSent){waveRunCompleteSent=true;emitWave('wave-complete',{waveIndex,totalWaves:waves.length,single:true});}}
-   else startWave(waveIndex+1,false);
+   else startWave(waveIndex+1,false,true);
   }
  }else if(!isWaveDone())waveClearTimer=0;
 }
