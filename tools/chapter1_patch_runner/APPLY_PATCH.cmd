@@ -1,4 +1,4 @@
-@rem ZIP Patch Runner v9.2 - safe GitHub auto-sync before patching
+@rem ZIP Patch Runner v9.3 - safe GitHub sync and generated runtime preservation
 @echo off
 setlocal EnableExtensions
 
@@ -28,7 +28,8 @@ if not exist "%PROJECT_PATH%\.git" (
 
 echo.
 echo [INFO] The runner checks GitHub and fast-forwards a clean project before applying the ZIP.
-echo [INFO] Divergent local commits will be protected; unsafe sync stops before patching.
+echo [INFO] Known generated runtime output is preserved and included in Git commits.
+echo [INFO] Divergent local commits are protected; unsafe sync stops before patching.
 echo.
 
 if "%ZIP_PATH%"=="" (

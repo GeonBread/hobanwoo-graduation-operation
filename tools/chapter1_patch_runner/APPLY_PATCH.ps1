@@ -151,7 +151,7 @@ function Get-RelativePathIfInside([string]$ParentPath, [string]$ChildPath) {
     return Normalize-RelativePath $childFull.Substring($parentFull.Length)
 }
 
-# ZIP Patch Runner v9.2: safely auto-sync GitHub before every ZIP patch; preserve local runner/lockfile changes.
+# ZIP Patch Runner v9.3: safely auto-sync GitHub; preserve generated runtime assets and commit build outputs.
 function Get-PatchWorkingTreeStatus([string]$SelectedZipRelativePath) {
     # Do not Trim() the porcelain output: its first two spaces encode Git status.
     $lines = @(& git status --porcelain=v1 --untracked-files=all)
@@ -441,7 +441,7 @@ try {
     Write-Host "Project : $repositoryRoot"
     Write-Host "Branch  : $branchName"
     Write-Host "Baseline: $baselineCommit"
-    Write-Host "Runner  : v9.2 (safe GitHub auto-sync + lockfile preservation)"
+    Write-Host "Runner  : v9.3 (safe sync + generated runtime preservation)"
 
     $selectedZipRelativePath = Get-RelativePathIfInside -ParentPath $repositoryRoot -ChildPath $ZipPath
     $statusLines = @(Get-PatchWorkingTreeStatus -SelectedZipRelativePath $selectedZipRelativePath)
@@ -449,8 +449,10 @@ try {
         Write-WarnMessage "The selected ZIP is inside the repository. It will not be staged or committed: $selectedZipRelativePath"
     }
 
-    # A local lockfile is preserved, never discarded. Permit both runner files
-    # to be replaced before a patch; the runner must not block its own update.
+    # Preserve known build-generated runtime output as well as the lockfile and runner.
+    # The production build may rewrite public/assets/runtime/combatParallax.js,
+    # so it must never block the next ZIP patch or be silently left uncommitted.
+    $generatedRuntimeRelativePath = 'public/assets/runtime/combatParallax.js'
     $runnerRelativePath = Get-RelativePathIfInside -ParentPath $repositoryRoot -ChildPath $PSCommandPath
     $cmdRunnerPath = Join-Path $PSScriptRoot 'APPLY_PATCH.cmd'
     $cmdRunnerRelativePath = Get-RelativePathIfInside -ParentPath $repositoryRoot -ChildPath $cmdRunnerPath
@@ -462,7 +464,8 @@ try {
         $isLocalLock = $linePath -eq 'package-lock.json'
         $isThisRunner = -not [string]::IsNullOrWhiteSpace($runnerRelativePath) -and $linePath -eq $runnerRelativePath
         $isCmdRunner = -not [string]::IsNullOrWhiteSpace($cmdRunnerRelativePath) -and $linePath -eq $cmdRunnerRelativePath
-        if (($isLocalLock -or $isThisRunner -or $isCmdRunner) -and $statusCode -in @(' M', 'M ', 'MM', '??', 'A ', 'AM') -and (Test-Path -LiteralPath (Join-Path $repositoryRoot $linePath) -PathType Leaf)) {
+        $isGeneratedRuntime = $linePath -eq $generatedRuntimeRelativePath
+        if (($isLocalLock -or $isThisRunner -or $isCmdRunner -or $isGeneratedRuntime) -and $statusCode -in @(' M', 'M ', 'MM', '??', 'A ', 'AM') -and (Test-Path -LiteralPath (Join-Path $repositoryRoot $linePath) -PathType Leaf)) {
             $preservePaths += $linePath
         }
         else { $blockedLines += $line }
@@ -472,7 +475,7 @@ try {
         throw "Other project files have local changes. No patch files were applied.`nCommit or stash those changes first:`n$remainingStatus"
     }
     if ($preservePaths.Count -gt 0) {
-        Write-Step "Backing up and preserving the local lockfile / updated patch runner"
+        Write-Step "Backing up and preserving approved local changes (runtime / lockfile / runner)"
         $preflightTime = Get-Date -Format 'yyyyMMdd-HHmmss-fff'
         $preserveDirectory = Join-Path $repositoryRoot ".git\patch-runner\preserved-$preflightTime"
         New-Item -ItemType Directory -Path $preserveDirectory -Force | Out-Null
@@ -486,7 +489,7 @@ try {
         if ($preservePaths -contains 'package-lock.json') {
             Invoke-CheckedCommand -Command 'node' -Arguments @('-e', "JSON.parse(require('fs').readFileSync('package-lock.json','utf8')); console.log('Local lockfile JSON OK')") -FailureMessage "The local package-lock.json is invalid. Its backup was preserved."
         }
-        $preserveArguments = @('commit', '--only', '-m', 'chore: preserve local lockfile and update patch runner', '--') + @($preservePaths | Sort-Object -Unique)
+        $preserveArguments = @('commit', '--only', '-m', 'chore: preserve generated runtime, lockfile and patch runner', '--') + @($preservePaths | Sort-Object -Unique)
         # git commit --only reads tracked working-tree files; add newly installed files first.
         foreach ($relativePath in ($preservePaths | Sort-Object -Unique)) {
             Invoke-CheckedCommand -Command 'git' -Arguments @('add', '--', $relativePath) -FailureMessage "Could not stage preserved file: $relativePath"
@@ -549,10 +552,10 @@ try {
         }
         else {
             # Safe special case: if ALL local-only commits modify ONLY this
-            # patch runner and/or package-lock.json, replay those changes onto
-            # GitHub. Never auto-rebase a local story, asset, or game-code commit:
+            # patch runner, package-lock.json or the known generated runtime output,
+            # replay those changes onto GitHub. Never auto-rebase other game-code commits:
             # it might be a mistaken ZIP from an outdated project.
-            $safeLocalPaths = @('package-lock.json', $runnerRelativePath, $cmdRunnerRelativePath) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+            $safeLocalPaths = @('package-lock.json', $generatedRuntimeRelativePath, $runnerRelativePath, $cmdRunnerRelativePath) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
             $localCommitIds = @(& git rev-list "$remoteTrackingRef..HEAD")
             if ($LASTEXITCODE -ne 0) { throw 'Could not inspect local-only commits before synchronization.' }
             $localCommitsAreRunnerOnly = ($localCommitIds.Count -gt 0 -and $localCommitIds.Count -eq $localOnly)
@@ -576,7 +579,7 @@ try {
                 throw "Local and GitHub history have diverged ($localOnly local-only / $remoteOnly remote-only commits). Some local commits modify game files, so auto-rebasing them is unsafe. ZIP was NOT applied; commits are preserved. Safety branch: $autoSyncBackupBranch"
             }
 
-            Write-Step 'Rebasing local runner/lockfile-only commits onto GitHub'
+            Write-Step 'Rebasing approved preservation commits onto GitHub'
             # Windows PowerShell 5.1 can turn native stderr into a terminating
             # error under Stop. Capture the Git exit code so abort ALWAYS runs.
             $savedErrorAction = $ErrorActionPreference
@@ -725,6 +728,11 @@ try {
     Write-Step "Patch plan"
     if ($plan.Count -eq 0) {
         Write-Ok "The ZIP contains no changes compared with the current project."
+        if ($preflightPreserved) {
+            Write-Step 'Pushing previously preserved local changes (no ZIP modifications)'
+            Invoke-CheckedCommand -Command 'git' -Arguments @('push') -FailureMessage 'Preserved local changes were committed but GitHub push failed. No patch files were applied.'
+            Write-Ok 'Preserved changes pushed to GitHub'
+        }
         Write-Host "Report: $reportPath"
         exit 0
     }
@@ -766,7 +774,7 @@ try {
     Write-Ok "Patch files were applied"
 
     Write-Step "Checking Git diff integrity"
-    Invoke-CheckedCommand -Command 'git' -Arguments @('diff', '--check') -FailureMessage "git diff --check found whitespace or patch errors."
+    Invoke-CheckedCommand -Command 'git' -Arguments @('-c', 'core.whitespace=cr-at-eol', 'diff', '--check') -FailureMessage "git diff --check found whitespace or patch errors."
     Write-Ok "git diff --check passed"
 
     Write-Step "Scanning files touched by this ZIP"
@@ -872,6 +880,30 @@ try {
         Write-Ok "Generated package-lock.json will be included in the patch commit"
     }
 
+    # The npm build command regenerates public/assets/runtime/combatParallax.js.
+    # Include that tracked build output in the SAME patch commit, even when
+    # the ZIP does not contain it. Otherwise the next run fails at preflight.
+    $generatedRuntimeStatus = @(& git status --porcelain=v1 -- $generatedRuntimeRelativePath)
+    if ($LASTEXITCODE -ne 0) { throw 'Could not inspect the generated combatParallax.js output.' }
+    if ($generatedRuntimeStatus.Count -gt 0 -and @($plan | Where-Object { $_.Path -eq $generatedRuntimeRelativePath }).Count -eq 0) {
+        $generatedRuntimeDestination = Join-Path $repositoryRoot ($generatedRuntimeRelativePath.Replace('/', [System.IO.Path]::DirectorySeparatorChar))
+        if (-not (Test-Path -LiteralPath $generatedRuntimeDestination -PathType Leaf)) {
+            throw 'The build unexpectedly removed combatParallax.js; refusing to commit an unplanned deletion.'
+        }
+        $runtimeWasNew = ([string]$generatedRuntimeStatus[0]).StartsWith('??')
+        $plan += [PSCustomObject]@{
+            Status = $(if ($runtimeWasNew) { 'NEW' } else { 'MODIFIED' })
+            Path = $generatedRuntimeRelativePath
+            Source = $null
+            Destination = $generatedRuntimeDestination
+        }
+        Add-Content -LiteralPath $reportPath -Encoding UTF8 -Value "Build-generated change: $generatedRuntimeRelativePath"
+        Write-Ok "Generated runtime output will be included in the patch commit: $generatedRuntimeRelativePath"
+    }
+
+    # Re-check whitespace AFTER npm build. Generated sources are committed too.
+    Invoke-CheckedCommand -Command 'git' -Arguments @('-c', 'core.whitespace=cr-at-eol', 'diff', '--check') -FailureMessage 'Generated build output failed git diff --check.'
+
     Write-Step "Final Git summary"
     & git status --short --untracked-files=all | Out-Host
     & git diff --stat | Out-Host
@@ -957,6 +989,17 @@ try {
             if (-not [string]::IsNullOrWhiteSpace($reportPath)) { Write-Host "Report: $reportPath" }
             exit 2
         }
+    }
+
+    $leftoverTrackedPaths = @(& git diff --name-only --)
+    if ($LASTEXITCODE -ne 0) {
+        Write-WarnMessage 'Could not inspect remaining uncommitted tracked files after push.'
+        $leftoverTrackedPaths = @()
+    }
+    if ($leftoverTrackedPaths.Count -gt 0) {
+        Write-WarnMessage 'GitHub push succeeded, but other tracked files still have local changes:'
+        $leftoverTrackedPaths | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+        Write-WarnMessage 'These were not silently uploaded. Review them before another patch.'
     }
 
     Write-Host ""
