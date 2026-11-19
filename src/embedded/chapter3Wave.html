@@ -343,6 +343,7 @@ const FX_SPRITES={
  hook:'/assets/chapter3/combat/waves/fx/fx_hook.png'
 };
 const spriteCache={};
+const spriteVisualCenterCache=new Map();
 const glowCache=new Map();
 const MAX_GLOW_CACHE=128;
 const USE_SPRITE_SHADOWS=true;
@@ -355,6 +356,42 @@ function preloadSprite(path){
  if(!path)return null;
  if(spriteCache[path])return spriteCache[path];
  const img=new Image();img.src=path;spriteCache[path]=img;return img;
+}
+// Find the visible sprite's center of mass, not the middle of its transparent PNG box.
+// This is cached after the image loads and is used for the drill's warning guide.
+function spriteVisualCenterOffset(path,boxW,boxH,rotation){
+ const img=preloadSprite(path);
+ if(!img||!img.complete||!img.naturalWidth||!img.naturalHeight)return{x:0,y:0};
+ let center=spriteVisualCenterCache.get(path);
+ if(!center){
+  center={x:0,y:0};
+  try{
+   const scale=Math.min(1,192/Math.max(img.naturalWidth,img.naturalHeight));
+   const sw=Math.max(1,Math.round(img.naturalWidth*scale));
+   const sh=Math.max(1,Math.round(img.naturalHeight*scale));
+   const canvas=document.createElement('canvas');canvas.width=sw;canvas.height=sh;
+   const sample=canvas.getContext('2d',{willReadFrequently:true});
+   if(sample){
+    sample.drawImage(img,0,0,sw,sh);
+    const rgba=sample.getImageData(0,0,sw,sh).data;
+    let weight=0,cx=0,cy=0;
+    for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){
+     const alpha=rgba[(y*sw+x)*4+3];
+     if(alpha<80)continue;
+     const w=(alpha/255)*(alpha/255);
+     weight+=w;cx+=((x+.5)/sw-.5)*w;cy+=((y+.5)/sh-.5)*w;
+    }
+    if(weight>0){center.x=cx/weight;center.y=cy/weight;}
+   }
+  }catch(_err){/* Keep the image center when pixel access is unavailable. */}
+  spriteVisualCenterCache.set(path,center);
+ }
+ const imageRatio=img.naturalWidth/img.naturalHeight,boxRatio=boxW/boxH;
+ const drawW=imageRatio>boxRatio?boxW:boxH*imageRatio;
+ const drawH=imageRatio>boxRatio?boxW/imageRatio:boxH;
+ const localX=center.x*drawW,localY=center.y*drawH;
+ const cosine=Math.cos(rotation),sine=Math.sin(rotation);
+ return{x:localX*cosine-localY*sine,y:localX*sine+localY*cosine};
 }
 const CHAPTER3_BG_IMAGES=[preloadSprite('/assets/chapter3/combat/backgrounds/chapter3_wave_map.png')];
 const chapter3Parallax=typeof HobanuCombatParallax!=='undefined'?new HobanuCombatParallax.CombatParallax('wave3'):{draw(){}};
@@ -1040,14 +1077,58 @@ function spawnSlowPressureTractor(side){
  for(let slot=0;slot<2;slot++)makeEnemy('tractor',{pairId:id,slot,orient:'h',origin,drift,maxGap,control,travelSpeed:24});
  rebuildPairs();
 }
+// A closed, C1-continuous rollercoaster replaces the disjoint legacy segments.
+// The old track jumped at its loop boundaries, at the mid-track turn, and on wraparound.
+const ROLLER_COASTER_POINTS=(()=>{
+ const points=[{x:-90,y:240},{x:95,y:225},{x:LX(260)-140,y:230}];
+ for(let i=0;i<=12;i++){
+  const a=-Math.PI/2+i*Math.PI*2/12;
+  points.push({x:LX(260)+Math.cos(a)*105,y:345+Math.sin(a)*105});
+ }
+ points.push({x:LX(260)+210,y:245},{x:W-120,y:252},{x:W-32,y:270},
+             {x:W-45,y:350},{x:W-130,y:400},{x:LX(540)+85,y:440});
+ // Reverse the lower loop so its entry and exit tangents both face left.
+ for(let i=0;i<=12;i++){
+  const a=-Math.PI/2-i*Math.PI*2/12;
+  points.push({x:LX(540)+Math.cos(a)*108,y:558+Math.sin(a)*108});
+ }
+ points.push({x:LX(540)-190,y:470},{x:90,y:510},{x:-100,y:520},
+             {x:-215,y:455},{x:-220,y:340},{x:-180,y:260});
+ return points;
+})();
+function rollerCoasterSplinePoint(segment,t){
+ const pts=ROLLER_COASTER_POINTS,n=pts.length;
+ const p0=pts[(segment+n-1)%n],p1=pts[segment%n];
+ const p2=pts[(segment+1)%n],p3=pts[(segment+2)%n];
+ const axis=k=>.5*(2*p1[k]+(-p0[k]+p2[k])*t+
+  (2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t*t+
+  (-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t*t*t);
+ return{x:axis('x'),y:axis('y')};
+}
+// Arc-length lookup keeps all 22 drones moving smoothly at an even speed.
+const ROLLER_COASTER_TRACK=(()=>{
+ const samples=[],perSegment=16;
+ let distance=0,previous=null;
+ for(let i=0;i<ROLLER_COASTER_POINTS.length;i++)for(let j=0;j<perSegment;j++){
+  const point=rollerCoasterSplinePoint(i,j/perSegment);
+  if(previous)distance+=Math.hypot(point.x-previous.x,point.y-previous.y);
+  samples.push({...point,distance,segment:i,u:j/perSegment});previous=point;
+ }
+ const start=rollerCoasterSplinePoint(0,0);
+ distance+=Math.hypot(start.x-previous.x,start.y-previous.y);
+ samples.push({...start,distance,segment:0,u:0});
+ return{samples,length:distance,perSegment};
+})();
 function rollerCoasterPoint(s){
- s=((s%1)+1)%1;
- if(s<.12){const u=s/.12;return{x:lerp(-90,260,u),y:240};}
- if(s<.36){const u=(s-.12)/.24,a=-Math.PI/2+u*Math.PI*2;return{x:LX(260)+Math.cos(a)*105,y:345+Math.sin(a)*105};}
- if(s<.50){const u=(s-.36)/.14;return{x:lerp(260,890,u),y:lerp(240,270,u)};}
- if(s<.62){const u=(s-.50)/.12;return{x:lerp(890,540,u),y:450};}
- if(s<.86){const u=(s-.62)/.24,a=-Math.PI/2+u*Math.PI*2;return{x:LX(540)+Math.cos(a)*108,y:558+Math.sin(a)*108};}
- const u=(s-.86)/.14;return{x:lerp(540,-90,u),y:lerp(450,520,u)};
+ const track=ROLLER_COASTER_TRACK;
+ const target=((s%1)+1)%1*track.length;
+ let low=0,high=track.samples.length-1;
+ while(low+1<high){const mid=(low+high)>>1;
+  if(track.samples[mid].distance<=target)low=mid;else high=mid;
+ }
+ const a=track.samples[low],b=track.samples[high];
+ const t=(target-a.distance)/Math.max(1e-9,b.distance-a.distance);
+ return rollerCoasterSplinePoint(a.segment,a.u+t/track.perSegment);
 }
 function spawnRollerCoasterDrones(count=22){
  for(let i=0;i<count;i++){
@@ -2197,7 +2278,8 @@ function isWaveDone(){
  if(special==='tractorSequence'&&specialState.phase<1)return false;
  if(special==='tractorRollercoaster'&&specialState.rollerChargerBursts<specialState.rollerChargerMax)return false;
  if(special==='grandFinaleMixed'&&!specialState.grandFinished)return false;
- return enemies.length===0&&bullets.length===0&&boomerangs.length===0;
+ // Only living monsters gate wave completion; remaining enemy bullets and boomerangs do not.
+ return enemies.length===0;
 }
 
 function showChapter1PurificationOverlay070(){
@@ -2558,7 +2640,18 @@ function drawEnemy(e){
  // Existing gameplay telegraphs remain outside the sprite art so they stay legible on real maps.
  if(e.type==='laser'&&(e.state==='track'||e.state==='locked')){const a=e.lockA;ctx.save();ctx.strokeStyle=e.state==='locked'?'rgba(255,80,90,.95)':'rgba(255,130,130,.45)';ctx.lineWidth=e.state==='locked'?3.5:1.8;ctx.setLineDash(e.state==='track'?[8,10]:[]);ctx.beginPath();ctx.moveTo(drawX,drawY);ctx.lineTo(drawX+Math.cos(a)*1200,drawY+Math.sin(a)*1200);ctx.stroke();ctx.restore();}
  if(e.type==='laser'&&e.state==='fire'){drawAnimatedLaserBeam(drawX,drawY,e.lockA,e.t,e.phase);}
- if(e.type==='charger'&&(e.state==='aim'||e.state==='warn')){ctx.save();ctx.strokeStyle=e.state==='warn'?'#7cfff5':'rgba(110,245,235,.38)';ctx.lineWidth=e.state==='warn'?3:1.5;ctx.setLineDash([9,9]);ctx.beginPath();ctx.moveTo(drawX,drawY);ctx.lineTo(drawX+Math.cos(e.lockAngle)*900,drawY+Math.sin(e.lockAngle)*900);ctx.stroke();ctx.restore();}
+ if(e.type==='charger'&&(e.state==='aim'||e.state==='warn')){
+  const pivot=spriteVisualCenterOffset(sprite,w,h,angle);
+  const guideX=drawX+pivot.x,guideY=drawY+pivot.y;
+  ctx.save();ctx.strokeStyle=e.state==='warn'?'#7cfff5':'rgba(110,245,235,.38)';
+  ctx.lineWidth=e.state==='warn'?3:1.5;ctx.setLineDash([9,9]);ctx.beginPath();
+  ctx.moveTo(guideX,guideY);
+  ctx.lineTo(guideX+Math.cos(e.lockAngle)*900,guideY+Math.sin(e.lockAngle)*900);
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=e.state==='warn'?'#c9fff9':'rgba(143,255,243,.66)';
+  ctx.beginPath();ctx.arc(guideX,guideY,e.state==='warn'?3:2.2,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+ }
  if(e.type==='branch'&&e.state==='lock'){
   const a=[-Math.PI/2,0,Math.PI/2,Math.PI][e.chosen||0];ctx.save();ctx.strokeStyle='rgba(112,215,255,.85)';ctx.lineWidth=2.5;ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(drawX,drawY);ctx.lineTo(drawX+Math.cos(a)*420,drawY+Math.sin(a)*420);ctx.stroke();ctx.restore();
  }
